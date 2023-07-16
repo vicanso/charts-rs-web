@@ -2,7 +2,7 @@
 set -e
 
 if [ "${1:0:1}" = '-' ]; then
-    set -- charts-web "$@"
+    set -- charts-rs-web "$@"
 fi
 
 exec "$@"

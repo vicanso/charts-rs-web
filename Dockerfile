@@ -3,7 +3,7 @@ FROM rust:alpine as builder
 RUN apk update \
   && apk add git make build-base pkgconfig
 RUN rustup target list --installed
-RUN cd /charts-rs \
+RUN cd /charts-rs-web \
   && make release 
 
 FROM alpine 
@@ -16,8 +16,8 @@ RUN addgroup -g 1000 rust \
   && adduser -u 1000 -G rust -s /bin/sh -D rust \
   && apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /charts-rs/target/release/charts-web /usr/local/bin/charts-web
-COPY --from=builder /charts-rs/entrypoint.sh /entrypoint.sh
+COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
+COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
 
 ENV RUST_ENV=production
 
@@ -27,6 +27,6 @@ WORKDIR /home/rust
 
 HEALTHCHECK --timeout=10s --interval=10s CMD [ "wget", "http://127.0.0.1:5000/ping", "-q", "-O", "-"]
 
-CMD ["charts-web"]
+CMD ["charts-rs-web"]
 
 ENTRYPOINT ["/entrypoint.sh"]

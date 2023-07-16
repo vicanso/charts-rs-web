@@ -258,7 +258,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "charts-web"
+name = "charts-rs-web"
 version = "0.1.0"
 dependencies = [
  "axum",
