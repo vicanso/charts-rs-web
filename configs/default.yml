@@ -1,4 +1,4 @@
 # 需要注意配置仅支持两层级形式
 basic:
-  listen: 127.0.0.1:5000
+  listen: 0.0.0.0:5000
   requestLimit: 1000
