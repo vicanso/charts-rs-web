@@ -8,7 +8,6 @@ use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-mod asset;
 mod config;
 mod controller;
 mod error;
