@@ -1,5 +1,7 @@
 FROM rust:alpine as builder
 
+COPY . /charts-rs-web
+
 RUN apk update \
   && apk add git make build-base pkgconfig
 RUN rustup target list --installed
