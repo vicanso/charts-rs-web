@@ -88,9 +88,6 @@ async fn run() {
         .unwrap();
 }
 fn main() {
-    let font = asset::get_source_han_sans().unwrap();
-    // 直接覆盖默认的字体
-    charts_rs::add_font("Arial", &font.data).unwrap();
     init_logger();
     run();
 }

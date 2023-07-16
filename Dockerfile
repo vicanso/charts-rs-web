@@ -10,7 +10,7 @@ RUN cd /charts-rs-web \
 
 FROM alpine 
 
-EXPOSE 7001
+EXPOSE 5000
 
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 
