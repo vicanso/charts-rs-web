@@ -44,7 +44,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            vicanso/charts-rs
+            vicanso/charts-rs-web
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -63,6 +63,8 @@ jobs:
         with:
           platforms: linux/amd64, linux/arm64
           push: true
+          tags: vicanso/charts-rs-web:latest
+          # tags: ${{ steps.meta.outputs.tags }}
       - name: Image digest
         run: |
           echo ${{ steps.docker_build.outputs.digest }}
