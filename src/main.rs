@@ -8,6 +8,7 @@ use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
+mod asset;
 mod config;
 mod controller;
 mod error;
@@ -87,6 +88,9 @@ async fn run() {
         .unwrap();
 }
 fn main() {
+    // TODO 指定加载的字体目录
+    let font = asset::get_source_han_sans().unwrap();
+    charts_rs::get_or_init_fonts(Some(vec![("Source Han Sans".to_string(), &font.data)])).unwrap();
     init_logger();
     run();
 }
