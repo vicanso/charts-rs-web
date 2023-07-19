@@ -232,14 +232,15 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "charts-rs"
-version = "0.1.5"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80df750a83c364ff3429cae442d4c89ced303bd7e2193b2079b2ca68361a1c8b"
+checksum = "0ba3003717d1bbb1e69337f75c9cd0a1b814e4625bd4ab4bd22302cb31fed8a3"
 dependencies = [
  "charts-rs-derive",
  "fontdue",
  "once_cell",
  "png",
+ "regex",
  "resvg",
  "serde",
  "serde_json",
@@ -266,6 +267,7 @@ dependencies = [
  "charts-rs",
  "chrono",
  "config",
+ "glob",
  "hyper",
  "mime",
  "once_cell",
@@ -518,6 +520,12 @@ name = "gimli"
 version = "0.27.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c80984affa11d98d1b88b66ac8853f143217b399d3c74116778ff8fdb4ed2e"
+
+[[package]]
+name = "glob"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "hashbrown"

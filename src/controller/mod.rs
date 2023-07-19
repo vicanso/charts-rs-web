@@ -4,8 +4,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::Router;
 use charts_rs::{
-    svg_to_png, BarChart, EncodeParams, HorizontalBarChart, LineChart, PieChart, RadarChart,
-    TableChart,
+    svg_to_png, BarChart, HorizontalBarChart, LineChart, PieChart, RadarChart, TableChart,
 };
 
 use crate::error::{HTTPError, HTTPResult};
@@ -81,10 +80,7 @@ async fn render(req: Request<Body>, format: FormatType) -> HTTPResult<Bytes> {
     let data = match format {
         FormatType::Svg => Bytes::from(svg),
         _ => {
-            let data = svg_to_png(EncodeParams {
-                svg,
-                ..Default::default()
-            })?;
+            let data = svg_to_png(&svg)?;
             Bytes::from(data)
         }
     };
