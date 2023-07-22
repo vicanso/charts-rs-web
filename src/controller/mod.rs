@@ -108,6 +108,14 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
     } else {
         ""
     };
+    let mut quality: u8 = 80;
+    if let Some(value) = value.get("quality") {
+        let v = value.as_u64().unwrap_or_default();
+        if v < 100 {
+            quality = v as u8;
+        }
+    }
+
     let svg = match chart_type {
         "line" => {
             let chart = LineChart::from_json(&json)?;
@@ -139,9 +147,12 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
         FormatType::Svg => Bytes::from(svg),
         _ => {
             let data = svg_to_png(&svg)?;
+            if quality == 0 {
+                return Ok(Bytes::from(data));
+            }
 
             let mut liq = imagequant::new();
-            liq.set_quality(0, 80).context(ImageQuantSnafu {
+            liq.set_quality(0, quality).context(ImageQuantSnafu {
                 category: "png_set_quality",
             })?;
 
