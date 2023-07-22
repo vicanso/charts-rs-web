@@ -15,6 +15,7 @@
 ### 公共参数
 
 - `type`: 图表类型，默认为`bar`，可选的值为：`line`，`horizontal_bar`，`pie`，`radar`，`table`，以及`bar`
+- `quality`: 输出的PNG图片质量，默认为`80`，若指定为`0`则表示不压缩。图片质量为`80`时，图片大小`7kb`，总体耗时`52ms`。不压缩时，图片大小`46kb`，总体耗时`26ms`
 - `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`，默认为`light`
 - `width`: 图表宽度，默认为600
 - `height`: 图表调试，默认为400
@@ -83,4 +84,9 @@
 
 ### 图表数据列表
 
-- `series_list`: 图表数据
+- `series_list`: 图表数据系列，类型为数组
+- `series_list.name`: 数据名称，不能为空
+- `series_list.index`: 指定数据的index，此index影响其颜色等，一般场景不需要指定
+- `series_list.y_axis_index`: 数据对应的Y轴，如果该数据非使用第一个Y轴时可指定（同时Y轴需要初始化为多个）
+- `series_list.label_show`: 数据的label是否展示，默认为`false`
+- `series_list.category`: 数据的类型，用于在`bar`图表中指定某些数据以`line`的形式混合展示，可选值为`bar`与`line`
