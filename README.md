@@ -33,5 +33,54 @@
 - `sub_title_margin`: 子标题的margin，默认为`0`
 - `sub_title_align`: 子标题的位置，默认为`center`，可选值为：`left`, `center`以及`right`
 - `sub_title_height`: 子标题高度，默认为`20`
+- `legend_font_size`: 图示的字体大小，默认为`14`
+- `legend_font_color`: 图示的字体颜色，不同的主题有不同的默认颜色
+- `legend_align`: 图示的位置，默认为`center`，可选值为：`left`, `center`以及`right`
+- `legend_margin`: 图示的margin，默认为`0`
+- `legend_category`: 图示的类型，默认为`normal`，可选值为：`normal`以及`rect`
+- `legend_show`: 图示是否显示，默认为`true`
+
+### 网格属性
+
+使用网格的图表中使用，如：`line`，`bar`等
+
+- `grid_stroke_color`: 图表网格线条颜色，不同的主题有不同的默认颜色
+- `grid_stroke_width`: 图表网格线条宽度，默认为`1`
+
+
+### 图表线条相关属性
+
+- `series_stroke_width`: 图表线条宽度，默认为`2`
+- `series_label_font_color`: 图表中的label字体颜色，不同的主题有不同的默认颜色
+- `series_label_font_size`: 图表中的label字体大小，默认为`14`
+- `series_colors`: 图表使用的颜色列表，不同的主题有不同的颜色列表，用于不同各类的示例中使用
+- `series_smooth`: 图表线条是否使用平滑曲线，默认为`false`
+- `series_fill`: 图表线条曲线是否填充对应区域，默认为`false`
+
+
+### X轴相关属性
+
+- `x_axis_data`: X轴的数据
+- `x_axis_height`: X轴的高度，默认为`30`
+- `x_axis_stroke_color`: X轴线条的颜色，不同的主题有不同的默认颜色
+- `x_axis_font_size`: X轴字体大小，默认为`14`
+- `x_axis_font_color`: X轴字体的颜色，不同的主题有不同的默认颜色
+- `x_axis_name_gap`: X轴文本名称与轴的间隔，默认为`5`
+- `x_axis_name_rotate`: X轴文本名称的旋转角度，默认为`0`
+- `x_boundary_gap`: X轴的坐标留边处理，无默认值，可设置为`true`或者`false`
+
+
+### Y轴相关属性
+
+- `y_axis_configs`: Y轴属性配置，类型为数组
+- `y_axis_configs.axis_font_size`: Y轴字体大小，默认为`14`
+- `y_axis_configs.axis_font_color`: Y轴字体颜色，不同的主题有不同的默认颜色
+- `y_axis_configs.axis_stroke_color`: Y轴线条颜色，不同的主题有不同的默认颜色
+- `y_axis_configs.axis_width`: Y轴宽度，未设置则通过计算得出
+- `y_axis_configs.axis_split_number`: Y轴坐标分块数量，默认为`6`
+- `y_axis_configs.axis_name_gap`: Y轴名称文本与轴的间隔，默认为`8`
+- `y_axis_configs.axis_formatter`: Y轴名称格式化方式，可以使用以下方式：`{c} ml`
+
+### 图表数据列表
 
 - `series_list`: 图表数据
