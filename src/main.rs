@@ -88,46 +88,24 @@ async fn run() {
         .unwrap();
 }
 
-// fn load_fonts_dir_impl(&mut self, dir: &std::path::Path) {
-//     let fonts_dir = match std::fs::read_dir(dir) {
-//         Ok(dir) => dir,
-//         Err(_) => return,
-//     };
-
-//     for entry in fonts_dir.flatten() {
-//         let path = entry.path();
-//         if path.is_file() {
-//             match path.extension().and_then(|e| e.to_str()) {
-//                 Some("ttf") | Some("ttc") | Some("TTF") | Some("TTC") |
-//                 Some("otf") | Some("otc") | Some("OTF") | Some("OTC") => {
-//                     if let Err(e) = self.load_font_file(&path) {
-//                         log::warn!("Failed to load '{}' cause {}.", path.display(), e);
-//                     }
-//                 }
-//                 _ => {}
-//             }
-//         } else if path.is_dir() {
-//             // TODO: ignore symlinks?
-//             self.load_fonts_dir(path);
-//         }
-//     }
-// }
-
 fn load_fonts(dir: &str) {
     let mut font_files = vec![];
 
-    for entry in glob(&format!(r#"{dir}/*.ttf"#))
-        .expect("Failed to read glob pattern")
-        .flatten()
-    {
-        font_files.push(entry)
+    let file_paths = vec![
+        format!(r#"{dir}/*.ttf"#),
+        format!(r#"{dir}/*.otf"#),
+        format!(r#"{dir}/**/*.ttf"#),
+        format!(r#"{dir}/**/*.otf"#),
+    ];
+    for file_path in file_paths.iter() {
+        for entry in glob(file_path)
+            .expect("Failed to read glob pattern")
+            .flatten()
+        {
+            font_files.push(entry)
+        }
     }
-    for entry in glob(&format!(r#"{dir}/**/*.ttf"#))
-        .expect("Failed to read glob pattern")
-        .flatten()
-    {
-        font_files.push(entry)
-    }
+
     let mut font_buffers = vec![];
     for item in font_files.iter() {
         if let Ok(buf) = fs::read(item) {
@@ -140,10 +118,7 @@ fn load_fonts(dir: &str) {
 fn main() {
     init_logger();
     if let Ok(font_path) = env::var("CHARTS_FONT_PATH") {
-        info!(
-            font_path,
-            "loading fonts"
-        );
+        info!(font_path, "loading fonts");
         load_fonts(&font_path);
     }
     let families = charts_rs::get_font_families().unwrap();

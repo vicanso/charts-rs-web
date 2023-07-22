@@ -11,5 +11,4 @@ udeps:
 	cargo +nightly udeps
 
 release:
-	date > assets/build_date
 	cargo build --release

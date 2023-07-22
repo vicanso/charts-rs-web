@@ -3,7 +3,7 @@ FROM rust:alpine as builder
 COPY . /charts-rs-web
 
 RUN apk update \
-  && apk add git make build-base pkgconfig font-roboto
+  && apk add git make build-base pkgconfig 
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && make release 
@@ -20,9 +20,10 @@ RUN addgroup -g 1000 rust \
 
 COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
 COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
-COPY --from=builder /usr/share/fonts /usr/share/fonts
+COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
 
 ENV RUST_ENV=production
+ENV CHARTS_FONT_PATH=/usr/share/fonts
 
 USER rust
 

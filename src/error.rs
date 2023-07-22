@@ -6,8 +6,7 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct HTTPError {
+pub struct HttpError {
     // 出错信息
     pub message: String,
     // 出错类型
@@ -20,27 +19,28 @@ pub struct HTTPError {
     pub extra: Option<Vec<String>>,
 }
 
-impl From<charts_rs::CanvasError> for HTTPError {
+impl From<charts_rs::CanvasError> for HttpError {
     fn from(value: charts_rs::CanvasError) -> Self {
-        HTTPError {
+        HttpError {
             message: value.to_string(),
             category: "charts".to_string(),
             ..Default::default()
         }
     }
 }
-impl From<charts_rs::EncoderError> for HTTPError {
+impl From<charts_rs::EncoderError> for HttpError {
     fn from(value: charts_rs::EncoderError) -> Self {
-        HTTPError {
+        HttpError {
             message: value.to_string(),
             category: "charts_encoder".to_string(),
             ..Default::default()
         }
     }
 }
-impl From<serde_json::Error> for HTTPError {
+
+impl From<serde_json::Error> for HttpError {
     fn from(value: serde_json::Error) -> Self {
-        HTTPError {
+        HttpError {
             message: value.to_string(),
             category: "json".to_string(),
             ..Default::default()
@@ -48,12 +48,12 @@ impl From<serde_json::Error> for HTTPError {
     }
 }
 
-pub type HTTPResult<T> = Result<T, HTTPError>;
+pub type HttpResult<T> = Result<T, HttpError>;
 
-impl Default for HTTPError {
+impl Default for HttpError {
     fn default() -> Self {
         // 因为默认status为400，因此需要单独实现default
-        HTTPError {
+        HttpError {
             message: "".to_string(),
             category: "".to_string(),
             // 默认使用400为状态码
@@ -64,7 +64,7 @@ impl Default for HTTPError {
     }
 }
 
-impl HTTPError {
+impl HttpError {
     pub fn new(message: &str) -> Self {
         Self {
             message: message.to_string(),
@@ -89,7 +89,7 @@ impl HTTPError {
     }
 }
 
-impl IntoResponse for HTTPError {
+impl IntoResponse for HttpError {
     fn into_response(self) -> Response {
         let status = match StatusCode::from_u16(self.status) {
             Ok(status) => status,
@@ -109,10 +109,10 @@ pub async fn handle_error(
     uri: Uri,
     // the last argument must be the error itself
     err: BoxError,
-) -> HTTPError {
+) -> HttpError {
     error!("method:{}, uri:{}, error:{}", method, uri, err.to_string());
     if err.is::<tower::timeout::error::Elapsed>() {
-        return HTTPError::new_with_category_status("Request took too long", "timeout", 408);
+        return HttpError::new_with_category_status("Request took too long", "timeout", 408);
     }
-    HTTPError::new(&err.to_string())
+    HttpError::new(&err.to_string())
 }
