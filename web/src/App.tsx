@@ -79,6 +79,10 @@ const chartOptions = [
     label: "Line: 填充平滑曲线图",
   },
   {
+    value: "barLineMixin",
+    label: "BarLine: 柱线混合图",
+  },
+  {
     value: "horizontalBar",
     label: "HorizontalBar: 水平柱状图",
   },
@@ -94,26 +98,6 @@ const chartOptions = [
     value: "tableBasic",
     label: "Table: 表格",
   },
-  // {
-  //   value: "mixLineBar",
-  //   label: "mix line bar",
-  // },
-  // {
-  //   value: "horizontalBar",
-  //   label: "horizontal bar",
-  // },
-  // {
-  //   value: "pie",
-  //   label: "pie",
-  // },
-  // {
-  //   value: "radar",
-  //   label: "radar",
-  // },
-  // {
-  //   value: "table",
-  //   label: "table",
-  // },
 ];
 const themeOptions = [
   {
@@ -270,6 +254,45 @@ const chartDefaultOptions: Record<string, unknown> = {
         name: "Union Ads",
         label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+  }),
+  barLineMixin: Object.assign({}, defaultOption, {
+    type: "bar",
+    title_text: "Bar Line Mixin",
+    sub_title_text: "",
+    legend_margin: {
+      top: 25,
+      bottom: 3,
+    },
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    series_smooth: true,
+    y_axis_configs: [
+      {
+        axis_font_size: 14,
+        axis_formatter: "{c} ml"
+      },
+      {
+        axis_stroke_color: "#EE6666",
+        axis_font_color: "#EE6666",
+        axis_formatter: "{c} °C",
+      }
+    ],
+    series_list: [
+      {
+        name: "Evaporation",
+        data: [2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6],
+      },
+      {
+        name: "Precipitation",
+        data: [2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6],
+      },
+      {
+        name: "Temperature",
+        category: "line",
+        y_axis_index: 1,
+        label_show: true,
+        data: [2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3],
       },
     ],
   }),
