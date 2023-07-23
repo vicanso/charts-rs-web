@@ -25,14 +25,14 @@ impl IntoResponse for StaticFile {
         // 因为html对于网页是入口，避免缓存后更新不及时
         // 因此设置为0
         // 其它js,css会添加版本号，因此无影响
-        let max_age = if mime_type.contains("text/html") {
+        let max_age = if mime_type.contains("html") {
             0
         } else {
             365 * 24 * 3600
         };
 
         // 缓存服务器的有效期设置为较短的值
-        let server_max_age = 600;
+        let server_max_age = 3600;
         let s_max_age = if max_age > server_max_age {
             Some(server_max_age)
         } else {
