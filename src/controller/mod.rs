@@ -1,5 +1,5 @@
 use axum::body::{Body, Bytes};
-use axum::http::{header, HeaderValue, Request};
+use axum::http::{header, HeaderValue, Request, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
@@ -13,6 +13,7 @@ use crate::error::{HttpError, HttpResult};
 use charts_rs::{
     svg_to_png, BarChart, HorizontalBarChart, LineChart, PieChart, RadarChart, TableChart,
 };
+use crate::dist::{get_static_file, StaticFile};
 
 #[derive(Debug, Snafu)]
 pub enum ImageError {
@@ -57,9 +58,10 @@ pub type JsonResult<T> = HttpResult<Json<T>>;
 pub fn new_router() -> Router {
     Router::new()
         .route("/ping", get(ping))
-        .route("/font-families", get(font_families))
-        .route("/charts/svg", post(chart_svg))
-        .route("/charts/png", post(chart_png))
+        .route("/api/font-families", get(font_families))
+        .route("/api/charts/svg", post(chart_svg))
+        .route("/api/charts/png", post(chart_png))
+        .fallback(get(serve))
 }
 
 /// 读取http body
@@ -81,6 +83,16 @@ where
 async fn ping() -> HttpResult<&'static str> {
     Ok("pong")
 }
+
+async fn serve(uri: Uri) -> StaticFile {
+    let mut filename = &uri.path()[1..];
+    // html无版本号，因此不设置缓存
+    if filename.is_empty() {
+        filename = "index.html";
+    }
+    get_static_file(filename)
+}
+
 
 #[derive(Debug, Clone, Serialize, Default)]
 struct FontFamilyResult {

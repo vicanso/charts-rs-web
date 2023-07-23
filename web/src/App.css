@@ -1,0 +1,30 @@
+.contentWrapper {
+  width: 1000px;
+  margin: auto;
+  padding-bottom: 30px;
+}
+.header {
+  background-color: #fff !important;
+  color: #171b21 !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+.header.dark {
+  background-color: #171b21 !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+.editorWrapper {
+  position: fixed;
+  left: 0;
+  top: 65px;
+  width: 50%;
+  bottom: 0;
+}
+.previewWrapper {
+  position: fixed;
+  left: 50%;
+  top: 65px;
+  width: 50%;
+  bottom: 0;
+  right: 0;
+}

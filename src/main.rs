@@ -14,6 +14,7 @@ mod controller;
 mod error;
 mod middleware;
 mod util;
+mod dist;
 
 fn init_logger() {
     let mut level = Level::INFO;
