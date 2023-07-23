@@ -43,21 +43,15 @@ const getGithubIcon = (isDarkMode: boolean) => {
     color = `rgb(255, 255, 255)`;
   }
   return (
-    <a
-      href="https://github.com/vicanso/charts-rs"
-      style={{
-        position: "absolute",
-        padding: "15px 30px",
-        right: 0,
-        top: 0,
-      }}
-    >
+    <a href="https://github.com/vicanso/charts-rs" style={{}}>
       <svg
         height="32"
         viewBox="0 0 16 16"
         width="32"
         aria-hidden="true"
         style={{
+          display: "block",
+          marginLeft: "15px",
           fill: color,
         }}
       >
@@ -69,33 +63,57 @@ const getGithubIcon = (isDarkMode: boolean) => {
 
 const chartOptions = [
   {
-    value: "bar",
-    label: "bar",
+    value: "barBasic",
+    label: "Bar: 常规柱状图",
   },
   {
-    value: "line",
-    label: "line",
+    value: "lineBasic",
+    label: "Line: 常规曲线图",
   },
   {
-    value: "mixLineBar",
-    label: "mix line bar",
+    value: "lineSmooth",
+    label: "Line: 常规平滑曲线图",
+  },
+  {
+    value: "lineSmoothFill",
+    label: "Line: 填充平滑曲线图",
   },
   {
     value: "horizontalBar",
-    label: "horizontal bar",
+    label: "HorizontalBar: 水平柱状图",
   },
   {
-    value: "pie",
-    label: "pie",
+    value: "pieBasic",
+    label: "Pie: 饼图",
   },
   {
-    value: "radar",
-    label: "radar",
+    value: "radarBasic",
+    label: "Radar: 雷达图",
   },
   {
-    value: "table",
-    label: "table",
+    value: "tableBasic",
+    label: "Table: 表格",
   },
+  // {
+  //   value: "mixLineBar",
+  //   label: "mix line bar",
+  // },
+  // {
+  //   value: "horizontalBar",
+  //   label: "horizontal bar",
+  // },
+  // {
+  //   value: "pie",
+  //   label: "pie",
+  // },
+  // {
+  //   value: "radar",
+  //   label: "radar",
+  // },
+  // {
+  //   value: "table",
+  //   label: "table",
+  // },
 ];
 const themeOptions = [
   {
@@ -170,10 +188,10 @@ const defaultOption = {
   x_axis_font_size: 14,
   x_axis_name_gap: 5,
   x_axis_name_rotate: 0,
-  x_boundary_gap: false,
+  x_boundary_gap: true,
 };
 const chartDefaultOptions: Record<string, unknown> = {
-  bar: Object.assign({}, defaultOption, {
+  barBasic: Object.assign({}, defaultOption, {
     type: "bar",
     title_text: "Bar Chart",
     legend_align: "left",
@@ -186,13 +204,190 @@ const chartDefaultOptions: Record<string, unknown> = {
       },
       {
         name: "Union Ads",
+        label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
     ],
   }),
-  line: Object.assign({}, defaultOption, {
+  lineBasic: Object.assign({}, defaultOption, {
     type: "line",
     title_text: "Line Chart",
+    legend_align: "right",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_boundary_gap: false,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+  }),
+  lineSmooth: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Smooth Chart",
+    legend_align: "right",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    series_smooth: true,
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+  }),
+  lineSmoothFill: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Smooth Fill Chart",
+    legend_align: "right",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    series_smooth: true,
+    series_fill: true,
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+  }),
+  horizontalBar: Object.assign({}, defaultOption, {
+    type: "horizontal_bar",
+    title_text: "World Population",
+    legend_align: "left",
+    x_axis_data: ["Brazil", "Indonesia", "USA", "India", "China", "World"],
+    series_list: [
+      {
+        name: "2011",
+        label_show: true,
+        data: [18203.0, 23489.0, 29034.0, 104970.0, 131744.0, 630230.0],
+      },
+      {
+        name: "2012",
+        label_show: true,
+        data: [19325.0, 23438.0, 31000.0, 121594.0, 134141.0, 681807.0],
+      },
+    ],
+  }),
+  pieBasic: Object.assign({}, defaultOption, {
+    type: "pie",
+    title_text: "Nightingale Chart",
+    legend_margin: {
+      top: 50,
+    },
+    series_list: [
+      {
+        name: "rose 1",
+        data: [40],
+      },
+      {
+        name: "rose 2",
+        data: [38],
+      },
+      {
+        name: "rose 3",
+        data: [32],
+      },
+      {
+        name: "rose 4",
+        data: [30],
+      },
+      {
+        name: "rose 5",
+        data: [28],
+      },
+      {
+        name: "rose 6",
+        data: [26],
+      },
+      {
+        name: "rose 7",
+        data: [22],
+      },
+      {
+        name: "rose 8",
+        data: [18],
+      },
+    ],
+  }),
+  radarBasic: Object.assign({}, defaultOption, {
+    type: "radar",
+    title_text: "Radar Chart",
+    sub_title_text: "",
+    title_margin: {
+      top: 20,
+    },
+    series_list: [
+      {
+        name: "Allocated Budget",
+        data: [4200.0, 3000.0, 20000.0, 35000.0, 50000.0, 18000.0],
+      },
+      {
+        name: "Actual Spending",
+        data: [5000.0, 14000.0, 28000.0, 26000.0, 42000.0, 21000.0],
+      },
+    ],
+    indicators: [
+      {
+        name: "Sales",
+        max: 6500,
+      },
+      {
+        name: "Administration",
+        max: 16000,
+      },
+      {
+        name: "Information Technology",
+        max: 30000,
+      },
+      {
+        name: "Customer Support",
+        max: 38000,
+      },
+      {
+        name: "Development",
+        max: 52000,
+      },
+      {
+        name: "Marketing",
+        max: 25000,
+      },
+    ],
+  }),
+  tableBasic: Object.assign({}, defaultOption, {
+    type: "table",
+    title_text: "NASDAQ",
+    sub_title_text: "",
+    data: [
+      ["Name", "Price", "Change"],
+      ["Datadog Inc", "97.32", "-7.49%"],
+      ["Hashicorp Inc", "28.66", "-9.25%"],
+      ["Gitlab Inc", "51.63", "+4.32%"],
+    ],
+    header_font_weight: "bold",
+    text_aligns: ["left", "center", "right"],
   }),
 };
 
@@ -209,7 +404,7 @@ interface AppState {
 
 class App extends Component<any, AppState> {
   editorInited;
-  editorDom:RefObject<HTMLDivElement>;
+  editorDom: RefObject<HTMLDivElement>;
   constructor(props: any) {
     super(props);
     this.editorDom = createRef();
@@ -238,7 +433,7 @@ class App extends Component<any, AppState> {
         editor,
       },
       () => {
-        this.changeChartOption("bar");
+        this.changeChartOption(chartOptions[0].value);
       }
     );
   }
@@ -288,7 +483,6 @@ class App extends Component<any, AppState> {
       }
 
       const { data } = await axios.post(url, value, config);
-      console.dir(data);
       let svg = "";
       let png = "";
       if (isSvg) {
@@ -345,11 +539,16 @@ class App extends Component<any, AppState> {
         }}
       >
         <Layout>
-          {getGithubIcon(isDarkMode())}
           <Header className={headerClass}>
             <div className="contentWrapper">
               <Space>
-                <span>CHARTS-RS</span>
+                <span
+                  style={{
+                    fontWeight: "bold",
+                  }}
+                >
+                  CHARTS-RS
+                </span>
               </Space>
               <Space
                 style={{
@@ -390,7 +589,7 @@ class App extends Component<any, AppState> {
                 <Select
                   size="large"
                   style={{
-                    width: 200,
+                    width: 250,
                   }}
                   options={chartOptions}
                   defaultValue={chartOptions[0].value}
@@ -408,6 +607,7 @@ class App extends Component<any, AppState> {
                 >
                   {processing ? "Processing..." : "Generate"}
                 </Button>
+                {getGithubIcon(isDarkMode())}
               </Space>
             </div>
           </Header>
