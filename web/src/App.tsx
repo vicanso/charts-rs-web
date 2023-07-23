@@ -605,7 +605,7 @@ class App extends Component<any, AppState> {
                   }}
                   onClick={() => this.generateChart()}
                 >
-                  {processing ? "Processing..." : "Generate"}
+                  {processing ? "生成中..." : "运行"}
                 </Button>
                 {getGithubIcon(isDarkMode())}
               </Space>

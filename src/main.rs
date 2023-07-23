@@ -81,7 +81,7 @@ async fn run() {
     let basic_config = config::must_new_basic_config();
 
     let addr = basic_config.listen.parse().unwrap();
-    info!("listening on {}", addr);
+    info!("listening on http://{}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown_signal())
