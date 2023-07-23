@@ -4,9 +4,9 @@
 
 ## HTTP接口
 
-- `GET /font-families`: 返回支持的字体，默认支持两种字体`Noto Sans SC`与`Roboto`
-- `POST /charts/png`: 生成PNG图表
-- `POST /charts/svg`: 生成SVG图表
+- `GET /api/font-families`: 返回支持的字体，默认支持两种字体`Noto Sans SC`与`Roboto`
+- `POST /api/charts/png`: 生成PNG图表
+- `POST /api/charts/svg`: 生成SVG图表
 
 ## JSON参数
 
