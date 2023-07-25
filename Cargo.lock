@@ -244,9 +244,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "charts-rs"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd2a3c04780ec70ae2ff4456e79a293d227d6a3f3468c73db83c2400b3b35e98"
+checksum = "652540771683e4f12de72393935cfaff4d3aaf55ebedf3e28c3216b00845ccb9"
 dependencies = [
  "charts-rs-derive",
  "fontdue",

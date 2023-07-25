@@ -399,8 +399,23 @@ const chartDefaultOptions: Record<string, unknown> = {
       },
     ],
   }),
-  tableBasic: Object.assign({}, defaultOption, {
+  tableBasic: Object.assign({
+    quality: 80,
+    width: 600,
+    height: 400,
+    spans: [0.5, 0.3, 0.2],
+    text_aligns: ["left", "center", "right"],
+    header_row_padding: {
+      left: 10,
+      top: 10,
+      right: 10,
+      bottom: 10,
+    },
+    header_row_height: 30.0,
+    header_font_size: 16.0,
+  }, {
     type: "table",
+    title_height: 45,
     title_text: "NASDAQ",
     sub_title_text: "",
     data: [

@@ -19,6 +19,7 @@
 - `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`，默认为`light`
 - `width`: 图表宽度，默认为600
 - `height`: 图表调试，默认为400
+- `background_color`: 图表底色，不同的主题有不同的默认颜色
 - `margin`: 图表的margin，默认为`{"left":5,"top":5,"right":5,"bottom":5}`
 - `font_family`: 图表使用的字体，默认为`Roboto`
 - `title_text`: 图表标题
@@ -90,3 +91,40 @@
 - `series_list.y_axis_index`: 数据对应的Y轴，如果该数据非使用第一个Y轴时可指定（同时Y轴需要初始化为多个）
 - `series_list.label_show`: 数据的label是否展示，默认为`false`
 - `series_list.category`: 数据的类型，用于在`bar`图表中指定某些数据以`line`的形式混合展示，可选值为`bar`与`line`
+
+### 饼图相关属性
+
+饼图有部分属性是其单独例如的，具体如下：
+
+- `radius`: 半径，默认值为`150`
+- `inner_radius`: 内半径，默认值为`40`
+
+## 表格相关属性
+
+表格的相关属性与其它图的不尽相同，与公共属性相同部分为：`type`，`quality`，`theme`，`width`，`height`，`font_family`，`background_color`，还有`title`与`sub_title`部分也一致。
+
+不相同的如下：
+
+- `data`: 表格数据，其为二维数组，而且不能为空。第一个数组对应表头数据
+- `spans`: 表格每列所占比例，例如[0.5, 0.2, 0.3]，默认为根据列的数量均分
+- `text_aligns`: 表格列的文本对齐方式，默认为`left`，可以按需设置，如["left", "center", "right"]
+- `border_color`: 表格边框颜色，不同的主题有不同的默认颜色
+- `header_row_padding`: 表头的padding，默认为`{"left": 10, "top": 8, "right": 10, "bottom": 8}`
+- `header_row_height`: 表头行高，默认为`30`
+- `header_font_size`: 表头字体，默认`14`
+- `header_font_color`: 表头字体颜色，不同的主题有不同的默认颜色
+- `header_background_color`: 表头背景颜色，不同的主题有不同的默认颜色
+- `body_row_padding`: 表头的padding，默认为`{"left": 10, "top": 5, "right": 10, "bottom": 5}`
+- `body_row_height`: 表格内容行高，默认为`30`
+- `body_font_size`: 表头字体，默认`14`
+- `body_font_color`: 表头字体颜色，不同的主题有不同的默认颜色
+- `body_background_colors`: 表头背景颜色，不同的主题有不同的默认颜色
+
+## 启动
+
+```bash
+docker run -d --restart=always \
+  -p 5000:5000 \
+  --name charts-rs-web \
+  vicanso/charts-rs-web
+```
