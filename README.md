@@ -2,6 +2,10 @@
 
 以json的形式定义图表的相关参数，简单易用，可选择svg或png的形式返回。
 
+<p align="center">
+  <img src="./images/charts-demo.png" alt="charts-demo">
+</p>
+
 ## HTTP接口
 
 - `GET /api/font-families`: 返回支持的字体，默认支持两种字体`Noto Sans SC`与`Roboto`
@@ -32,11 +36,13 @@
 - `sub_title_text`: 子标题
 - `sub_title_font_size`: 子标题的字体大小，默认为`14`
 - `sub_title_font_color`: 子标题的字体颜色，不同的主题有不同的默认颜色
+- `sub_title_font_weight`: 标题的字体粗细，默认为空
 - `sub_title_margin`: 子标题的margin，默认为`0`
 - `sub_title_align`: 子标题的位置，默认为`center`，可选值为：`left`, `center`以及`right`
 - `sub_title_height`: 子标题高度，默认为`20`
 - `legend_font_size`: 图示的字体大小，默认为`14`
 - `legend_font_color`: 图示的字体颜色，不同的主题有不同的默认颜色
+- `legend_font_weight`: 图标的字体粗细，默认为空
 - `legend_align`: 图示的位置，默认为`center`，可选值为：`left`, `center`以及`right`
 - `legend_margin`: 图示的margin，默认为`0`
 - `legend_category`: 图示的类型，默认为`normal`，可选值为：`normal`以及`rect`
@@ -55,6 +61,7 @@
 - `series_stroke_width`: 图表线条宽度，默认为`2`
 - `series_label_font_color`: 图表中的label字体颜色，不同的主题有不同的默认颜色
 - `series_label_font_size`: 图表中的label字体大小，默认为`14`
+- `series_label_font_weight`: 图表中label字体粗细，默认为空
 - `series_colors`: 图表使用的颜色列表，不同的主题有不同的颜色列表，用于不同各类的示例中使用
 - `series_smooth`: 图表线条是否使用平滑曲线，默认为`false`
 - `series_fill`: 图表线条曲线是否填充对应区域，默认为`false`
@@ -65,8 +72,9 @@
 - `x_axis_data`: X轴的数据
 - `x_axis_height`: X轴的高度，默认为`30`
 - `x_axis_stroke_color`: X轴线条的颜色，不同的主题有不同的默认颜色
-- `x_axis_font_size`: X轴字体大小，默认为`14`
-- `x_axis_font_color`: X轴字体的颜色，不同的主题有不同的默认颜色
+- `x_axis_font_size`: X轴的字体大小，默认为`14`
+- `x_axis_font_color`: X轴的字体颜色，不同的主题有不同的默认颜色
+- `x_axis_font_weight`: X轴的字体粗细，默认为空
 - `x_axis_name_gap`: X轴文本名称与轴的间隔，默认为`5`
 - `x_axis_name_rotate`: X轴文本名称的旋转角度，默认为`0`
 - `x_boundary_gap`: X轴的坐标留边处理，无默认值，可设置为`true`或者`false`
@@ -121,6 +129,8 @@
 - `body_background_colors`: 表头背景颜色，不同的主题有不同的默认颜色
 
 ## 启动
+
+需要注意，此镜像加载了`NotoSansSC`字体(6种粗细大小)，如果需要加载更多的字体，可运行时挂载字体目录，并通过ENV指定CHARTS_FONT_PATH为对应路径（其默认值为：/usr/share/fonts），支持`ttf`与`otf`字体，首次启动时加载一个字体会使用100ms左右，字体越多则越慢。
 
 ```bash
 docker run -d --restart=always \
