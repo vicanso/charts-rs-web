@@ -270,13 +270,13 @@ const chartDefaultOptions: Record<string, unknown> = {
     y_axis_configs: [
       {
         axis_font_size: 14,
-        axis_formatter: "{c} ml"
+        axis_formatter: "{c} ml",
       },
       {
         axis_stroke_color: "#EE6666",
         axis_font_color: "#EE6666",
         axis_formatter: "{c} °C",
-      }
+      },
     ],
     series_list: [
       {
@@ -399,34 +399,45 @@ const chartDefaultOptions: Record<string, unknown> = {
       },
     ],
   }),
-  tableBasic: Object.assign({
-    quality: 80,
-    width: 600,
-    height: 400,
-    spans: [0.5, 0.3, 0.2],
-    text_aligns: ["left", "center", "right"],
-    header_row_padding: {
-      left: 10,
-      top: 10,
-      right: 10,
-      bottom: 10,
+  tableBasic: Object.assign(
+    {
+      quality: 80,
+      width: 600,
+      height: 400,
+      spans: [0.5, 0.3, 0.2],
+      text_aligns: ["left", "center", "right"],
+      header_row_padding: {
+        left: 10,
+        top: 10,
+        right: 10,
+        bottom: 10,
+      },
+      header_row_height: 30.0,
+      header_font_size: 16.0,
     },
-    header_row_height: 30.0,
-    header_font_size: 16.0,
-  }, {
-    type: "table",
-    title_height: 45,
-    title_text: "NASDAQ",
-    sub_title_text: "",
-    data: [
-      ["Name", "Price", "Change"],
-      ["Datadog Inc", "97.32", "-7.49%"],
-      ["Hashicorp Inc", "28.66", "-9.25%"],
-      ["Gitlab Inc", "51.63", "+4.32%"],
-    ],
-    header_font_weight: "bold",
-    text_aligns: ["left", "center", "right"],
-  }),
+    {
+      type: "table",
+      title_height: 45,
+      title_text: "NASDAQ",
+      sub_title_text: "",
+      data: [
+        ["Name", "Price", "Change"],
+        ["Datadog Inc", "97.32", "-7.49%"],
+        ["Hashicorp Inc", "28.66", "-9.25%"],
+        ["Gitlab Inc", "51.63", "+4.32%"],
+      ],
+      header_font_weight: "bold",
+      text_aligns: ["left", "center", "right"],
+      cell_styles: [
+        {
+          font_color: "#fff",
+          font_weight: "bold",
+          background_color: "#2d7c2b",
+          indexes: [1, 2],
+        },
+      ],
+    }
+  ),
 };
 
 interface AppState {
