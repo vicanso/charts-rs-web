@@ -127,6 +127,11 @@
 - `body_font_size`: 表头字体，默认`14`
 - `body_font_color`: 表头字体颜色，不同的主题有不同的默认颜色
 - `body_background_colors`: 表头背景颜色，不同的主题有不同的默认颜色
+- `cell_styles`: 定义表格中每一个格的相关属性，其为数组
+- `cell_styles.font_color`: 表格中该格的字体颜色(可选)，若未指定则使用表格指定的字体颜色
+- `cell_styles.font_weight`: 表格中该格的字体粗细(可选)
+- `cell_styles.background_color`: 表格中该格的背景色(可选)，若未指定则使用表格指定的背景色
+- `cell_styles.indexes`: 该表格中格的位置，数组为两位，第一位为行，第二位为列，表头为第一行，该参数不能为空
 
 ## 启动
 
