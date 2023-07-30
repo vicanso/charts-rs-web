@@ -445,6 +445,8 @@ interface AppState {
   format: string;
   svg: string;
   png: string;
+  fontFamilies: string[];
+  fontFamily: string;
   width: number;
   height: number;
   editor: editor.IStandaloneCodeEditor | null;
@@ -461,6 +463,8 @@ class App extends Component<any, AppState> {
     this.state = {
       theme: themeOptions[0].value,
       format: formatOptions[0].value,
+      fontFamilies: [],
+      fontFamily: "",
       editor: null,
       width: 0,
       height: 0,
@@ -469,7 +473,7 @@ class App extends Component<any, AppState> {
       processing: false,
     };
   }
-  componentDidMount(): void {
+  async componentDidMount(): Promise<void> {
     if (this.editorInited) {
       return;
     }
@@ -485,6 +489,12 @@ class App extends Component<any, AppState> {
         this.changeChartOption(chartOptions[0].value);
       }
     );
+    const { data } = await axios.get<{
+      families: string[];
+    }>("/api/font-families");
+    this.setState({
+      fontFamilies: data.families,
+    });
   }
   getChartOption() {
     const { editor } = this.state;
@@ -503,6 +513,9 @@ class App extends Component<any, AppState> {
   }
   updateChartOption(options: Record<string, unknown>) {
     options.theme = this.state.theme;
+    if (this.state.fontFamily) {
+      options.font_family = this.state.fontFamily;
+    }
     const { editor } = this.state;
     if (editor) {
       editor.setValue(JSON.stringify(options, null, 2));
@@ -568,7 +581,8 @@ class App extends Component<any, AppState> {
     }
   }
   render(): ReactNode {
-    const { svg, png, width, height, format, processing } = this.state;
+    const { svg, png, width, height, format, processing, fontFamilies } =
+      this.state;
     let headerClass = "header";
     if (isDarkMode()) {
       headerClass += " dark";
@@ -580,6 +594,13 @@ class App extends Component<any, AppState> {
       marginTop: `-${height / 2}px`,
       marginLeft: `-${width / 2}px`,
     };
+
+    const familyOptions = fontFamilies.map((item) => {
+      return {
+        label: item,
+        value: item,
+      };
+    });
 
     return (
       <ConfigProvider
@@ -628,6 +649,24 @@ class App extends Component<any, AppState> {
                     this.setState(
                       {
                         theme,
+                      },
+                      () => {
+                        this.refreshChartOption();
+                      }
+                    );
+                  }}
+                />
+                <Select
+                  size="large"
+                  style={{
+                    width: 150,
+                  }}
+                  defaultValue={"Roboto"}
+                  options={familyOptions}
+                  onChange={(fontFamily) => {
+                    this.setState(
+                      {
+                        fontFamily,
                       },
                       () => {
                         this.refreshChartOption();
