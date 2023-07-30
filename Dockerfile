@@ -12,15 +12,15 @@ FROM alpine
 
 EXPOSE 5000
 
+COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
+COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
+COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
+
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 
 RUN addgroup -g 1000 rust \
   && adduser -u 1000 -G rust -s /bin/sh -D rust \
   && apk add --no-cache ca-certificates tzdata
-
-COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
-COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
-COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
 
 ENV RUST_ENV=production
 ENV CHARTS_FONT_PATH=/usr/share/fonts
