@@ -102,29 +102,29 @@ const chartOptions = [
 const themeOptions = [
   {
     value: "grafana",
-    label: "grafana",
+    label: "Grafana",
   },
   {
     value: "light",
-    label: "light",
+    label: "Light",
   },
   {
     value: "dark",
-    label: "dark",
+    label: "Dark",
   },
   {
     value: "ant",
-    label: "ant",
+    label: "Ant",
   },
 ];
 const formatOptions = [
   {
     value: "svg",
-    label: "svg",
+    label: "SVG",
   },
   {
     value: "png",
-    label: "png",
+    label: "PNG",
   },
 ];
 const defaultOption = {
