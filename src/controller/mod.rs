@@ -11,7 +11,7 @@ use std::io::Cursor;
 
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    svg_to_png, BarChart, HorizontalBarChart, LineChart, PieChart, RadarChart, TableChart,
+    svg_to_png, BarChart, HorizontalBarChart, LineChart, PieChart, RadarChart, TableChart, ScatterChart,
 };
 use crate::dist::{get_static_file, StaticFile};
 
@@ -149,6 +149,10 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
             let chart = TableChart::from_json(&json)?;
             chart.svg()?
         }
+        "scatter" => {
+            let chart = ScatterChart::from_json(&json)?;
+            chart.svg()?
+        },
         _ => {
             let chart = BarChart::from_json(&json)?;
             chart.svg()?

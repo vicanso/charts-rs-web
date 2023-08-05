@@ -77,6 +77,7 @@
 - `x_axis_font_weight`: X轴的字体粗细，默认为空
 - `x_axis_name_gap`: X轴文本名称与轴的间隔，默认为`5`
 - `x_axis_name_rotate`: X轴文本名称的旋转角度，默认为`0`
+- `x_axis_margin`: X轴的margin，默认为None
 - `x_boundary_gap`: X轴的坐标留边处理，无默认值，可设置为`true`或者`false`
 
 
@@ -89,7 +90,10 @@
 - `y_axis_configs.axis_width`: Y轴宽度，未设置则通过计算得出
 - `y_axis_configs.axis_split_number`: Y轴坐标分块数量，默认为`6`
 - `y_axis_configs.axis_name_gap`: Y轴名称文本与轴的间隔，默认为`8`
-- `y_axis_configs.axis_formatter`: Y轴名称格式化方式，可以使用以下方式：`{c} ml`
+- `y_axis_configs.axis_margin`: Y轴的margin，默认为None
+- `y_axis_configs.axis_formatter`: Y轴名称格式化方式，可以使用以下方式`{c} ml`
+- `y_axis_configs.axis_min`: Y轴的最少值，默认为None
+- `y_axis_configs.axis_max`: Y轴的最大值，默认为None
 
 ### 图表数据列表
 
