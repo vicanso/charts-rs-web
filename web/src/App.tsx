@@ -71,6 +71,10 @@ const chartOptions = [
     label: "Line: 常规曲线图",
   },
   {
+    value: "lineStartIndexBasic",
+    label: "Line: 指定开始点曲线图",
+  },
+  {
     value: "lineSmooth",
     label: "Line: 常规平滑曲线图",
   },
@@ -225,6 +229,32 @@ const chartDefaultOptions: Record<string, unknown> = {
         name: "Union Ads",
         label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+  }),
+  lineStartIndexBasic: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Chart",
+    legend_align: "right",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_boundary_gap: false,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        start_index: 1,
+        data: [182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
     ],
   }),
