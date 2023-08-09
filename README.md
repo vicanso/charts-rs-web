@@ -111,6 +111,15 @@
 - `radius`: 半径，默认值为`150`
 - `inner_radius`: 内半径，默认值为`40`
 
+### 蜡烛图相关属性
+
+需要注意，K线图的数据合并在一维数组中，顺序为：开市值(open)，收市值(close)，最低值(lowest)，最高值(highest)
+
+- `candlestick_up_color`: 上涨图颜色
+- `candlestick_up_border_color`: 上涨图边框颜色
+- `candlestick_down_color`: 下跌图颜色
+- `candlestick_down_border_color`: 下跌图边框颜色
+
 ## 表格相关属性
 
 表格的相关属性与其它图的不尽相同，与公共属性相同部分为：`type`，`quality`，`theme`，`width`，`height`，`font_family`，`background_color`，还有`title`与`sub_title`部分也一致。
