@@ -1,6 +1,14 @@
-FROM rust:alpine as builder
+FROM node:18-alpine as webbuilder
 
 COPY . /charts-rs-web
+RUN apk update \
+  && apk add git make \
+  && cd /charts-rs-web \
+  && make build-web
+
+FROM rust:alpine as builder
+
+COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
 RUN apk update \
   && apk add git make build-base pkgconfig 
