@@ -625,6 +625,10 @@ const chartDefaultOptions: Record<string, unknown> = {
       right: 0,
       bottom: 0,
     },
+    candlestick_up_color: "rgb(236, 0, 0)",
+    candlestick_up_border_color: "rgb(138, 0, 0)",
+    candlestick_down_color: "rgb(0, 218, 60)",
+    candlestick_down_border_color: "rgb(0, 143, 40)",
   }),
   tableBasic: Object.assign(
     {

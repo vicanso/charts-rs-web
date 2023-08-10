@@ -10,7 +10,7 @@ dev:
 udeps:
 	cargo +nightly udeps
 build-web:
-	cd web && yarn build && cd .. && rm -rf dist && mv web/dist .
+	cd web && yarn && yarn build && cd .. && rm -rf dist && mv web/dist .
 
 release:
 	cargo build --release
