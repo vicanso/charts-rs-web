@@ -215,6 +215,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     type: "line",
     title_text: "Line Chart",
     legend_align: "right",
+    legend_category: "round_rect",
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     x_boundary_gap: false,
     margin: {
@@ -242,6 +243,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_align: "right",
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     x_boundary_gap: false,
+    legend_category: "circle",
     margin: {
       left: 15,
       top: 15,
@@ -268,6 +270,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_align: "right",
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     series_smooth: true,
+    legend_category: "rect",
     series_list: [
       {
         name: "Email",
