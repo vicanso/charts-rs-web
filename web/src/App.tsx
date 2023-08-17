@@ -110,6 +110,10 @@ const chartOptions = [
     value: "tableBasic",
     label: "Table: 表格",
   },
+  {
+    value: "multiCharts",
+    label: "Multi Charts: 多图表",
+  },
 ];
 const themeOptions = [
   {
@@ -670,8 +674,98 @@ const chartDefaultOptions: Record<string, unknown> = {
           indexes: [1, 2],
         },
       ],
-    }
+    },
   ),
+  multiCharts: {
+    type: "multi_chart",
+    child_charts: [
+      Object.assign({}, defaultOption, {
+        type: "bar",
+        title_text: "Bar Chart",
+        legend_align: "left",
+        x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        series_list: [
+          {
+            name: "Email",
+            label_show: true,
+            data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+          },
+          {
+            name: "Union Ads",
+            label_show: true,
+            data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+          },
+        ],
+      }),
+      Object.assign({}, defaultOption, {
+        type: "line",
+        title_text: "Line Chart",
+        legend_align: "right",
+        legend_category: "round_rect",
+        x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        x_boundary_gap: false,
+        margin: {
+          left: 15,
+          top: 15,
+          right: 15,
+          bottom: 15,
+        },
+        series_list: [
+          {
+            name: "Email",
+            label_show: true,
+            data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+          },
+          {
+            name: "Union Ads",
+            label_show: true,
+            data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+          },
+        ],
+      }),
+      Object.assign({}, defaultOption, {
+        type: "pie",
+        title_text: "Nightingale Chart",
+        legend_margin: {
+          top: 50,
+        },
+        series_list: [
+          {
+            name: "rose 1",
+            data: [40],
+          },
+          {
+            name: "rose 2",
+            data: [38],
+          },
+          {
+            name: "rose 3",
+            data: [32],
+          },
+          {
+            name: "rose 4",
+            data: [30],
+          },
+          {
+            name: "rose 5",
+            data: [28],
+          },
+          {
+            name: "rose 6",
+            data: [26],
+          },
+          {
+            name: "rose 7",
+            data: [22],
+          },
+          {
+            name: "rose 8",
+            data: [18],
+          },
+        ],
+      }),
+    ],
+  },
 };
 
 interface AppState {
@@ -721,7 +815,7 @@ class App extends Component<any, AppState> {
       },
       () => {
         this.changeChartOption(chartOptions[0].value);
-      }
+      },
     );
     const { data } = await axios.get<{
       families: string[];
@@ -787,8 +881,8 @@ class App extends Component<any, AppState> {
         const base64 = btoa(
           new Uint8Array(data).reduce(
             (data, byte) => data + String.fromCharCode(byte),
-            ""
-          )
+            "",
+          ),
         );
         png = `data:image/png;base64,${base64}`;
       }
@@ -828,6 +922,12 @@ class App extends Component<any, AppState> {
       marginTop: `-${height / 2}px`,
       marginLeft: `-${width / 2}px`,
     };
+    if (width === 0) {
+      previewStyle.left = "0px";
+    }
+    if (height === 0) {
+      previewStyle.top = "0px";
+    }
 
     const familyOptions = fontFamilies.map((item) => {
       return {
@@ -886,7 +986,7 @@ class App extends Component<any, AppState> {
                       },
                       () => {
                         this.refreshChartOption();
-                      }
+                      },
                     );
                   }}
                 />
@@ -904,7 +1004,7 @@ class App extends Component<any, AppState> {
                       },
                       () => {
                         this.refreshChartOption();
-                      }
+                      },
                     );
                   }}
                 />

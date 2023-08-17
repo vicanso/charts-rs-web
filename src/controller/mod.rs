@@ -9,11 +9,12 @@ use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use std::io::Cursor;
 
+use crate::dist::{get_static_file, StaticFile};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    svg_to_png, BarChart, HorizontalBarChart, LineChart, PieChart, RadarChart, TableChart, ScatterChart, CandlestickChart
+    svg_to_png, BarChart, CandlestickChart, HorizontalBarChart, LineChart, MultiChart, PieChart,
+    RadarChart, ScatterChart, TableChart,
 };
-use crate::dist::{get_static_file, StaticFile};
 
 #[derive(Debug, Snafu)]
 pub enum ImageError {
@@ -93,7 +94,6 @@ async fn serve(uri: Uri) -> StaticFile {
     get_static_file(filename)
 }
 
-
 #[derive(Debug, Clone, Serialize, Default)]
 struct FontFamilyResult {
     pub families: Vec<String>,
@@ -146,17 +146,21 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
             chart.svg()?
         }
         "table" => {
-            let chart = TableChart::from_json(&json)?;
+            let mut chart = TableChart::from_json(&json)?;
             chart.svg()?
         }
         "scatter" => {
             let chart = ScatterChart::from_json(&json)?;
             chart.svg()?
-        },
+        }
         "candlestick" => {
             let chart = CandlestickChart::from_json(&json)?;
             chart.svg()?
-        },
+        }
+        "multi_chart" => {
+            let mut multi_chart = MultiChart::from_json(&json)?;
+            multi_chart.svg()?
+        }
         _ => {
             let chart = BarChart::from_json(&json)?;
             chart.svg()?

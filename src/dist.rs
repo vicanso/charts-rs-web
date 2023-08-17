@@ -1,6 +1,6 @@
+use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
 use hex::encode;
-use axum::http::{header, StatusCode};
 use rust_embed::{EmbeddedFile, RustEmbed};
 use std::convert::From;
 

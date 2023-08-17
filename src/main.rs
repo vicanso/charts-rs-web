@@ -11,10 +11,10 @@ use tracing_subscriber::FmtSubscriber;
 
 mod config;
 mod controller;
+mod dist;
 mod error;
 mod middleware;
 mod util;
-mod dist;
 
 fn init_logger() {
     let mut level = Level::INFO;
