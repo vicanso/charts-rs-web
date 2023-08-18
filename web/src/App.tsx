@@ -680,8 +680,11 @@ const chartDefaultOptions: Record<string, unknown> = {
     type: "multi_chart",
     child_charts: [
       Object.assign({}, defaultOption, {
+        width: 400,
+        height: 300,
         type: "bar",
         title_text: "Bar Chart",
+        title_align: "right",
         legend_align: "left",
         x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         series_list: [
@@ -698,8 +701,12 @@ const chartDefaultOptions: Record<string, unknown> = {
         ],
       }),
       Object.assign({}, defaultOption, {
+        width: 400,
+        height: 300,
+        x: 410,
         type: "line",
         title_text: "Line Chart",
+        title_align: "left",
         legend_align: "right",
         legend_category: "round_rect",
         x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -724,6 +731,10 @@ const chartDefaultOptions: Record<string, unknown> = {
         ],
       }),
       Object.assign({}, defaultOption, {
+        width: 400,
+        height: 300,
+        x: 205,
+        y: 310,
         type: "pie",
         title_text: "Nightingale Chart",
         legend_margin: {
