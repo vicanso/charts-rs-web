@@ -111,8 +111,8 @@ const chartOptions = [
     label: "Table: 表格",
   },
   {
-    value: "multiCharts",
-    label: "Multi Charts: 多图表",
+    value: "multiChart",
+    label: "MultiChart: 多图表",
   },
 ];
 const themeOptions = [
@@ -468,13 +468,13 @@ const chartDefaultOptions: Record<string, unknown> = {
     y_axis_configs: [
       {
         axis_min: 40,
-        axis_max: 130,
+        axis_max: 100,
         axis_formatter: "{c} kg",
       },
     ],
     x_axis_config: {
       axis_min: 140,
-      axis_max: 230,
+      axis_max: 200,
       axis_formatter: "{c} cm",
     },
     series_list: [
@@ -676,7 +676,7 @@ const chartDefaultOptions: Record<string, unknown> = {
       ],
     },
   ),
-  multiCharts: {
+  multiChart: {
     type: "multi_chart",
     child_charts: [
       Object.assign({}, defaultOption, {
