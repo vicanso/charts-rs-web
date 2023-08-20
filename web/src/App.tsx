@@ -678,6 +678,13 @@ const chartDefaultOptions: Record<string, unknown> = {
   ),
   multiChart: {
     type: "multi_chart",
+    margin: {
+      left: 10, 
+      top: 10,
+      right: 10,
+      bottom: 10
+    },
+    background_color: "#fff",
     child_charts: [
       Object.assign({}, defaultOption, {
         width: 400,
@@ -703,7 +710,8 @@ const chartDefaultOptions: Record<string, unknown> = {
       Object.assign({}, defaultOption, {
         width: 400,
         height: 300,
-        x: 410,
+        x: 420,
+        y: 10,
         type: "line",
         title_text: "Line Chart",
         title_align: "left",
@@ -734,7 +742,7 @@ const chartDefaultOptions: Record<string, unknown> = {
         width: 400,
         height: 300,
         x: 205,
-        y: 310,
+        y: 320,
         type: "pie",
         title_text: "Nightingale Chart",
         legend_margin: {

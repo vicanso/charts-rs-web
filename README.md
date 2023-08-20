@@ -146,6 +146,13 @@
 - `cell_styles.background_color`: 表格中该格的背景色(可选)，若未指定则使用表格指定的背景色
 - `cell_styles.indexes`: 该表格中格的位置，数组为两位，第一位为行，第二位为列，表头为第一行，该参数不能为空
 
+
+## 多图的相关属性
+
+- `margin`: 图表的margin，默认为`{"left":10,"top":10,"right":10,"bottom":10}`
+- `background_color`: 背景色，默认无
+- `child_charts`: 子图表列表
+
 ## 启动
 
 需要注意，此镜像加载了`NotoSansSC`字体(6种粗细大小)，如果需要加载更多的字体，可运行时挂载字体目录，并通过ENV指定CHARTS_FONT_PATH为对应路径（其默认值为：/usr/share/fonts），支持`ttf`与`otf`字体，首次启动时加载一个字体会使用100ms左右，字体越多则越慢。
