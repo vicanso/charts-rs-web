@@ -741,7 +741,7 @@ const chartDefaultOptions: Record<string, unknown> = {
       Object.assign({}, defaultOption, {
         width: 400,
         height: 300,
-        x: 205,
+        x: 215,
         y: 320,
         type: "pie",
         title_text: "Nightingale Chart",
