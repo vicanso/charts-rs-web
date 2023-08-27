@@ -275,11 +275,22 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     series_smooth: true,
     legend_category: "rect",
+    margin: {
+      left: 5,
+      top: 5,
+      right: 50,
+      bottom: 5,
+    },
     series_list: [
       {
         name: "Email",
         label_show: true,
         data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+        mark_lines: [
+          {
+            category: "average",
+          },
+        ],
       },
       {
         name: "Union Ads",
@@ -679,10 +690,10 @@ const chartDefaultOptions: Record<string, unknown> = {
   multiChart: {
     type: "multi_chart",
     margin: {
-      left: 10, 
+      left: 10,
       top: 10,
       right: 10,
-      bottom: 10
+      bottom: 10,
     },
     background_color: "#fff",
     child_charts: [
