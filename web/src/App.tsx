@@ -294,8 +294,15 @@ const chartDefaultOptions: Record<string, unknown> = {
       },
       {
         name: "Union Ads",
-        label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+        mark_points: [
+          {
+            category: "max"
+          },
+          {
+            category: "min"
+          }
+        ]
       },
     ],
   }),
