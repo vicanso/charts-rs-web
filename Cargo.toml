@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 axum = "0.6.20"
 axum-client-ip = "0.4.1"
-charts-rs = { version = "0.1.31", features = ["image"] }
-chrono = "0.4.26"
+charts-rs = { version = "0.1.32", features = ["image"] }
+chrono = "0.4.28"
 config = { version = "0.13.3", features = ["yaml"] }
 glob = "0.3.1"
 hex = "0.4.3"

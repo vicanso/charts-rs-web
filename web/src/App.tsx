@@ -391,6 +391,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_margin: {
       top: 50,
     },
+    radius: 110,
+    inner_radius: 30,
     series_list: [
       {
         name: "rose 1",
