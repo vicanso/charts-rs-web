@@ -120,7 +120,9 @@ fn main() {
     init_logger();
     if let Ok(font_path) = env::var("CHARTS_FONT_PATH") {
         info!(font_path, "loading fonts");
-        load_fonts(&font_path);
+        for item in font_path.split(',') {
+            load_fonts(item);
+        }
     }
     let families = charts_rs::get_font_families().unwrap();
     info!(families = families.join(","), "load font success");

@@ -155,7 +155,7 @@
 
 ## 启动
 
-需要注意，此镜像加载了`NotoSansSC`字体(6种粗细大小)，如果需要加载更多的字体，可运行时挂载字体目录，并通过ENV指定CHARTS_FONT_PATH为对应路径（其默认值为：/usr/share/fonts），支持`ttf`与`otf`字体，首次启动时加载一个字体会使用100ms左右，字体越多则越慢。
+需要注意，此镜像加载了`NotoSansSC`字体(6种粗细大小)，如果需要加载更多的字体，可运行时挂载字体目录，并通过ENV指定CHARTS_FONT_PATH为对应路径（其默认值为：/usr/share/fonts），如果有多个目录以,分隔，如`CHARTS_FONT_PATH=/usr/share/fonts,/fonts`，支持`ttf`与`otf`字体，首次启动时加载一个字体会使用100ms左右，字体越多则越慢。
 
 ```bash
 docker run -d --restart=always \
