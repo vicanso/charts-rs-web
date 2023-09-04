@@ -8,6 +8,7 @@ use tower::ServiceBuilder;
 use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+use tower_http::compression::CompressionLayer;
 
 mod config;
 mod controller;
@@ -76,7 +77,8 @@ async fn run() {
                 .timeout(Duration::from_secs(30)),
         )
         // 后面的layer先执行
-        .layer(from_fn(middleware::access_log));
+        .layer(from_fn(middleware::access_log))
+        .layer(CompressionLayer::new());
 
     let basic_config = config::must_new_basic_config();
 

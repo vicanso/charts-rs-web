@@ -27,6 +27,7 @@ snafu = "0.7.5"
 time = "0.3.28"
 tokio = { version = "1.32.0", features = ["macros", "rt", "rt-multi-thread", "net", "signal"] }
 tower = { version = "0.4.13", features = ["timeout"]}
+tower-http = { version = "0.4.4", features = ["compression-gzip"]}
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["local-time"] }
 urlencoding = "2.1.2"
