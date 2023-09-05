@@ -5,10 +5,10 @@ use std::time::Duration;
 use std::{env, fs, str::FromStr};
 use tokio::signal;
 use tower::ServiceBuilder;
+use tower_http::compression::CompressionLayer;
 use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use tower_http::compression::CompressionLayer;
 
 mod config;
 mod controller;
@@ -77,8 +77,12 @@ async fn run() {
                 .timeout(Duration::from_secs(30)),
         )
         // 后面的layer先执行
-        .layer(from_fn(middleware::access_log))
-        .layer(CompressionLayer::new());
+        .layer(
+            // service builder 顺序执行
+            ServiceBuilder::new()
+                .layer(CompressionLayer::new())
+                .layer(from_fn(middleware::access_log)),
+        );
 
     let basic_config = config::must_new_basic_config();
 
