@@ -808,6 +808,7 @@ const chartDefaultOptions: Record<string, unknown> = {
 };
 
 interface AppState {
+  version: string;
   theme: string;
   format: string;
   svg: string;
@@ -828,6 +829,7 @@ class App extends Component<any, AppState> {
     this.editorDom = createRef();
     this.editorInited = false;
     this.state = {
+      version: "",
       theme: themeOptions[0].value,
       format: formatOptions[0].value,
       fontFamilies: [],
@@ -858,9 +860,11 @@ class App extends Component<any, AppState> {
     );
     const { data } = await axios.get<{
       families: string[];
-    }>("/api/font-families");
+      version: string;
+    }>("/api/basic-info");
     this.setState({
       fontFamilies: data.families,
+      version: data.version,
     });
   }
   getChartOption() {
@@ -948,7 +952,7 @@ class App extends Component<any, AppState> {
     }
   }
   render(): ReactNode {
-    const { svg, png, width, height, format, processing, fontFamilies } =
+    const { svg, png, width, height, format, processing, fontFamilies, version } =
       this.state;
     let headerClass = "header";
     if (isDarkMode()) {
@@ -990,7 +994,7 @@ class App extends Component<any, AppState> {
                     fontWeight: "bold",
                   }}
                 >
-                  CHARTS-RS
+                  CHARTS-RS {version}
                 </span>
               </Space>
               <Space

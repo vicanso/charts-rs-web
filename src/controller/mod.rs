@@ -59,7 +59,7 @@ pub type JsonResult<T> = HttpResult<Json<T>>;
 pub fn new_router() -> Router {
     Router::new()
         .route("/ping", get(ping))
-        .route("/api/font-families", get(font_families))
+        .route("/api/basic-info", get(get_basic_info))
         .route("/api/charts/svg", post(chart_svg))
         .route("/api/charts/png", post(chart_png))
         .fallback(get(serve))
@@ -95,14 +95,17 @@ async fn serve(uri: Uri) -> StaticFile {
 }
 
 #[derive(Debug, Clone, Serialize, Default)]
-struct FontFamilyResult {
+struct BasicInfoResult {
     pub families: Vec<String>,
+    pub version: String,
 }
 
-async fn font_families() -> JsonResult<FontFamilyResult> {
-    // TODO 调整error
+async fn get_basic_info() -> JsonResult<BasicInfoResult> {
     let families = charts_rs::get_font_families()?;
-    Ok(Json(FontFamilyResult { families }))
+    Ok(Json(BasicInfoResult {
+        families,
+        version: charts_rs::version(),
+    }))
 }
 
 enum FormatType {

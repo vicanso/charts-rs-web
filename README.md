@@ -8,7 +8,7 @@
 
 ## HTTP接口
 
-- `GET /api/font-families`: 返回支持的字体，默认支持两种字体`Noto Sans SC`与`Roboto`
+- `GET /api/basic-info`: 返回应用信息：版本与字体等。默认支持两种字体`Noto Sans SC`与`Roboto`
 - `POST /api/charts/png`: 生成PNG图表
 - `POST /api/charts/svg`: 生成SVG图表
 
