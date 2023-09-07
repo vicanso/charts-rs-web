@@ -145,9 +145,9 @@ dependencies = [
 
 [[package]]
 name = "axum-client-ip"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df8e81eacc93f36480825da5f46a33b5fb2246ed024eacc9e8933425b80c5807"
+checksum = "1ef117890a418b7832678d9ea1e1c08456dd7b2fd1dadb9676cd6f0fe7eb4b21"
 dependencies = [
  "axum",
  "forwarded-header-value",
@@ -245,9 +245,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "bytes"
-version = "1.4.0"
+version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
+checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 
 [[package]]
 name = "cc"
@@ -266,9 +266,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "charts-rs"
-version = "0.1.36"
+version = "0.1.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7cc38f95e2dfc68d6da761c57de3ce9e274c369941e1ade670eeeac29c53a5ce"
+checksum = "a1b9f34261912816f549792786489824554d99705c6117a3688527b1c8917ae3"
 dependencies = [
  "charts-rs-derive",
  "fontdue",
@@ -284,9 +284,9 @@ dependencies = [
 
 [[package]]
 name = "charts-rs-derive"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b912e27ffaca0a559ac309973304fc59047796eb5f7beb18f5f12a7e12dafb4"
+checksum = "472a43d5b7c7c9ade4a3f6eb760c487f9f42aadf0585df53cfb545f94c91b7ff"
 dependencies = [
  "quote",
  "syn 2.0.31",
