@@ -297,12 +297,12 @@ const chartDefaultOptions: Record<string, unknown> = {
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
         mark_points: [
           {
-            category: "max"
+            category: "max",
           },
           {
-            category: "min"
-          }
-        ]
+            category: "min",
+          },
+        ],
       },
     ],
   }),
@@ -372,6 +372,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     title_text: "World Population",
     legend_align: "left",
     x_axis_data: ["Brazil", "Indonesia", "USA", "India", "China", "World"],
+    series_label_formatter: "{t}",
     series_list: [
       {
         name: "2011",
@@ -952,8 +953,16 @@ class App extends Component<any, AppState> {
     }
   }
   render(): ReactNode {
-    const { svg, png, width, height, format, processing, fontFamilies, version } =
-      this.state;
+    const {
+      svg,
+      png,
+      width,
+      height,
+      format,
+      processing,
+      fontFamilies,
+      version,
+    } = this.state;
     let headerClass = "header";
     if (isDarkMode()) {
       headerClass += " dark";
