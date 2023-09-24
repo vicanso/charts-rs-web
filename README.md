@@ -20,7 +20,7 @@
 
 - `type`: 图表类型，默认为`bar`，可选的值为：`line`，`horizontal_bar`，`pie`，`radar`，`table`，以及`bar`
 - `quality`: 输出的PNG图片质量，默认为`80`，若指定为`0`则表示不压缩。图片质量为`80`时，图片大小`7kb`，总体耗时`52ms`。不压缩时，图片大小`46kb`，总体耗时`26ms`
-- `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`，默认为`light`
+- `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`等多9种主题色
 - `width`: 图表宽度，默认为600
 - `height`: 图表调试，默认为400
 - `background_color`: 图表底色，不同的主题有不同的默认颜色
