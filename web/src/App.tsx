@@ -154,7 +154,6 @@ const themeOptions = [
   },
 ];
 
-
 const formatOptions = [
   {
     value: "svg",
@@ -414,7 +413,9 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_margin: {
       top: 50,
     },
+    rose_type: true,
     radius: 110,
+    border_radius: 8,
     inner_radius: 30,
     series_list: [
       {
