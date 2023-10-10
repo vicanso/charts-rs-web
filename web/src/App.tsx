@@ -394,6 +394,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_align: "left",
     x_axis_data: ["Brazil", "Indonesia", "USA", "India", "China", "World"],
     series_label_formatter: "{t}",
+    series_label_position: "",
     series_list: [
       {
         name: "2011",
