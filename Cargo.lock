@@ -267,9 +267,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "charts-rs"
-version = "0.1.47"
+version = "0.1.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a905bdc9a81e755a66484f79fc4861ba96c322509e128c2d2ebc922df7754ff8"
+checksum = "983ad8734fe619c4ccb6aa71107eb42329850790a6bb994bd959ffda8206d99a"
 dependencies = [
  "charts-rs-derive",
  "fontdue",
@@ -285,9 +285,9 @@ dependencies = [
 
 [[package]]
 name = "charts-rs-derive"
-version = "0.1.19"
+version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a801c88638a01ac76f2dacf44934c3a4bc5a3dd17d05d35787088282faa256ff"
+checksum = "36924e5873e0081bc6dcbc831ae543242c95ea06bb1ea40a6999340d20760861"
 dependencies = [
  "quote",
  "syn 2.0.38",
@@ -2484,18 +2484,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.7.21"
+version = "0.7.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "686b7e407015242119c33dab17b8f61ba6843534de936d94368856528eae4dcc"
+checksum = "8cd369a67c0edfef15010f980c3cbe45d7f651deac2cd67ce097cd801de16557"
 dependencies = [
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.21"
+version = "0.7.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "020f3dfe25dfc38dfea49ce62d5d45ecdd7f0d8a724fa63eb36b6eba4ec76806"
+checksum = "c2f140bda219a26ccc0cdb03dba58af72590c53b22642577d88a927bc5c87d6b"
 dependencies = [
  "proc-macro2",
  "quote",
