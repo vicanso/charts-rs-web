@@ -25,9 +25,9 @@ serde = "1.0.192"
 serde_json = "1.0.108"
 snafu = "0.7.5"
 time = "0.3.29"
-tokio = { version = "1.33.0", features = ["macros", "rt", "rt-multi-thread", "net", "signal"] }
+tokio = { version = "1.34.0", features = ["macros", "rt", "rt-multi-thread", "net", "signal"] }
 tower = { version = "0.4.13", features = ["timeout"]}
-tower-http = { version = "0.4.4", features = ["compression-gzip"]}
+tower-http = { version = "0.4.4", features = ["compression-gzip", "compression-zstd"]}
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.17", features = ["local-time"] }
 urlencoding = "2.1.2"

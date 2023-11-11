@@ -81,7 +81,8 @@ async fn run() {
             // service builder 顺序执行
             ServiceBuilder::new()
                 .layer(CompressionLayer::new())
-                .layer(from_fn(middleware::access_log)),
+                .layer(from_fn(middleware::access_log))
+                .layer(from_fn(middleware::entry)),
         );
 
     let basic_config = config::must_new_basic_config();
