@@ -1,5 +1,5 @@
 use axum::http::{header, header::HeaderName, HeaderMap, HeaderValue};
-use axum::{http::Request, middleware::Next, response::Response};
+use axum::{body::Body, http::Request, middleware::Next, response::Response};
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -36,10 +36,10 @@ fn set_header_if_not_exist(headers: &mut HeaderMap<HeaderValue>, name: &str, val
 fn set_no_cache_if_not_exist(headers: &mut HeaderMap<HeaderValue>) {
     // 因为只会字符导致设置错误
     // 因此此处理不会出错
-    let _ = set_header_if_not_exist(headers, header::CACHE_CONTROL.as_str(), "no-cache");
+    set_header_if_not_exist(headers, header::CACHE_CONTROL.as_str(), "no-cache");
 }
 
-pub async fn entry<B>(req: Request<B>, next: Next<B>) -> Response {
+pub async fn entry(req: Request<Body>, next: Next) -> Response {
     let mut resp = next.run(req).await;
     let headers = resp.headers_mut();
     set_no_cache_if_not_exist(headers);

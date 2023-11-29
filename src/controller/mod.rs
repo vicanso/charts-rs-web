@@ -3,6 +3,7 @@ use axum::http::{header, HeaderValue, Request, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use http_body_util::BodyExt;
 use image::{load, ImageFormat};
 use rgb::RGBA8;
 use serde::Serialize;
@@ -66,18 +67,13 @@ pub fn new_router() -> Router {
 }
 
 /// 读取http body
-async fn read_http_body<B>(body: B) -> HttpResult<Bytes>
-where
-    B: axum::body::HttpBody<Data = Bytes>,
-    B::Error: std::fmt::Display,
-{
-    let bytes = match hyper::body::to_bytes(body).await {
-        Ok(bytes) => bytes,
-        Err(err) => {
-            let msg = format!("failed to read body, {err}");
-            return Err(HttpError::new_with_category(&msg, "body_to_bytes"));
-        }
-    };
+async fn read_http_body(request: Request<Body>) -> HttpResult<Bytes> {
+    let (_, body) = request.into_parts();
+    let bytes = body
+        .collect()
+        .await
+        .map_err(|err| HttpError::new_with_category(&err.to_string(), "body_to_bytes"))?
+        .to_bytes();
     Ok(bytes)
 }
 

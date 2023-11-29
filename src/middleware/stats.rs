@@ -9,7 +9,7 @@ use crate::util::get_header_value;
 pub async fn access_log(
     InsecureClientIp(ip): InsecureClientIp,
     req: Request<Body>,
-    next: Next<Body>,
+    next: Next,
 ) -> Response {
     let start_at = Utc::now().timestamp_millis();
 
