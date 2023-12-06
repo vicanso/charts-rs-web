@@ -18,6 +18,13 @@
   width: 40%;
   bottom: 0;
 }
+.toggleSimply {
+  position: fixed;
+  top: 65px;
+  left: 40%;
+  z-index: 99;
+  margin-left: -85px;
+}
 .previewWrapper {
   position: fixed;
   left: 40%;

@@ -11,23 +11,23 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "antd": "^5.11.5",
+    "antd": "^5.12.1",
     "axios": "^1.6.2",
     "monaco-editor": "^0.44.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.39",
+    "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.13.1",
-    "@typescript-eslint/parser": "^6.13.1",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
     "@vitejs/plugin-react-swc": "^3.5.0",
-    "eslint": "^8.54.0",
+    "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.4",
+    "eslint-plugin-react-refresh": "^0.4.5",
     "prettier": "^3.1.0",
     "typescript": "^5.3.2",
-    "vite": "^5.0.4"
+    "vite": "^5.0.5"
   }
 }

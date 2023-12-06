@@ -7,6 +7,7 @@ import {
   Space,
   Button,
   message,
+  Switch,
 } from "antd";
 import { editor } from "monaco-editor/esm/vs/editor/editor.api";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
@@ -235,6 +236,18 @@ const chartDefaultOptions: Record<string, unknown> = {
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
     ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
   }),
   lineBasic: Object.assign({}, defaultOption, {
     type: "line",
@@ -260,6 +273,21 @@ const chartDefaultOptions: Record<string, unknown> = {
         label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "x_boundary_gap",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
     ],
   }),
   lineStartIndexBasic: Object.assign({}, defaultOption, {
@@ -287,6 +315,21 @@ const chartDefaultOptions: Record<string, unknown> = {
         start_index: 1,
         data: [182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "x_boundary_gap",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
     ],
   }),
   lineSmooth: Object.assign({}, defaultOption, {
@@ -326,6 +369,21 @@ const chartDefaultOptions: Record<string, unknown> = {
         ],
       },
     ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "series_smooth",
+      "theme",
+    ],
   }),
   lineSmoothFill: Object.assign({}, defaultOption, {
     type: "line",
@@ -345,6 +403,20 @@ const chartDefaultOptions: Record<string, unknown> = {
         label_show: true,
         data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
       },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "series_smooth",
+      "series_fill",
+      "theme",
     ],
   }),
   barLineMixin: Object.assign({}, defaultOption, {
@@ -387,6 +459,19 @@ const chartDefaultOptions: Record<string, unknown> = {
         data: [2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3],
       },
     ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "legend_margin",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "y_axis_configs",
+      "series_list",
+      "series_smooth",
+      "theme",
+    ],
   }),
   horizontalBar: Object.assign({}, defaultOption, {
     type: "horizontal_bar",
@@ -406,6 +491,22 @@ const chartDefaultOptions: Record<string, unknown> = {
         label_show: true,
         data: [19325.0, 23438.0, 31000.0, 121594.0, 134141.0, 681807.0],
       },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "series_smooth",
+      "series_fill",
+      "series_label_formatter",
+      "series_label_position",
+      "theme",
     ],
   }),
   pieBasic: Object.assign({}, defaultOption, {
@@ -452,6 +553,23 @@ const chartDefaultOptions: Record<string, unknown> = {
         data: [18],
       },
     ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_margin",
+      "legend_show",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "rose_type",
+      "radius",
+      "border_radius",
+      "inner_radius",
+      "theme",
+    ],
   }),
   radarBasic: Object.assign({}, defaultOption, {
     type: "radar",
@@ -495,6 +613,18 @@ const chartDefaultOptions: Record<string, unknown> = {
         name: "Marketing",
         max: 25000,
       },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "title_margin",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "indicators",
+      "theme",
     ],
   }),
   scatterBasic: Object.assign({}, defaultOption, {
@@ -545,6 +675,22 @@ const chartDefaultOptions: Record<string, unknown> = {
       },
     ],
     series_symbol_sizes: [6, 6],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "title_align",
+      "sub_title_text",
+      "sub_title_align",
+      "legend_align",
+      "type",
+      "title_text",
+      "y_axis_configs",
+      "x_axis_config",
+      "series_symbol_sizes",
+      "series_list",
+      "theme",
+    ],
   }),
   candlestick: Object.assign({}, defaultOption, {
     type: "candlestick",
@@ -718,6 +864,20 @@ const chartDefaultOptions: Record<string, unknown> = {
           background_color: "#2d7c2b",
           indexes: [1, 2],
         },
+      ],
+      simplyKeys: [
+        "width",
+        "height",
+        "spans",
+        "text_aligns",
+        "header_row_padding",
+        "header_font_size",
+        "type",
+        "title_text",
+        "data",
+        "header_font_weight",
+        "cell_styles",
+        "theme",
       ],
     },
   ),
@@ -897,6 +1057,8 @@ interface AppState {
   height: number;
   editor: editor.IStandaloneCodeEditor | null;
   processing: boolean;
+  simply: boolean;
+  currentChartType: string;
 }
 
 class App extends Component<any, AppState> {
@@ -918,6 +1080,8 @@ class App extends Component<any, AppState> {
       svg: "",
       png: "",
       processing: false,
+      simply: true,
+      currentChartType: "",
     };
   }
   async componentDidMount(): Promise<void> {
@@ -931,6 +1095,7 @@ class App extends Component<any, AppState> {
     this.setState(
       {
         editor,
+        currentChartType: chartOptions[0].value,
       },
       () => {
         this.changeChartOption(chartOptions[0].value);
@@ -965,9 +1130,19 @@ class App extends Component<any, AppState> {
     if (this.state.fontFamily) {
       options.font_family = this.state.fontFamily;
     }
-    const { editor } = this.state;
+    const { editor, simply } = this.state;
     if (editor) {
-      editor.setValue(JSON.stringify(options, null, 2));
+      const simplyKeys = options.simplyKeys as string[];
+      if (simply && simplyKeys) {
+        const opts: Record<string, unknown> = {};
+        simplyKeys.forEach((key) => {
+          opts[key] = options[key];
+        });
+        editor.setValue(JSON.stringify(opts, null, 2));
+      } else {
+        delete options["simplyKeys"];
+        editor.setValue(JSON.stringify(options, null, 2));
+      }
     }
   }
   refreshChartOption() {
@@ -1039,6 +1214,8 @@ class App extends Component<any, AppState> {
       processing,
       fontFamilies,
       version,
+      simply,
+      currentChartType,
     } = this.state;
     let headerClass = "header";
     if (isDarkMode()) {
@@ -1145,6 +1322,9 @@ class App extends Component<any, AppState> {
                   options={chartOptions}
                   defaultValue={chartOptions[0].value}
                   onChange={(chartType) => {
+                    this.setState({
+                      currentChartType: chartType,
+                    });
                     this.changeChartOption(chartType);
                   }}
                 />
@@ -1164,6 +1344,23 @@ class App extends Component<any, AppState> {
           </Header>
           <Content>
             <div className="editorWrapper" ref={this.editorDom}></div>
+            <div className="toggleSimply">
+              <Switch
+                checkedChildren="Simply"
+                unCheckedChildren="Full"
+                defaultChecked={simply}
+                onChange={(value) => {
+                  this.setState(
+                    {
+                      simply: value,
+                    },
+                    () => {
+                      this.changeChartOption(currentChartType);
+                    },
+                  );
+                }}
+              />
+            </div>
             <div className="previewWrapper">
               {format === "svg" && (
                 <div
