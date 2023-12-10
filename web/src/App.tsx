@@ -1346,8 +1346,8 @@ class App extends Component<any, AppState> {
             <div className="editorWrapper" ref={this.editorDom}></div>
             <div className="toggleSimply">
               <Switch
-                checkedChildren="Simply"
-                unCheckedChildren="Full"
+                checkedChildren="简化配置"
+                unCheckedChildren="完整配置"
                 defaultChecked={simply}
                 onChange={(value) => {
                   this.setState(
