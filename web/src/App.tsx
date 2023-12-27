@@ -581,10 +581,12 @@ const chartDefaultOptions: Record<string, unknown> = {
     series_list: [
       {
         name: "Allocated Budget",
+        label_show: false,
         data: [4200.0, 3000.0, 20000.0, 35000.0, 50000.0, 18000.0],
       },
       {
         name: "Actual Spending",
+        label_show: false,
         data: [5000.0, 14000.0, 28000.0, 26000.0, 42000.0, 21000.0],
       },
     ],
