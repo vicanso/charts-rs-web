@@ -266,6 +266,7 @@ const chartDefaultOptions: Record<string, unknown> = {
       {
         name: "Email",
         label_show: true,
+        stroke_dash_array: "4,2",
         data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
       },
       {
