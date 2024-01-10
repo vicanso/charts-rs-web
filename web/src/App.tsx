@@ -1341,7 +1341,7 @@ class App extends Component<any, AppState> {
                 >
                   {processing ? "生成中..." : "运行"}
                 </Button>
-                {getGithubIcon(isDarkMode())}
+                {window.location.host === "charts.npmtrend.com" && getGithubIcon(isDarkMode())}
               </Space>
             </div>
           </Header>
