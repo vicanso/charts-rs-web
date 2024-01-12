@@ -11,7 +11,7 @@ FROM rust:alpine as builder
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
 RUN apk update \
-  && apk add git make build-base pkgconfig 
+  && apk add git make build-base pkgconfig nasm
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && make release 
