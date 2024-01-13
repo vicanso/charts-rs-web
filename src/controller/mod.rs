@@ -13,8 +13,8 @@ use std::io::Cursor;
 use crate::dist::{get_static_file, StaticFile};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    svg_to_png, BarChart, CandlestickChart, HorizontalBarChart, LineChart, MultiChart, PieChart,
-    RadarChart, ScatterChart, TableChart,
+    svg_to_png, svg_to_webp, BarChart, CandlestickChart, HorizontalBarChart, LineChart, MultiChart, PieChart,
+    RadarChart, ScatterChart, TableChart, svg_to_avif,
 };
 
 #[derive(Debug, Snafu)]
@@ -63,6 +63,9 @@ pub fn new_router() -> Router {
         .route("/api/basic-info", get(get_basic_info))
         .route("/api/charts/svg", post(chart_svg))
         .route("/api/charts/png", post(chart_png))
+        .route("/api/charts/webp", post(chart_webp))
+        .route("/api/charts/avif", post(chart_avif))
+        .route("/api/charts/jpeg", post(chart_jpeg))
         .fallback(get(serve))
 }
 
@@ -107,6 +110,9 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
 enum FormatType {
     Svg,
     Png,
+    Webp,
+    Avif,
+    Jpeg,
 }
 
 async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
@@ -168,6 +174,14 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
 
     let data = match format {
         FormatType::Svg => Bytes::from(svg),
+        FormatType::Webp => {
+            let data= svg_to_webp(&svg)?;
+            Bytes::from(data)
+        }
+        FormatType::Avif => {
+            let data= svg_to_avif(&svg)?;
+            Bytes::from(data)
+        }
         _ => {
             let data = svg_to_png(&svg)?;
             if quality == 0 {
@@ -251,3 +265,40 @@ async fn chart_png(req: Request<Body>) -> HttpResult<Response> {
     )
         .into_response())
 }
+
+async fn chart_webp(req: Request<Body>) -> HttpResult<Response> {
+    let buf = render(req, FormatType::Webp).await?;
+    Ok((
+        [(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("image/webp"),
+        )],
+        buf,
+    )
+        .into_response())
+}
+
+async fn chart_avif(req: Request<Body>) -> HttpResult<Response> {
+    let buf = render(req, FormatType::Avif).await?;
+    Ok((
+        [(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("image/avif"),
+        )],
+        buf,
+    )
+        .into_response())
+}
+
+async fn chart_jpeg(req: Request<Body>) -> HttpResult<Response> {
+    let buf = render(req, FormatType::Jpeg).await?;
+    Ok((
+        [(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static(mime::IMAGE_JPEG.as_ref()),
+        )],
+        buf,
+    )
+        .into_response())
+}
+

@@ -1255,9 +1255,9 @@ dependencies = [
 
 [[package]]
 name = "lodepng"
-version = "3.9.2"
+version = "3.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b00f56ff9bcd5721ab172b73eac8a7d4e9439f47a98581e666178dbe7df97e13"
+checksum = "f494e828d9924c447ae3755f4f7398a2bda231eb004ad4396830d1f106e11d12"
 dependencies = [
  "crc32fast",
  "fallible_collections",

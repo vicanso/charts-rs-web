@@ -158,12 +158,24 @@ const themeOptions = [
 const formatOptions = [
   {
     value: "svg",
-    label: "SVG",
+    label: "Svg",
   },
   {
     value: "png",
-    label: "PNG",
+    label: "Png",
   },
+  {
+    value: "webp",
+    label: "WebP",
+  },
+  {
+    value: "avif",
+    label: "Avif",
+  },
+  {
+    value: "jpeg",
+    label: "Jpeg",
+  }
 ];
 const defaultOption = {
   quality: 80,
@@ -1053,7 +1065,7 @@ interface AppState {
   theme: string;
   format: string;
   svg: string;
-  png: string;
+  imageData: string;
   fontFamilies: string[];
   fontFamily: string;
   width: number;
@@ -1081,7 +1093,7 @@ class App extends Component<any, AppState> {
       width: 0,
       height: 0,
       svg: "",
-      png: "",
+      imageData: "",
       processing: false,
       simply: true,
       currentChartType: "",
@@ -1157,9 +1169,12 @@ class App extends Component<any, AppState> {
     }
     const value = this.getChartOption();
     let isSvg = true;
+    const {
+      format
+    } = this.state;
     let url = "/api/charts/svg";
-    if (this.state.format == "png") {
-      url = "/api/charts/png";
+    if (format != "svg") {
+      url = `/api/charts/${format}`;
       isSvg = false;
     }
     try {
@@ -1173,7 +1188,7 @@ class App extends Component<any, AppState> {
 
       const { data } = await axios.post(url, value, config);
       let svg = "";
-      let png = "";
+      let imageData = "";
       if (isSvg) {
         svg = data;
       } else {
@@ -1183,11 +1198,11 @@ class App extends Component<any, AppState> {
             "",
           ),
         );
-        png = `data:image/png;base64,${base64}`;
+        imageData = `data:image/${format};base64,${base64}`;
       }
       this.setState({
         svg,
-        png,
+        imageData,
         width: value.width || 0,
         height: value.height || 0,
       });
@@ -1210,7 +1225,7 @@ class App extends Component<any, AppState> {
   render(): ReactNode {
     const {
       svg,
-      png,
+      imageData,
       width,
       height,
       format,
@@ -1371,7 +1386,7 @@ class App extends Component<any, AppState> {
                   dangerouslySetInnerHTML={{ __html: svg }}
                 ></div>
               )}
-              {format !== "svg" && <img style={previewStyle} src={png} />}
+              {format !== "svg" && <img style={previewStyle} src={imageData} />}
             </div>
           </Content>
         </Layout>

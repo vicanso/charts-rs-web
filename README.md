@@ -9,8 +9,11 @@
 ## HTTP接口
 
 - `GET /api/basic-info`: 返回应用信息：版本与字体等。默认支持两种字体`Noto Sans SC`与`Roboto`
-- `POST /api/charts/png`: 生成PNG图表
-- `POST /api/charts/svg`: 生成SVG图表
+- `POST /api/charts/png`: 生成Png图表
+- `POST /api/charts/jpeg`: 生成Jpeg图表
+- `POST /api/charts/webp`: 生成Webp图表
+- `POST /api/charts/avif`: 生成Avif图表（注意生成avif需要时间较长）
+- `POST /api/charts/svg`: 生成Svg图表
 
 ## JSON参数
 
