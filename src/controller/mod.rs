@@ -13,8 +13,8 @@ use std::io::Cursor;
 use crate::dist::{get_static_file, StaticFile};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    svg_to_png, svg_to_webp, BarChart, CandlestickChart, HorizontalBarChart, LineChart, MultiChart, PieChart,
-    RadarChart, ScatterChart, TableChart, svg_to_avif,
+    svg_to_avif, svg_to_png, svg_to_webp, BarChart, CandlestickChart, HeatmapChart,
+    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, TableChart,
 };
 
 #[derive(Debug, Snafu)]
@@ -162,6 +162,10 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
             let chart = CandlestickChart::from_json(&json)?;
             chart.svg()?
         }
+        "heatmap" => {
+            let chart = HeatmapChart::from_json(&json)?;
+            chart.svg()?
+        }
         "multi_chart" => {
             let mut multi_chart = MultiChart::from_json(&json)?;
             multi_chart.svg()?
@@ -175,11 +179,11 @@ async fn render(req: Request<Body>, format: FormatType) -> HttpResult<Bytes> {
     let data = match format {
         FormatType::Svg => Bytes::from(svg),
         FormatType::Webp => {
-            let data= svg_to_webp(&svg)?;
+            let data = svg_to_webp(&svg)?;
             Bytes::from(data)
         }
         FormatType::Avif => {
-            let data= svg_to_avif(&svg)?;
+            let data = svg_to_avif(&svg)?;
             Bytes::from(data)
         }
         _ => {
@@ -269,10 +273,7 @@ async fn chart_png(req: Request<Body>) -> HttpResult<Response> {
 async fn chart_webp(req: Request<Body>) -> HttpResult<Response> {
     let buf = render(req, FormatType::Webp).await?;
     Ok((
-        [(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("image/webp"),
-        )],
+        [(header::CONTENT_TYPE, HeaderValue::from_static("image/webp"))],
         buf,
     )
         .into_response())
@@ -281,10 +282,7 @@ async fn chart_webp(req: Request<Body>) -> HttpResult<Response> {
 async fn chart_avif(req: Request<Body>) -> HttpResult<Response> {
     let buf = render(req, FormatType::Avif).await?;
     Ok((
-        [(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("image/avif"),
-        )],
+        [(header::CONTENT_TYPE, HeaderValue::from_static("image/avif"))],
         buf,
     )
         .into_response())
@@ -301,4 +299,3 @@ async fn chart_jpeg(req: Request<Body>) -> HttpResult<Response> {
     )
         .into_response())
 }
-
