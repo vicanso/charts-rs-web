@@ -938,6 +938,12 @@ const chartDefaultOptions: Record<string, unknown> = {
       "11p",
     ],
     series: {
+      min: 0,
+      max: 10,
+      min_color: "#f0d99c",
+      max_color: "#bf444c",
+      min_font_color: "#464646",
+      max_font_color: "#eee",
       data: [
         [0, 9.0],
         [1, 3.0],
