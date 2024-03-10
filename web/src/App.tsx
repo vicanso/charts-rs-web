@@ -240,6 +240,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     title_text: "Bar Chart",
     legend_align: "left",
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     series_list: [
       {
         name: "Email",
@@ -272,6 +274,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_category: "round_rect",
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     x_boundary_gap: false,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     margin: {
       left: 15,
       top: 15,
@@ -314,6 +318,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     x_boundary_gap: false,
     legend_category: "circle",
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     margin: {
       left: 15,
       top: 15,
@@ -356,6 +362,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     series_smooth: true,
     legend_category: "rect",
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     margin: {
       left: 5,
       top: 5,
@@ -409,6 +417,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     series_smooth: true,
     series_fill: true,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     series_list: [
       {
         name: "Email",
@@ -446,6 +456,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     },
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     series_smooth: true,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     y_axis_configs: [
       {
         axis_font_size: 14,
@@ -497,6 +509,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Brazil", "Indonesia", "USA", "India", "China", "World"],
     series_label_formatter: "{t}",
     series_label_position: null,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     series_list: [
       {
         name: "2011",
@@ -653,6 +667,8 @@ const chartDefaultOptions: Record<string, unknown> = {
     sub_title_text: "Data from: Heinz 2003",
     sub_title_align: "left",
     legend_align: "right",
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     margin: {
       left: 5,
       top: 5,
@@ -720,6 +736,8 @@ const chartDefaultOptions: Record<string, unknown> = {
         axis_formatter: "{t}",
       },
     ],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     series_list: [
       {
         name: "MA5",
@@ -937,6 +955,8 @@ const chartDefaultOptions: Record<string, unknown> = {
       "10p",
       "11p",
     ],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
     series: {
       min: 0,
       max: 10,
@@ -1146,6 +1166,15 @@ interface AppState {
   currentChartType: string;
 }
 
+function formatJson(data: Record<string, unknown>) {
+  const keys = Object.keys(data).sort();
+  const result: Record<string, unknown> = {};
+  keys.forEach((key) => {
+    result[key] = data[key];
+  });
+  return JSON.stringify(result, null, 2);
+}
+
 class App extends Component<any, AppState> {
   editorInited;
   editorDom: RefObject<HTMLDivElement>;
@@ -1223,10 +1252,10 @@ class App extends Component<any, AppState> {
         simplyKeys.forEach((key) => {
           opts[key] = options[key];
         });
-        editor.setValue(JSON.stringify(opts, null, 2));
+        editor.setValue(formatJson(opts));
       } else {
         delete options["simplyKeys"];
-        editor.setValue(JSON.stringify(options, null, 2));
+        editor.setValue(formatJson(options));
       }
     }
   }
