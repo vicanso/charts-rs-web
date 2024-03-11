@@ -902,6 +902,7 @@ const chartDefaultOptions: Record<string, unknown> = {
           indexes: [1, 2],
         },
       ],
+      outlined: false,
       simplyKeys: [
         "width",
         "height",
