@@ -242,6 +242,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     x_axis_hidden: false,
     y_axis_hidden: false,
+    radius: 0,
     series_list: [
       {
         name: "Email",
