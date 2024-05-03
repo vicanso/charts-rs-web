@@ -1220,7 +1220,7 @@ class App extends Component<any, AppState> {
     const { data } = await axios.get<{
       families: string[];
       version: string;
-    }>("/api/basic-info");
+    }>("./api/basic-info");
     this.setState({
       fontFamilies: data.families,
       version: data.version,
@@ -1271,9 +1271,9 @@ class App extends Component<any, AppState> {
     const value = this.getChartOption();
     let isSvg = true;
     const { format } = this.state;
-    let url = "/api/charts/svg";
+    let url = "./api/charts/svg";
     if (format != "svg") {
-      url = `/api/charts/${format}`;
+      url = `./api/charts/${format}`;
       isSvg = false;
     }
     try {
