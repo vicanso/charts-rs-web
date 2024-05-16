@@ -104,7 +104,7 @@ async fn run() {
 fn load_fonts(dir: &str) {
     let mut font_files = vec![];
 
-    let file_paths = vec![
+    let file_paths = [
         format!(r#"{dir}/*.ttf"#),
         format!(r#"{dir}/*.otf"#),
         format!(r#"{dir}/**/*.ttf"#),
