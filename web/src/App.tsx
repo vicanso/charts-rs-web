@@ -39,6 +39,9 @@ function createEditor(params: {
 }
 
 const getGithubIcon = (isDarkMode: boolean) => {
+  if (window.location.host !== "charts.npmtrend.com") {
+    return;
+  }
   let color = `rgb(0, 0, 0)`;
   if (isDarkMode) {
     color = `rgb(255, 255, 255)`;
