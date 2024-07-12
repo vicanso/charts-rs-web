@@ -129,6 +129,10 @@ const themeOptions = [
     label: "Grafana",
   },
   {
+    value: "shadcn",
+    label: "Shadcn",
+  },
+  {
     value: "light",
     label: "Light",
   },
