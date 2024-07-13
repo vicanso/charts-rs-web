@@ -1,4 +1,4 @@
-FROM node:20-alpine as webbuilder
+FROM node:22-alpine as webbuilder
 
 COPY . /charts-rs-web
 RUN apk update \
@@ -14,9 +14,9 @@ RUN apk update \
   && apk add git make build-base pkgconfig nasm
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
-  && make release 
+  && make release
 
-FROM alpine 
+FROM alpine
 
 EXPOSE 5000
 
