@@ -1271,6 +1271,18 @@ class App extends Component<any, AppState> {
   refreshChartOption() {
     this.updateChartOption(this.getChartOption());
   }
+  async generateAndCopy() {
+    const value = this.getChartOption();
+    const { format } = this.state;
+    try {
+      const url = `${window.location.href}api/charts?format=${format}&opts=${JSON.stringify(value)}`;
+      console.info(url);
+      await navigator.clipboard.writeText(url);
+      message.info("已成功复制");
+    } catch (err: any) {
+      message.error(err, 10);
+    }
+  }
   async generateChart() {
     if (this.state.processing) {
       return;
@@ -1461,6 +1473,15 @@ class App extends Component<any, AppState> {
                   onClick={() => this.generateChart()}
                 >
                   {processing ? "生成中..." : "运行"}
+                </Button>
+                <Button
+                  size="large"
+                  style={{
+                    width: 120,
+                  }}
+                  onClick={() => this.generateAndCopy()}
+                >
+                  {"复制预览地址"}
                 </Button>
                 {window.location.host === "charts.npmtrend.com" &&
                   getGithubIcon(isDarkMode())}
