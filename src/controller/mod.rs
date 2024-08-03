@@ -122,6 +122,7 @@ async fn serve(uri: Uri) -> StaticFile {
 #[derive(Debug, Clone, Serialize, Default)]
 struct BasicInfoResult {
     pub families: Vec<String>,
+    pub themes: Vec<String>,
     pub version: String,
 }
 
@@ -129,6 +130,7 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
     let families = charts_rs::get_font_families()?;
     Ok(Json(BasicInfoResult {
         families,
+        themes: charts_rs::list_theme_name(),
         version: charts_rs::version(),
     }))
 }

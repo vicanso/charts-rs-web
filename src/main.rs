@@ -3,6 +3,7 @@ use glob::glob;
 use std::net::SocketAddr;
 use std::time::Duration;
 use std::{env, fs, str::FromStr};
+use substring::Substring;
 use tokio::signal;
 use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
@@ -136,7 +137,30 @@ fn main() {
             load_fonts(item);
         }
     }
+    let prefix = "CHARTS_THEME_";
+    for (name, value) in env::vars() {
+        if !name.starts_with(prefix) {
+            continue;
+        }
+        let name = name.substring(prefix.len(), name.len());
+        if name.is_empty() {
+            continue;
+        }
+        match serde_json::from_str::<charts_rs::Theme>(&value) {
+            Ok(theme) => {
+                charts_rs::add_theme(name, theme);
+            }
+            Err(err) => {
+                tracing::error!(error = err.to_string(), "add theme fail");
+            }
+        }
+    }
     let families = charts_rs::get_font_families().unwrap();
-    info!(families = families.join(","), "load font success");
+    let themes = charts_rs::list_theme_name();
+    info!(
+        families = families.join(","),
+        themes = themes.join(","),
+        "get charts theme and family"
+    );
     run();
 }
