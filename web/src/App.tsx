@@ -123,48 +123,48 @@ const chartOptions = [
     label: "MultiChart: 多图表",
   },
 ];
-const themeOptions = [
-  {
-    value: "grafana",
-    label: "Grafana",
-  },
-  {
-    value: "shadcn",
-    label: "Shadcn",
-  },
-  {
-    value: "light",
-    label: "Light",
-  },
-  {
-    value: "dark",
-    label: "Dark",
-  },
-  {
-    value: "ant",
-    label: "Ant",
-  },
-  {
-    value: "vintage",
-    label: "Vintage",
-  },
-  {
-    value: "walden",
-    label: "Walden",
-  },
-  {
-    value: "westeros",
-    label: "Westeros",
-  },
-  {
-    value: "chalk",
-    label: "Chalk",
-  },
-  {
-    value: "shine",
-    label: "Shine",
-  },
-];
+// const themeOptions = [
+//   {
+//     value: "grafana",
+//     label: "Grafana",
+//   },
+//   {
+//     value: "shadcn",
+//     label: "Shadcn",
+//   },
+//   {
+//     value: "light",
+//     label: "Light",
+//   },
+//   {
+//     value: "dark",
+//     label: "Dark",
+//   },
+//   {
+//     value: "ant",
+//     label: "Ant",
+//   },
+//   {
+//     value: "vintage",
+//     label: "Vintage",
+//   },
+//   {
+//     value: "walden",
+//     label: "Walden",
+//   },
+//   {
+//     value: "westeros",
+//     label: "Westeros",
+//   },
+//   {
+//     value: "chalk",
+//     label: "Chalk",
+//   },
+//   {
+//     value: "shine",
+//     label: "Shine",
+//   },
+// ];
 
 const formatOptions = [
   {
@@ -1166,6 +1166,7 @@ interface AppState {
   svg: string;
   imageData: string;
   fontFamilies: string[];
+  themes: string[];
   fontFamily: string;
   width: number;
   height: number;
@@ -1193,10 +1194,11 @@ class App extends Component<any, AppState> {
     this.editorInited = false;
     this.state = {
       version: "",
-      theme: themeOptions[0].value,
+      theme: "grafana",
       format: formatOptions[0].value,
       fontFamilies: [],
       fontFamily: "",
+      themes: [],
       editor: null,
       width: 0,
       height: 0,
@@ -1227,10 +1229,12 @@ class App extends Component<any, AppState> {
     const { data } = await axios.get<{
       families: string[];
       version: string;
+      themes: string[];
     }>("./api/basic-info");
     this.setState({
       fontFamilies: data.families,
       version: data.version,
+      themes: data.themes,
     });
   }
   getChartOption() {
@@ -1352,6 +1356,7 @@ class App extends Component<any, AppState> {
       version,
       simply,
       currentChartType,
+      themes,
     } = this.state;
     let headerClass = "header";
     if (isDarkMode()) {
@@ -1374,6 +1379,12 @@ class App extends Component<any, AppState> {
     const familyOptions = fontFamilies.map((item) => {
       return {
         label: item,
+        value: item,
+      };
+    });
+    const themeOptions = themes.map((item) => {
+      return {
+        label: item.substring(0, 1).toUpperCase() + item.substring(1),
         value: item,
       };
     });
@@ -1420,7 +1431,7 @@ class App extends Component<any, AppState> {
                     width: 150,
                   }}
                   options={themeOptions}
-                  defaultValue={themeOptions[0].value}
+                  defaultValue={"grafana"}
                   onChange={(theme) => {
                     this.setState(
                       {
