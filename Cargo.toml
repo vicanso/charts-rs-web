@@ -7,34 +7,34 @@ edition = "2021"
 
 [dependencies]
 axum = "0.7.5"
-axum-client-ip = "0.6.0"
-charts-rs = { version = "0.3.17", features = ["image-encoder"] }
+axum-client-ip = "0.6.1"
+charts-rs = { version = "0.3.18", features = ["image-encoder"] }
 chrono = "0.4.38"
-config = { version = "0.14.0", features = ["yaml"] }
+config = { version = "0.14.1", features = ["yaml"] }
 glob = "0.3.1"
 hex = "0.4.3"
 http-body-util = "0.1.2"
-image = "0.25.2"
+image = "0.25.4"
 imagequant = { version = "4.3.3", default-features = false }
-lodepng = "3.10.4"
+lodepng = "3.10.7"
 mime = "0.3.17"
-once_cell = "1.19.0"
+once_cell = "1.20.2"
 rgb = "0.8.48"
 rust-embed = { version = "8.5.0", features = ["mime-guess", "compression"] }
-serde = "1.0.207"
-serde_json = "1.0.125"
-snafu = "0.8.4"
+serde = "1.0.213"
+serde_json = "1.0.132"
+snafu = "0.8.5"
 substring = "1.4.5"
 time = "0.3.36"
-tokio = { version = "1.39.2", features = [
+tokio = { version = "1.41.0", features = [
     "macros",
     "rt",
     "rt-multi-thread",
     "net",
     "signal",
 ] }
-tower = { version = "0.5.0", features = ["timeout"] }
-tower-http = { version = "0.5.2", features = [
+tower = { version = "0.5.1", features = ["timeout"] }
+tower-http = { version = "0.6.1", features = [
     "compression-gzip",
     "compression-zstd",
 ] }
