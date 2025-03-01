@@ -1187,7 +1187,7 @@ function formatJson(data: Record<string, unknown>) {
 
 class App extends Component<any, AppState> {
   editorInited;
-  editorDom: RefObject<HTMLDivElement>;
+  editorDom: RefObject<HTMLDivElement | null>;
   constructor(props: any) {
     super(props);
     this.editorDom = createRef();
