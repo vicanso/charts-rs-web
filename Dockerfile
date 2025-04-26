@@ -1,4 +1,4 @@
-FROM node:22-alpine as webbuilder
+FROM node:22-alpine AS webbuilder
 
 COPY . /charts-rs-web
 RUN apk update \
@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:alpine as builder
+FROM rust:1.86-alpine AS builder
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
