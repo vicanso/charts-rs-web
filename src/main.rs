@@ -6,7 +6,9 @@ use std::{env, fs, str::FromStr};
 use substring::Substring;
 use tokio::signal;
 use tower::ServiceBuilder;
+use tower_http::compression::predicate::{NotForContentType, Predicate, SizeAbove};
 use tower_http::compression::CompressionLayer;
+
 use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -69,6 +71,11 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn run() {
+    let predicate = SizeAbove::new(1024)
+        .and(NotForContentType::GRPC)
+        .and(NotForContentType::IMAGES)
+        .and(NotForContentType::SSE);
+
     // build our application with a route
     let app = Router::new()
         .merge(controller::new_router())
@@ -81,7 +88,7 @@ async fn run() {
         .layer(
             // service builder 顺序执行
             ServiceBuilder::new()
-                .layer(CompressionLayer::new())
+                .layer(CompressionLayer::new().compress_when(predicate))
                 .layer(from_fn(middleware::access_log))
                 .layer(from_fn(middleware::entry)),
         );
@@ -97,7 +104,7 @@ async fn run() {
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
-    // .with_graceful_shutdown(shutdown_signal())
+    .with_graceful_shutdown(shutdown_signal())
     .await
     .unwrap();
 }
