@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 axum = "0.8.4"
-axum-client-ip = "0.7.0"
-charts-rs = { version = "0.3.23", features = ["image-encoder"] }
+axum-client-ip = "1.1.3"
+charts-rs = { version = "0.3.24", features = ["image-encoder"] }
 chrono = "0.4.41"
 config = { version = "0.15.11", features = ["yaml"] }
 glob = "0.3.2"
@@ -45,4 +45,7 @@ validator = { version = "0.20.0", features = ["derive"] }
 
 [profile.release]
 codegen-units = 1
+opt-level = "z"
 lto = true
+strip = true
+panic = "abort"

@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.86-alpine AS builder
+FROM rust:1.88-alpine AS builder
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
@@ -14,7 +14,9 @@ RUN apk update \
   && apk add git make build-base pkgconfig nasm
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
-  && make release
+  && make release \
+  && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf -
+  && mv httpstat /usr/local/bin/
 
 FROM alpine
 
@@ -23,6 +25,7 @@ EXPOSE 5000
 COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
 COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
 COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
+COPY --from=builder /usr/local/bin/httpstat /usr/local/bin/httpstat
 
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 

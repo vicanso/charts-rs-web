@@ -1,4 +1,5 @@
 use axum::{error_handling::HandleErrorLayer, middleware::from_fn, Router};
+use axum_client_ip::ClientIpSource;
 use glob::glob;
 use std::net::SocketAddr;
 use std::time::Duration;
@@ -90,7 +91,8 @@ async fn run() {
             ServiceBuilder::new()
                 .layer(CompressionLayer::new().compress_when(predicate))
                 .layer(from_fn(middleware::access_log))
-                .layer(from_fn(middleware::entry)),
+                .layer(from_fn(middleware::entry))
+                .layer(ClientIpSource::RightmostXForwardedFor.into_extension()),
         );
 
     let basic_config = config::must_new_basic_config();

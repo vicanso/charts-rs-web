@@ -1,16 +1,11 @@
 use axum::{body::Body, http::Request, middleware::Next, response::Response};
-use axum_client_ip::InsecureClientIp;
 use chrono::Utc;
 use tracing::info;
 use urlencoding::decode;
 
 use crate::util::get_header_value;
 
-pub async fn access_log(
-    InsecureClientIp(ip): InsecureClientIp,
-    req: Request<Body>,
-    next: Next,
-) -> Response {
+pub async fn access_log(req: Request<Body>, next: Next) -> Response {
     let start_at = Utc::now().timestamp_millis();
 
     let mut uri = req.uri().to_string();
@@ -22,6 +17,14 @@ pub async fn access_log(
     let x_forwarded_for = get_header_value(req.headers(), "X-Forwarded-For");
     let referrer = get_header_value(req.headers(), "Referer");
 
+    // Extract IP address from headers or use a default
+    let ip = x_forwarded_for
+        .split(',')
+        .next()
+        .unwrap_or("unknown")
+        .trim()
+        .to_string();
+
     let resp = next.run(req).await;
 
     let status = resp.status().as_u16();
@@ -30,13 +33,7 @@ pub async fn access_log(
 
     info!(
         category = "access",
-        ip = ip.to_string(),
-        x_forwarded_for,
-        referrer,
-        method,
-        uri,
-        status,
-        cost,
+        ip, x_forwarded_for, referrer, method, uri, status, cost,
     );
 
     resp
