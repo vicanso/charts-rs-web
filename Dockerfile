@@ -16,7 +16,6 @@ RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && make release \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf -
-  && mv httpstat /usr/local/bin/
 
 FROM alpine
 
@@ -25,7 +24,7 @@ EXPOSE 5000
 COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
 COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
 COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
-COPY --from=builder /usr/local/bin/httpstat /usr/local/bin/httpstat
+COPY --from=builder /charts-rs-web/httpstat /usr/local/bin/httpstat
 
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 
