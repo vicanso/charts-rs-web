@@ -11,7 +11,7 @@ FROM rust:1.88-alpine AS builder
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
 RUN apk update \
-  && apk add git make build-base pkgconfig nasm curl \
+  && apk add git make build-base pkgconfig nasm curl 
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf - \
