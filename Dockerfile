@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.88-alpine AS builder
+FROM rust:1.88 AS builder
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
@@ -17,7 +17,7 @@ RUN cd /charts-rs-web \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf - \
   && make release 
 
-FROM alpine
+FROM debian:12-slim
 
 EXPOSE 5000
 
@@ -28,9 +28,11 @@ COPY --from=builder /charts-rs-web/httpstat /usr/local/bin/httpstat
 
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 
-RUN addgroup -g 1000 rust \
-  && adduser -u 1000 -G rust -s /bin/sh -D rust \
-  && apk add --no-cache ca-certificates tzdata
+RUN groupadd -g 1000 rust \
+  && useradd -u 1000 -g rust -s /bin/bash -m rust \
+  && apt update \
+  && apt install -y --no-install-recommends ca-certificates tzdata \
+  && rm -rf /var/lib/apt/lists/*
 
 ENV RUST_ENV=production
 ENV CHARTS_FONT_PATH=/usr/share/fonts
@@ -39,7 +41,7 @@ USER rust
 
 WORKDIR /home/rust
 
-HEALTHCHECK --timeout=10s --interval=10s CMD [ "wget", "http://127.0.0.1:5000/ping", "-q", "-O", "-"]
+HEALTHCHECK --timeout=10s --interval=10s CMD [ "httpstat", "http://127.0.0.1:5000/ping" ]
 
 CMD ["charts-rs-web"]
 
