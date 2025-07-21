@@ -12,6 +12,7 @@ COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
 RUN apt update \
   && apt install -y --no-install-recommends git make build-essential pkg-config nasm curl 
+RUN apt install -y --no-install-recommends ca-certificates tzdata 
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf - \
@@ -25,14 +26,12 @@ COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
 COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
 COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
 COPY --from=builder /charts-rs-web/httpstat /usr/local/bin/httpstat
+COPY --from=builder /etc/ssl /etc/ssl
 
 # tzdata 安装所有时区配置或可根据需要只添加所需时区
 
 RUN groupadd -g 1000 rust \
-  && useradd -u 1000 -g rust -s /bin/bash -m rust \
-  && apt update \
-  && apt install -y --no-install-recommends ca-certificates tzdata \
-  && rm -rf /var/lib/apt/lists/*
+  && useradd -u 1000 -g rust -s /bin/bash -m rust 
 
 ENV RUST_ENV=production
 ENV CHARTS_FONT_PATH=/usr/share/fonts
