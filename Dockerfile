@@ -40,7 +40,7 @@ USER rust
 
 WORKDIR /home/rust
 
-HEALTHCHECK --timeout=10s --interval=10s CMD [ "httpstat", "http://127.0.0.1:5000/ping" ]
+HEALTHCHECK --timeout=10s --interval=10s CMD [ "httpstat", "http://127.0.0.1:5000/ping", "-s"]
 
 CMD ["charts-rs-web"]
 

@@ -70,7 +70,6 @@ async fn shutdown_signal() {
     info!("signal received, starting graceful shutdown");
 }
 
-#[tokio::main]
 async fn run() {
     let predicate = SizeAbove::new(1024)
         .and(NotForContentType::GRPC)
@@ -171,5 +170,16 @@ fn main() {
         themes = themes.join(","),
         "get charts theme and family"
     );
-    run();
+    let num_cpus = num_cpus::get();
+    let cpus = std::env::var("CHARTS_THREADS")
+        .map(|v| v.parse::<usize>().unwrap_or(num_cpus))
+        .unwrap_or(num_cpus)
+        .max(1);
+    info!(threads = cpus, "start charts server");
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .worker_threads(cpus)
+        .build()
+        .unwrap()
+        .block_on(run());
 }
