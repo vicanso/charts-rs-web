@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -9,16 +9,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 1024 * 1024,
     rollupOptions: {
       output: {
-        manualChunks: {
-          common: [
-            "antd",
-            "axios",
-            "react",
-            "react-dom"
-          ],
-          editor: [
-            "monaco-editor",
-          ]
+        manualChunks(id) {
+          if (id.includes("monaco-editor")) return "editor";
+          if (["antd", "axios", "react", "react-dom"].some(pkg => id.includes(`/node_modules/${pkg}/`))) return "common";
         },
       },
     },

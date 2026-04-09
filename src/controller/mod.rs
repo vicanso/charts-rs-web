@@ -1,22 +1,23 @@
 use axum::body::{Body, Bytes};
 use axum::extract::Query;
-use axum::http::{header, HeaderValue, Request, Uri};
+use axum::http::{HeaderValue, Request, Uri, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use http_body_util::BodyExt;
-use image::{load, ImageFormat};
+use image::{ImageFormat, load};
 use rgb::RGBA8;
 use serde::Deserialize;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use std::io::Cursor;
 
-use crate::dist::{get_static_file, StaticFile};
+use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    svg_to_avif, svg_to_png, svg_to_webp, BarChart, CandlestickChart, HeatmapChart,
+    BarChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
     HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, TableChart,
+    WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -201,6 +202,22 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
         "multi_chart" => {
             let mut multi_chart = MultiChart::from_json(&json)?;
             multi_chart.svg()?
+        }
+        "calendar" => {
+            let chart = CalendarChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "funnel" => {
+            let chart = FunnelChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "waterfall" => {
+            let chart = WaterfallChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "guage" => {
+            let chart = GaugeChart::from_json(&json)?;
+            chart.svg()?
         }
         _ => {
             let chart = BarChart::from_json(&json)?;

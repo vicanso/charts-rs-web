@@ -1,4 +1,4 @@
-FROM node:22-alpine AS webbuilder
+FROM node:24-alpine AS webbuilder
 
 COPY . /charts-rs-web
 RUN apk update \

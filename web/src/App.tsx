@@ -9,7 +9,7 @@ import {
   message,
   Switch,
 } from "antd";
-import { editor } from "monaco-editor/esm/vs/editor/editor.api";
+import { editor } from "monaco-editor";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 import "./App.css";
@@ -71,8 +71,16 @@ const chartOptions = [
     label: "Bar: 常规柱状图",
   },
   {
+    value: "barStacked",
+    label: "Bar: 堆叠柱状图",
+  },
+  {
     value: "lineBasic",
     label: "Line: 常规曲线图",
+  },
+  {
+    value: "lineAnimation",
+    label: "Line: 动画曲线图",
   },
   {
     value: "lineStartIndexBasic",
@@ -80,7 +88,7 @@ const chartOptions = [
   },
   {
     value: "lineSmooth",
-    label: "Line: 常规平滑曲线图",
+    label: "Line: 常规平滑曲线图(log2)",
   },
   {
     value: "lineSmoothFill",
@@ -119,52 +127,27 @@ const chartOptions = [
     label: "Heatmap: 热力图",
   },
   {
+    value: "calendarChart",
+    label: "Calendar: 日历图",
+  },
+  {
+    value: "funnelChart",
+    label: "Funnel: 漏斗图",
+  },
+  {
+    value: "waterfallChart",
+    label: "Waterfall: 瀑布图",
+  },
+  {
+    value: "guageChart",
+    label: "Gauge: 仪表盘",
+  },
+  {
     value: "multiChart",
     label: "MultiChart: 多图表",
   },
 ];
-// const themeOptions = [
-//   {
-//     value: "grafana",
-//     label: "Grafana",
-//   },
-//   {
-//     value: "shadcn",
-//     label: "Shadcn",
-//   },
-//   {
-//     value: "light",
-//     label: "Light",
-//   },
-//   {
-//     value: "dark",
-//     label: "Dark",
-//   },
-//   {
-//     value: "ant",
-//     label: "Ant",
-//   },
-//   {
-//     value: "vintage",
-//     label: "Vintage",
-//   },
-//   {
-//     value: "walden",
-//     label: "Walden",
-//   },
-//   {
-//     value: "westeros",
-//     label: "Westeros",
-//   },
-//   {
-//     value: "chalk",
-//     label: "Chalk",
-//   },
-//   {
-//     value: "shine",
-//     label: "Shine",
-//   },
-// ];
+
 
 const formatOptions = [
   {
@@ -275,6 +258,39 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  barStacked: Object.assign({}, defaultOption, {
+    type: "bar",
+    title_text: "Bar Stacked Chart",
+    legend_align: "left",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    radius: 0,
+    series_list: [
+      {
+        name: "Email",
+        stack: "total",
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        stack: "total",
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  }),
   lineBasic: Object.assign({}, defaultOption, {
     type: "line",
     title_text: "Line Chart",
@@ -316,6 +332,55 @@ const chartDefaultOptions: Record<string, unknown> = {
       "title_text",
       "x_axis_data",
       "series_list",
+      "theme",
+    ],
+  }),
+  lineAnimation: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Chart",
+    legend_align: "right",
+    legend_category: "round_rect",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_boundary_gap: false,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+    animation: {
+      duration: 1000,
+      easing: "ease",
+      delay: 80
+    },
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "x_boundary_gap",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "animation",
       "theme",
     ],
   }),
@@ -372,6 +437,11 @@ const chartDefaultOptions: Record<string, unknown> = {
     legend_category: "rect",
     x_axis_hidden: false,
     y_axis_hidden: false,
+    y_axis_configs: [
+      {
+        "axis_scale": "log2",
+      }
+    ],
     margin: {
       left: 5,
       top: 5,
@@ -408,6 +478,7 @@ const chartDefaultOptions: Record<string, unknown> = {
       "margin",
       "font_family",
       "sub_title_text",
+      "y_axis_configs",
       "legend_align",
       "legend_category",
       "type",
@@ -994,6 +1065,79 @@ const chartDefaultOptions: Record<string, unknown> = {
       "series",
       "type",
     ],
+  }),
+  calendarChart: {
+    type: "calendar",
+    margin: { left: 10, top: 10, right: 10, bottom: 10 },
+    font_family: "Roboto",
+    background_color: "#ffffff",
+    theme: "light",
+
+    title_text: "2024 Contributions",
+    title_font_size: 16,
+    title_font_color: "#333333",
+    title_font_weight: "bold",
+    title_align: "left",
+    title_height: 30,
+
+    sub_title_text: "GitHub style",
+    sub_title_font_size: 13,
+    sub_title_font_color: "#999999",
+    sub_title_align: "left",
+    sub_title_height: 20,
+
+    start_date: "2024-01-01",
+    end_date: "2024-12-31",
+
+    min: 0,
+    max: 10,
+    min_color: "#ebedf0",
+    max_color: "#216e39",
+    empty_color: "#28282d",
+
+    cell_size: 13,
+    cell_gap: 3,
+
+    data: [
+      ["2024-01-05", 2],
+      ["2024-02-14", 8],
+      ["2024-06-15", 9],
+      ["2024-09-01", 4],
+      ["2024-12-25", 10]
+    ]
+  },
+  funnelChart: Object.assign({}, defaultOption, {
+    type: "funnel",
+    title_text: "Funnel Chart",
+    series_label_position: "inside",
+    funnel_gap: 4,
+    series_list: [
+      { name: "Impression", data: [60000] },
+      { name: "Click", data: [40000] },
+      { name: "Inquiry", data: [20000] },
+      { name: "Order", data: [8000] },
+      { name: "Re-order", data: [2000] }
+    ]
+  }),
+  waterfallChart: Object.assign({}, defaultOption, {
+    type: "waterfall",
+    title_text: "Waterfall Chart",
+    x_axis_data: ["Initial", "Revenue", "Services", "Purchases", "Marketing", "Profit"],
+    data: [
+      [900, false],
+      [345, false],
+      [393, false],
+      [-108, false],
+      [-154, false],
+      [0, true]
+    ]
+  }),
+  guageChart: Object.assign({}, defaultOption, {
+    type: "guage",
+    title_text: "Gauge",
+    min: 0,
+    max: 200,
+    series_list: [{ name: "Speed", data: [120] }]
   }),
   multiChart: {
     type: "multi_chart",
