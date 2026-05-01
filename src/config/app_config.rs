@@ -46,10 +46,10 @@ impl APPConfig {
         if arr.len() != 2 {
             return "".to_string();
         }
-        if let Some(value) = self.settings.get(arr[0]) {
-            if let Some(v) = value.get(arr[1]) {
-                return v.clone();
-            }
+        if let Some(value) = self.settings.get(arr[0])
+            && let Some(v) = value.get(arr[1])
+        {
+            return v.clone();
         }
         "".to_string()
     }

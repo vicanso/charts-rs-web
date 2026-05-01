@@ -1,4 +1,4 @@
-use axum::{error_handling::HandleErrorLayer, middleware::from_fn, Router};
+use axum::{Router, error_handling::HandleErrorLayer, middleware::from_fn};
 use axum_client_ip::ClientIpSource;
 use glob::glob;
 use std::net::SocketAddr;
@@ -7,11 +7,11 @@ use std::{env, fs, str::FromStr};
 use substring::Substring;
 use tokio::signal;
 use tower::ServiceBuilder;
-use tower_http::compression::predicate::{NotForContentType, Predicate, SizeAbove};
 use tower_http::compression::CompressionLayer;
+use tower_http::compression::predicate::{NotForContentType, Predicate, SizeAbove};
 
-use tracing::info;
 use tracing::Level;
+use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 
 mod config;
@@ -23,10 +23,10 @@ mod util;
 
 fn init_logger() {
     let mut level = Level::INFO;
-    if let Ok(log_level) = env::var("LOG_LEVEL") {
-        if let Ok(value) = Level::from_str(log_level.as_str()) {
-            level = value;
-        }
+    if let Ok(log_level) = env::var("LOG_LEVEL")
+        && let Ok(value) = Level::from_str(log_level.as_str())
+    {
+        level = value;
     }
 
     let timer = tracing_subscriber::fmt::time::OffsetTime::local_rfc_3339().unwrap_or_else(|_| {

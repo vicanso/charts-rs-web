@@ -394,9 +394,9 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "charts-rs"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdae37a5ca2c2c17393f167e0ecf7d868e6f8796c04fbb1c0eb9306dd7abe089"
+checksum = "4a4df8e1cdd47ef42f836d16e77d707c7e9078e2f46c04d070fc69537781b15a"
 dependencies = [
  "ahash",
  "arc-swap",
@@ -409,7 +409,7 @@ dependencies = [
  "resvg",
  "serde",
  "serde_json",
- "snafu 0.8.9",
+ "snafu",
  "substring",
 ]
 
@@ -445,7 +445,7 @@ dependencies = [
  "rust-embed",
  "serde",
  "serde_json",
- "snafu 0.9.0",
+ "snafu",
  "substring",
  "time",
  "tokio",
@@ -2390,32 +2390,11 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "snafu"
-version = "0.8.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e84b3f4eacbf3a1ce05eac6763b4d629d60cbc94d632e4092c54ade71f1e1a2"
-dependencies = [
- "snafu-derive 0.8.9",
-]
-
-[[package]]
-name = "snafu"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d1d4bced6a69f90b2056c03dcff2c4737f98d6fb9e0853493996e1d253ca29c6"
 dependencies = [
- "snafu-derive 0.9.0",
-]
-
-[[package]]
-name = "snafu-derive"
-version = "0.8.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1c97747dbf44bb1ca44a561ece23508e99cb592e862f22222dcf42f51d1e451"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "syn",
+ "snafu-derive",
 ]
 
 [[package]]

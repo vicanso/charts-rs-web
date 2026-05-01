@@ -1,4 +1,4 @@
-use axum::http::{header, header::HeaderName, HeaderMap, HeaderValue};
+use axum::http::{HeaderMap, HeaderValue, header, header::HeaderName};
 use axum::{body::Body, http::Request, middleware::Next, response::Response};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -15,10 +15,10 @@ fn insert_header(headers: &mut HeaderMap<HeaderValue>, values: HashMap<String, S
         if name.is_empty() || value.is_empty() {
             continue;
         }
-        if let Ok(header_name) = HeaderName::from_str(&name) {
-            if let Ok(header_value) = HeaderValue::from_str(&value) {
-                headers.insert(header_name, header_value);
-            }
+        if let Ok(header_name) = HeaderName::from_str(&name)
+            && let Ok(header_value) = HeaderValue::from_str(&value)
+        {
+            headers.insert(header_name, header_value);
         }
     }
 }

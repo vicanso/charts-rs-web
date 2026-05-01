@@ -15,9 +15,9 @@ use std::io::Cursor;
 use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    BarChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
+    BarChart, BoxPlotChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
     HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, TableChart,
-    WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
+    TreemapChart, WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -217,6 +217,14 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
         }
         "guage" => {
             let chart = GaugeChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "treemap" => {
+            let chart = TreemapChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "box_plot" => {
+            let chart = BoxPlotChart::from_json(&json)?;
             chart.svg()?
         }
         _ => {

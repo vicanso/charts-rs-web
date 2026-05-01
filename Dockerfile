@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.88 AS builder
+FROM rust:1.94.1 AS builder
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 

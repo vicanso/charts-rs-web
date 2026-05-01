@@ -143,6 +143,14 @@ const chartOptions = [
     label: "Gauge: 仪表盘",
   },
   {
+    value: "treemapChart",
+    label: "Treemap: 矩形树图",
+  },
+  {
+    value: "boxPlotChart",
+    label: "BoxPlot: 箱线图",
+  },
+  {
     value: "multiChart",
     label: "MultiChart: 多图表",
   },
@@ -1068,43 +1076,32 @@ const chartDefaultOptions: Record<string, unknown> = {
   }),
   calendarChart: {
     type: "calendar",
-    margin: { left: 10, top: 10, right: 10, bottom: 10 },
-    font_family: "Roboto",
-    background_color: "#ffffff",
-    theme: "light",
-
     title_text: "2024 Contributions",
-    title_font_size: 16,
-    title_font_color: "#333333",
-    title_font_weight: "bold",
-    title_align: "left",
-    title_height: 30,
-
-    sub_title_text: "GitHub style",
-    sub_title_font_size: 13,
-    sub_title_font_color: "#999999",
-    sub_title_align: "left",
-    sub_title_height: 20,
-
     start_date: "2024-01-01",
     end_date: "2024-12-31",
-
-    min: 0,
-    max: 10,
+    cell_size: 11,
+    cell_gap: 2,
     min_color: "#ebedf0",
     max_color: "#216e39",
-    empty_color: "#28282d",
-
-    cell_size: 13,
-    cell_gap: 3,
-
     data: [
       ["2024-01-05", 2],
       ["2024-02-14", 8],
       ["2024-06-15", 9],
       ["2024-09-01", 4],
-      ["2024-12-25", 10]
-    ]
+      ["2024-12-25", 10],
+    ],
+    simplyKeys: [
+      "type",
+      "title_text",
+      "start_date",
+      "end_date",
+      "cell_size",
+      "cell_gap",
+      "min_color",
+      "max_color",
+      "data",
+      "theme",
+    ],
   },
   funnelChart: Object.assign({}, defaultOption, {
     type: "funnel",
@@ -1139,6 +1136,65 @@ const chartDefaultOptions: Record<string, unknown> = {
     max: 200,
     series_list: [{ name: "Speed", data: [120] }]
   }),
+  treemapChart: Object.assign({}, defaultOption, {
+    type: "treemap",
+    title_text: "Disk Usage",
+    item_gap: 3,
+    series_list: [
+      { name: "nodeExcel", data: [600] },
+      { name: "nodePPT", data: [500] },
+      { name: "nodeDoc", data: [400] },
+      { name: "nodeWeb", data: [300] },
+      { name: "nodeWord", data: [200] },
+      { name: "nodeOther", data: [100] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "item_gap",
+      "series_list",
+      "theme",
+    ],
+  }),
+  boxPlotChart: {
+    type: "box_plot",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Box Plot",
+    x_axis_data: ["Cat A", "Cat B", "Cat C"],
+    box_series: [
+      {
+        name: "Group 1",
+        data: [
+          [3, 10, 18, 28, 40],
+          [5, 14, 22, 32, 45],
+          [1,  8, 15, 24, 35],
+        ],
+      },
+      {
+        name: "Group 2",
+        data: [
+          [5, 13, 21, 31, 43],
+          [2,  9, 17, 26, 38],
+          [4, 11, 19, 29, 41],
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "box_series",
+      "theme",
+    ],
+  },
   multiChart: {
     type: "multi_chart",
     margin: {
