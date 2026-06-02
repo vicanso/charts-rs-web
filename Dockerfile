@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.94.1 AS builder
+FROM rust:1.95.0 AS builder
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
@@ -18,20 +18,25 @@ RUN cd /charts-rs-web \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf - \
   && make release 
 
-FROM debian:12-slim
+FROM debian:trixie-slim
 
 EXPOSE 5000
 
+# slim 镜像不带 CA bundle，从 builder 阶段复制其生成的证书即可。
+# 运行阶段不跑 apt，避免把 dpkg/debconf 的元数据永久写进镜像层。
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+# 图表文字渲染所需字体，root 所有、全局可读。
 COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
-COPY --from=builder /charts-rs-web/entrypoint.sh /entrypoint.sh
-COPY --from=builder /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
-COPY --from=builder /charts-rs-web/httpstat /usr/local/bin/httpstat
-COPY --from=builder /etc/ssl /etc/ssl
 
-# tzdata 安装所有时区配置或可根据需要只添加所需时区
-
+# 服务账号：/bin/false 禁止登录；-m 仍创建 home，便于显式 `docker exec -it <container> bash`。
+# 先建用户，下面的 COPY --chown 才能落到该用户。
 RUN groupadd -g 1000 rust \
-  && useradd -u 1000 -g rust -s /bin/bash -m rust 
+  && useradd -u 1000 -g rust -s /bin/false -m rust
+
+COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
+COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/entrypoint.sh /entrypoint.sh
+COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/httpstat /usr/local/bin/httpstat
 
 ENV RUST_ENV=production
 ENV CHARTS_FONT_PATH=/usr/share/fonts
