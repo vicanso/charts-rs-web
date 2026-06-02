@@ -151,6 +151,10 @@ const chartOptions = [
     label: "BoxPlot: 箱线图",
   },
   {
+    value: "sunburstChart",
+    label: "Sunburst: 旭日图",
+  },
+  {
     value: "multiChart",
     label: "MultiChart: 多图表",
   },
@@ -1192,6 +1196,57 @@ const chartDefaultOptions: Record<string, unknown> = {
       "title_text",
       "x_axis_data",
       "box_series",
+      "theme",
+    ],
+  },
+  sunburstChart: {
+    type: "sunburst",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Sunburst",
+    inner_radius: 20,
+    series_data: [
+      {
+        name: "Grandpa",
+        children: [
+          {
+            name: "Uncle Leo",
+            children: [
+              { name: "Cousin Jack", value: 18 },
+              { name: "Cousin Mary", value: 12 },
+            ],
+          },
+          {
+            name: "Father",
+            children: [
+              { name: "Me", value: 40 },
+              { name: "Brother Peter", value: 20 },
+            ],
+          },
+        ],
+      },
+      {
+        name: "Nancy",
+        children: [
+          {
+            name: "Uncle Nike",
+            children: [
+              { name: "Cousin Betty", value: 10 },
+              { name: "Cousin Jenny", value: 30 },
+            ],
+          },
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "inner_radius",
+      "series_data",
       "theme",
     ],
   },

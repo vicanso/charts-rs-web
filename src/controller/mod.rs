@@ -16,8 +16,8 @@ use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
     BarChart, BoxPlotChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
-    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, TableChart,
-    TreemapChart, WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
+    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, SunburstChart,
+    TableChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -225,6 +225,10 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
         }
         "box_plot" => {
             let chart = BoxPlotChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "sunburst" => {
+            let chart = SunburstChart::from_json(&json)?;
             chart.svg()?
         }
         _ => {
