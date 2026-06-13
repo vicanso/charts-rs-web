@@ -22,21 +22,19 @@ FROM debian:trixie-slim
 
 EXPOSE 5000
 
-# slim 镜像不带 CA bundle，从 builder 阶段复制其生成的证书即可。
-# 运行阶段不跑 apt，避免把 dpkg/debconf 的元数据永久写进镜像层。
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
-# 图表文字渲染所需字体，root 所有、全局可读。
-COPY --from=builder /charts-rs-web/fonts /usr/share/fonts
-
 # 服务账号：/bin/false 禁止登录；-m 仍创建 home，便于显式 `docker exec -it <container> bash`。
-# 先建用户，下面的 COPY --chown 才能落到该用户。
 RUN groupadd -g 1000 rust \
   && useradd -u 1000 -g rust -s /bin/false -m rust
 
-COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
-COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/entrypoint.sh /entrypoint.sh
-COPY --from=builder --chown=rust:rust --chmod=755 /charts-rs-web/httpstat /usr/local/bin/httpstat
+# 所有 COPY 统一用数字 1000:1000 指定属主，落到运行时用户 rust；
+# 源文件已带正确权限位（脚本/二进制 755、数据 644），无需再 --chmod。
+# slim 镜像不带 CA bundle，仅复制必需的证书包而非整个宿主 SSL 目录；运行阶段不跑 apt。
+COPY --from=builder --chown=1000:1000 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# 图表文字渲染所需字体。
+COPY --from=builder --chown=1000:1000 /charts-rs-web/fonts /usr/share/fonts
+COPY --from=builder --chown=1000:1000 /charts-rs-web/target/release/charts-rs-web /usr/local/bin/charts-rs-web
+COPY --from=builder --chown=1000:1000 /charts-rs-web/entrypoint.sh /entrypoint.sh
+COPY --from=builder --chown=1000:1000 /charts-rs-web/httpstat /usr/local/bin/httpstat
 
 ENV RUST_ENV=production
 ENV CHARTS_FONT_PATH=/usr/share/fonts

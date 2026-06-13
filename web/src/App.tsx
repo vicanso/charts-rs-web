@@ -95,6 +95,10 @@ const chartOptions = [
     label: "Line: 填充平滑曲线图",
   },
   {
+    value: "lineNullData",
+    label: "Line: 缺失数据曲线图",
+  },
+  {
     value: "barLineMixin",
     label: "BarLine: 柱线混合图",
   },
@@ -537,6 +541,49 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  lineNullData: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Null Data",
+    legend_align: "right",
+    legend_category: "round_rect",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_boundary_gap: false,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Email",
+        label_show: true,
+        data: [120.0, null, 101.0, 134.0, null, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        label_show: true,
+        data: [220.0, 182.0, null, 234.0, 290.0, null, 310.0],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "x_boundary_gap",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  }),
   barLineMixin: Object.assign({}, defaultOption, {
     type: "bar",
     title_text: "Bar Line Mixin",
@@ -641,6 +688,11 @@ const chartDefaultOptions: Record<string, unknown> = {
     radius: 110,
     border_radius: 8,
     inner_radius: 30,
+    animation: {
+      duration: 800,
+      easing: "ease-out",
+      delay: 50,
+    },
     series_list: [
       {
         name: "rose 1",
@@ -690,6 +742,7 @@ const chartDefaultOptions: Record<string, unknown> = {
       "radius",
       "border_radius",
       "inner_radius",
+      "animation",
       "theme",
     ],
   }),
@@ -1206,6 +1259,12 @@ const chartDefaultOptions: Record<string, unknown> = {
     font_family: "Roboto",
     title_text: "Sunburst",
     inner_radius: 20,
+    level_thickness: [2.0, 1.0, 1.0],
+    animation: {
+      duration: 1000,
+      easing: "ease-out",
+      delay: 100,
+    },
     series_data: [
       {
         name: "Grandpa",
@@ -1246,7 +1305,9 @@ const chartDefaultOptions: Record<string, unknown> = {
       "type",
       "title_text",
       "inner_radius",
+      "level_thickness",
       "series_data",
+      "animation",
       "theme",
     ],
   },
