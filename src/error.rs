@@ -19,20 +19,23 @@ pub struct HttpError {
     pub extra: Option<Vec<String>>,
 }
 
-impl From<charts_rs::CanvasError> for HttpError {
-    fn from(value: charts_rs::CanvasError) -> Self {
+// charts-rs 0.7.0 将 canvas/encoder/font 等模块的错误合并为单一 charts_rs::Error，
+// 旧的 CanvasError/EncoderError/FontError 现在都是它的别名，因此只能有一个 From 实现；
+// 这里按变体还原出原有的 category，保持错误响应语义不变。
+impl From<charts_rs::Error> for HttpError {
+    fn from(value: charts_rs::Error) -> Self {
+        let category = match &value {
+            charts_rs::Error::FontNotFound { .. } | charts_rs::Error::ParseFont { .. } => "font",
+            charts_rs::Error::Io { .. }
+            | charts_rs::Error::Size { .. }
+            | charts_rs::Error::Raw { .. }
+            | charts_rs::Error::Parse { .. }
+            | charts_rs::Error::Image { .. } => "charts_encoder",
+            _ => "charts",
+        };
         HttpError {
             message: value.to_string(),
-            category: "charts".to_string(),
-            ..Default::default()
-        }
-    }
-}
-impl From<charts_rs::EncoderError> for HttpError {
-    fn from(value: charts_rs::EncoderError) -> Self {
-        HttpError {
-            message: value.to_string(),
-            category: "charts_encoder".to_string(),
+            category: category.to_string(),
             ..Default::default()
         }
     }

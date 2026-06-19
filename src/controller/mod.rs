@@ -16,8 +16,9 @@ use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
     BarChart, BoxPlotChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
-    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, ScatterChart, SunburstChart,
-    TableChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png, svg_to_webp,
+    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, SankeyChart, ScatterChart,
+    SunburstChart, TableChart, TreeChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png,
+    svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -43,15 +44,6 @@ impl From<ImageError> for HttpError {
         HttpError {
             message: value.to_string(),
             category: "image".to_string(),
-            ..Default::default()
-        }
-    }
-}
-impl From<charts_rs::FontError> for HttpError {
-    fn from(value: charts_rs::FontError) -> Self {
-        HttpError {
-            message: value.to_string(),
-            category: "font".to_string(),
             ..Default::default()
         }
     }
@@ -229,6 +221,14 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
         }
         "sunburst" => {
             let chart = SunburstChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "sankey" => {
+            let chart = SankeyChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "tree" => {
+            let chart = TreeChart::from_json(&json)?;
             chart.svg()?
         }
         _ => {
