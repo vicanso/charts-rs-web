@@ -135,7 +135,7 @@ fn load_fonts(dir: &str) {
         }
     }
     let arr: Vec<&[u8]> = font_buffers.iter().map(|item| item.as_slice()).collect();
-    charts_rs::get_or_try_init_fonts(Some(arr)).unwrap();
+    charts_rs::add_fonts(&arr).unwrap();
 }
 fn main() {
     init_logger();

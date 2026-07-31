@@ -22,12 +22,12 @@ pub struct HttpError {
 // charts-rs 0.7.0 将 canvas/encoder/font 等模块的错误合并为单一 charts_rs::Error，
 // 旧的 CanvasError/EncoderError/FontError 现在都是它的别名，因此只能有一个 From 实现；
 // 这里按变体还原出原有的 category，保持错误响应语义不变。
+// charts-rs 1.0.0 移除了 Io 变体，并将 Error 标记为 #[non_exhaustive]，因此必须保留通配分支。
 impl From<charts_rs::Error> for HttpError {
     fn from(value: charts_rs::Error) -> Self {
         let category = match &value {
             charts_rs::Error::FontNotFound { .. } | charts_rs::Error::ParseFont { .. } => "font",
-            charts_rs::Error::Io { .. }
-            | charts_rs::Error::Size { .. }
+            charts_rs::Error::Size { .. }
             | charts_rs::Error::Raw { .. }
             | charts_rs::Error::Parse { .. }
             | charts_rs::Error::Image { .. } => "charts_encoder",

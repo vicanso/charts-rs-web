@@ -124,7 +124,7 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
     Ok(Json(BasicInfoResult {
         families,
         themes: charts_rs::list_theme_name(),
-        version: charts_rs::version(),
+        version: charts_rs::version().to_string(),
     }))
 }
 
@@ -176,7 +176,7 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
             chart.svg()?
         }
         "table" => {
-            let mut chart = TableChart::from_json(&json)?;
+            let chart = TableChart::from_json(&json)?;
             chart.svg()?
         }
         "scatter" => {
@@ -192,7 +192,7 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
             chart.svg()?
         }
         "multi_chart" => {
-            let mut multi_chart = MultiChart::from_json(&json)?;
+            let multi_chart = MultiChart::from_json(&json)?;
             multi_chart.svg()?
         }
         "calendar" => {

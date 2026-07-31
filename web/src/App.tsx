@@ -1,13 +1,20 @@
-import { Component, ReactNode, createRef, RefObject } from "react";
+import {
+  Component,
+  ReactNode,
+  createRef,
+  RefObject,
+  MouseEvent as ReactMouseEvent,
+} from "react";
 import {
   ConfigProvider,
   theme,
-  Layout,
   Select,
-  Space,
   Button,
   message,
   Switch,
+  Spin,
+  Tooltip,
+  Input,
 } from "antd";
 import { editor } from "monaco-editor";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
@@ -15,7 +22,6 @@ import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import "./App.css";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
-const { Header, Content } = Layout;
 
 const isDarkMode = () =>
   window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -29,148 +35,366 @@ function createEditor(params: {
     language: "json",
     theme: isDarkMode() ? "vs-dark" : "vs",
     automaticLayout: true,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    padding: { top: 12, bottom: 12 },
+    renderLineHighlight: "line",
+    smoothScrolling: true,
+    tabSize: 2,
+    bracketPairColorization: { enabled: true },
   });
   e.updateOptions({
-    fontSize: 14,
-    lineNumbersMinChars: 4,
+    fontSize: 13,
+    lineNumbersMinChars: 3,
     wordWrap: "on",
+    fontFamily:
+      '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    fontLigatures: true,
   });
   return e;
 }
 
-const getGithubIcon = (isDarkMode: boolean) => {
+const getGithubIcon = () => {
   if (window.location.host !== "charts.npmtrend.com") {
-    return;
-  }
-  let color = `rgb(0, 0, 0)`;
-  if (isDarkMode) {
-    color = `rgb(255, 255, 255)`;
+    return null;
   }
   return (
-    <a href="https://github.com/vicanso/charts-rs" style={{}}>
-      <svg
-        height="32"
-        viewBox="0 0 16 16"
-        width="32"
-        aria-hidden="true"
-        style={{
-          display: "block",
-          marginLeft: "15px",
-          fill: color,
-        }}
+    <Tooltip title="在 GitHub 查看 charts-rs">
+      <a
+        href="https://github.com/vicanso/charts-rs"
+        className="github-link"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="GitHub repository"
       >
-        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
-      </svg>
-    </a>
+        <svg height="18" viewBox="0 0 16 16" width="18" aria-hidden="true">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+        </svg>
+      </a>
+    </Tooltip>
   );
 };
 
-const chartOptions = [
+type GlyphKind =
+  | "bar"
+  | "stack"
+  | "hbar"
+  | "mix"
+  | "waterfall"
+  | "line"
+  | "area"
+  | "pie"
+  | "radar"
+  | "gauge"
+  | "sunburst"
+  | "scatter"
+  | "heat"
+  | "calendar"
+  | "box"
+  | "candle"
+  | "funnel"
+  | "treemap"
+  | "sankey"
+  | "tree"
+  | "table"
+  | "multi";
+
+type ChartOption = {
+  value: string;
+  label: string;
+  short: string;
+  hint: string;
+  glyph: GlyphKind;
+};
+
+type ChartCategory = {
+  key: string;
+  title: string;
+  items: ChartOption[];
+};
+
+/** Tiny monoline icons — readable at 18px, no dependency. */
+function ChartGlyph({ kind }: { kind: GlyphKind }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 18 18",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
+  switch (kind) {
+    case "bar":
+      return (
+        <svg {...common}>
+          <path d="M3 14V9M7 14V5M11 14V7M15 14V4" />
+        </svg>
+      );
+    case "stack":
+      return (
+        <svg {...common}>
+          <path d="M4 14V10H7V14H4ZM8.5 14V6H11.5V14H8.5ZM13 14V8H16V14H13Z" />
+          <path d="M4 10V7H7V10M8.5 6V3.5H11.5V6" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "hbar":
+      return (
+        <svg {...common}>
+          <path d="M3 4h10M3 9h13M3 14h7" />
+        </svg>
+      );
+    case "mix":
+      return (
+        <svg {...common}>
+          <path d="M4 14V9M8 14V6M12 14V10" />
+          <path d="M3 11l4-3 4 2 4-5" />
+        </svg>
+      );
+    case "waterfall":
+      return (
+        <svg {...common}>
+          <path d="M3 13h3V8H3v5ZM8 8h3V5H8v3ZM13 11h3V7h-3v4Z" />
+          <path d="M6 8h2M11 8h2" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "line":
+      return (
+        <svg {...common}>
+          <path d="M2.5 12.5 6 8l3.5 3 5.5-7" />
+        </svg>
+      );
+    case "area":
+      return (
+        <svg {...common}>
+          <path d="M2.5 13.5 6 8l3.5 2.5L15 4.5" />
+          <path
+            d="M2.5 13.5 6 8l3.5 2.5L15 4.5V13.5H2.5Z"
+            fill="currentColor"
+            fillOpacity="0.15"
+            stroke="none"
+          />
+        </svg>
+      );
+    case "pie":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="9" r="6.2" />
+          <path d="M9 2.8V9l5.2 3" />
+        </svg>
+      );
+    case "radar":
+      return (
+        <svg {...common}>
+          <path d="M9 2.5 14.5 6.2 12.4 13.5H5.6L3.5 6.2Z" />
+          <path d="M9 6.2 11.6 8l-.9 2.8H7.3L6.4 8Z" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "gauge":
+      return (
+        <svg {...common}>
+          <path d="M3.8 12a6 6 0 1 1 10.4 0" />
+          <path d="M9 11.5 12 7" />
+          <circle cx="9" cy="11.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "sunburst":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="9" r="2.2" />
+          <circle cx="9" cy="9" r="4.4" strokeOpacity="0.7" />
+          <circle cx="9" cy="9" r="6.4" strokeOpacity="0.4" />
+        </svg>
+      );
+    case "scatter":
+      return (
+        <svg {...common}>
+          <circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none" />
+          <circle cx="8" cy="7" r="1.2" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="10" r="1.2" fill="currentColor" stroke="none" />
+          <circle cx="14" cy="5" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "heat":
+      return (
+        <svg {...common}>
+          <path d="M3.5 3.5h3v3h-3zM7.5 3.5h3v3h-3zM11.5 3.5h3v3h-3zM3.5 7.5h3v3h-3zM7.5 7.5h3v3h-3zM11.5 7.5h3v3h-3zM3.5 11.5h3v3h-3zM7.5 11.5h3v3h-3zM11.5 11.5h3v3h-3z" />
+        </svg>
+      );
+    case "calendar":
+      return (
+        <svg {...common}>
+          <path d="M3.5 5h11v9.5h-11zM3.5 8h11M7 3.5v3M11 3.5v3" />
+          <path d="M6 11h1.5M9 11h1.5M12 11h1" />
+        </svg>
+      );
+    case "box":
+      return (
+        <svg {...common}>
+          <path d="M6 4v2M12 4v2M6 12v2M12 12v2M5 6h8v6H5zM9 4v2M9 12v2" />
+        </svg>
+      );
+    case "candle":
+      return (
+        <svg {...common}>
+          <path d="M5 3v12M5 6h3v5H5zM11 3v12M10 5h3v6h-3z" />
+        </svg>
+      );
+    case "funnel":
+      return (
+        <svg {...common}>
+          <path d="M3 4h12l-3.5 4.5v4L9 15l-2.5-2.5v-4Z" />
+        </svg>
+      );
+    case "treemap":
+      return (
+        <svg {...common}>
+          <path d="M3 3h12v12H3zM9 3v12M3 9h6M9 7h6M12 7v8" />
+        </svg>
+      );
+    case "sankey":
+      return (
+        <svg {...common}>
+          <path d="M3 5h3c3 0 4 3 7 3h2M3 13h3c3 0 4-3 7-3h2" />
+        </svg>
+      );
+    case "tree":
+      return (
+        <svg {...common}>
+          <path d="M9 3v5M9 8H5v6M9 8h4v3M13 11v3" />
+          <circle cx="9" cy="3" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "table":
+      return (
+        <svg {...common}>
+          <path d="M3.5 4h11v10h-11zM3.5 7.5h11M3.5 11h11M7.5 4v10M12 4v10" />
+        </svg>
+      );
+    case "multi":
+      return (
+        <svg {...common}>
+          <path d="M3 3h5.5v5.5H3zM9.5 3H15v5.5H9.5zM3 9.5h5.5V15H3zM9.5 9.5H15V15H9.5z" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M3 14V9M7 14V5M11 14V7M15 14V4" />
+        </svg>
+      );
+  }
+}
+
+const chartCategories: ChartCategory[] = [
   {
-    value: "barBasic",
-    label: "Bar: 常规柱状图",
+    key: "bar",
+    title: "柱状 / 条形",
+    items: [
+      { value: "barBasic", label: "常规柱状图", short: "Bar", hint: "基础分组柱状", glyph: "bar" },
+      { value: "barStacked", label: "堆叠柱状图", short: "Stack", hint: "总量对比", glyph: "stack" },
+      { value: "horizontalBar", label: "水平柱状图", short: "HBar", hint: "排行类数据", glyph: "hbar" },
+      { value: "barLineMixin", label: "柱线混合图", short: "Mix", hint: "双轴混合", glyph: "mix" },
+      { value: "waterfallChart", label: "瀑布图", short: "Fall", hint: "增减拆解", glyph: "waterfall" },
+    ],
   },
   {
-    value: "barStacked",
-    label: "Bar: 堆叠柱状图",
+    key: "line",
+    title: "折线 / 曲线",
+    items: [
+      { value: "lineBasic", label: "常规曲线图", short: "Line", hint: "基础趋势", glyph: "line" },
+      { value: "lineAnimation", label: "动画曲线图", short: "Anim", hint: "入场动画", glyph: "line" },
+      { value: "lineStartIndexBasic", label: "指定起点曲线", short: "Start", hint: "序列错位", glyph: "line" },
+      { value: "lineSmooth", label: "平滑曲线 (log2)", short: "Log2", hint: "对数坐标", glyph: "line" },
+      { value: "lineSmoothFill", label: "填充平滑曲线", short: "Area", hint: "面积填充", glyph: "area" },
+      { value: "lineNullData", label: "缺失数据曲线", short: "Null", hint: "断点处理", glyph: "line" },
+    ],
   },
   {
-    value: "lineBasic",
-    label: "Line: 常规曲线图",
+    key: "radial",
+    title: "环形 / 径向",
+    items: [
+      { value: "pieBasic", label: "南丁格尔玫瑰", short: "Pie", hint: "占比分布", glyph: "pie" },
+      { value: "radarBasic", label: "雷达图", short: "Radar", hint: "多维对比", glyph: "radar" },
+      { value: "guageChart", label: "仪表盘", short: "Gauge", hint: "单值进度", glyph: "gauge" },
+      { value: "sunburstChart", label: "旭日图", short: "Sun", hint: "层级占比", glyph: "sunburst" },
+    ],
   },
   {
-    value: "lineAnimation",
-    label: "Line: 动画曲线图",
+    key: "matrix",
+    title: "分布 / 矩阵",
+    items: [
+      { value: "scatterBasic", label: "散点图", short: "Dot", hint: "相关分布", glyph: "scatter" },
+      { value: "heatmapBasic", label: "热力图", short: "Heat", hint: "密度矩阵", glyph: "heat" },
+      { value: "calendarChart", label: "日历图", short: "Cal", hint: "日期贡献", glyph: "calendar" },
+      { value: "boxPlotChart", label: "箱线图", short: "Box", hint: "统计分布", glyph: "box" },
+      { value: "candlestick", label: "蜡烛图", short: "K", hint: "行情走势", glyph: "candle" },
+    ],
   },
   {
-    value: "lineStartIndexBasic",
-    label: "Line: 指定开始点曲线图",
+    key: "flow",
+    title: "流程 / 层级",
+    items: [
+      { value: "funnelChart", label: "漏斗图", short: "Funnel", hint: "转化路径", glyph: "funnel" },
+      { value: "treemapChart", label: "矩形树图", short: "TreeM", hint: "体量占比", glyph: "treemap" },
+      { value: "sankeyChart", label: "桑基图", short: "Sankey", hint: "流量迁移", glyph: "sankey" },
+      { value: "treeChart", label: "树图", short: "Tree", hint: "层级结构", glyph: "tree" },
+    ],
   },
   {
-    value: "lineSmooth",
-    label: "Line: 常规平滑曲线图(log2)",
-  },
-  {
-    value: "lineSmoothFill",
-    label: "Line: 填充平滑曲线图",
-  },
-  {
-    value: "lineNullData",
-    label: "Line: 缺失数据曲线图",
-  },
-  {
-    value: "barLineMixin",
-    label: "BarLine: 柱线混合图",
-  },
-  {
-    value: "horizontalBar",
-    label: "HorizontalBar: 水平柱状图",
-  },
-  {
-    value: "pieBasic",
-    label: "Pie: 饼图",
-  },
-  {
-    value: "radarBasic",
-    label: "Radar: 雷达图",
-  },
-  {
-    value: "scatterBasic",
-    label: "Scatter: 散点图",
-  },
-  {
-    value: "candlestick",
-    label: "Candlestick: 蜡烛图",
-  },
-  {
-    value: "tableBasic",
-    label: "Table: 表格",
-  },
-  {
-    value: "heatmapBasic",
-    label: "Heatmap: 热力图",
-  },
-  {
-    value: "calendarChart",
-    label: "Calendar: 日历图",
-  },
-  {
-    value: "funnelChart",
-    label: "Funnel: 漏斗图",
-  },
-  {
-    value: "waterfallChart",
-    label: "Waterfall: 瀑布图",
-  },
-  {
-    value: "guageChart",
-    label: "Gauge: 仪表盘",
-  },
-  {
-    value: "treemapChart",
-    label: "Treemap: 矩形树图",
-  },
-  {
-    value: "boxPlotChart",
-    label: "BoxPlot: 箱线图",
-  },
-  {
-    value: "sunburstChart",
-    label: "Sunburst: 旭日图",
-  },
-  {
-    value: "sankeyChart",
-    label: "Sankey: 桑基图",
-  },
-  {
-    value: "treeChart",
-    label: "Tree: 树图",
-  },
-  {
-    value: "multiChart",
-    label: "MultiChart: 多图表",
+    key: "other",
+    title: "其他",
+    items: [
+      { value: "tableBasic", label: "表格", short: "Table", hint: "结构化数据", glyph: "table" },
+      { value: "multiChart", label: "多图表拼合", short: "Multi", hint: "组合看板", glyph: "multi" },
+    ],
   },
 ];
+
+const chartOptions: ChartOption[] = chartCategories.flatMap((c) => c.items);
+const CHART_COUNT = chartOptions.length;
+
+function findChartOption(value: string): ChartOption | undefined {
+  return chartOptions.find((item) => item.value === value);
+}
+
+const PREFS_KEY = "charts-rs-lab-prefs-v1";
+
+type LabPrefs = {
+  simply?: boolean;
+  editorHeight?: number;
+  editorCollapsed?: boolean;
+  format?: string;
+  theme?: string;
+  fontFamily?: string;
+  currentChartType?: string;
+  previewFit?: boolean;
+};
+
+function loadPrefs(): LabPrefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as LabPrefs;
+  } catch {
+    return {};
+  }
+}
+
+function savePrefs(partial: LabPrefs) {
+  try {
+    const next = { ...loadPrefs(), ...partial };
+    localStorage.setItem(PREFS_KEY, JSON.stringify(next));
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function isMac() {
+  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent);
+}
 
 
 const formatOptions = [
@@ -1589,6 +1813,13 @@ interface AppState {
   processing: boolean;
   simply: boolean;
   currentChartType: string;
+  galleryQuery: string;
+  editorHeight: number;
+  editorCollapsed: boolean;
+  jsonError: string;
+  renderMs: number | null;
+  previewFit: boolean;
+  lastOkAt: number | null;
 }
 
 function formatJson(data: Record<string, unknown>) {
@@ -1600,19 +1831,48 @@ function formatJson(data: Record<string, unknown>) {
   return JSON.stringify(result, null, 2);
 }
 
+const DEFAULT_EDITOR_HEIGHT = 280;
+const MIN_EDITOR_HEIGHT = 140;
+const MAX_EDITOR_HEIGHT_RATIO = 0.62;
+
 class App extends Component<any, AppState> {
-  editorInited;
+  editorInited: boolean;
   editorDom: RefObject<HTMLDivElement | null>;
+  galleryScrollRef: RefObject<HTMLDivElement | null>;
+  chartRequestId: number;
+  debounceTimer: ReturnType<typeof setTimeout> | null;
+  contentChangeDisposable: { dispose: () => void } | null;
+  resizing: boolean;
+  resizeStartY: number;
+  resizeStartHeight: number;
+  /** Skip auto-run when we programmatically set editor value. */
+  ignoreContentChange: boolean;
+
   constructor(props: any) {
     super(props);
     this.editorDom = createRef();
+    this.galleryScrollRef = createRef();
     this.editorInited = false;
+    this.chartRequestId = 0;
+    this.debounceTimer = null;
+    this.contentChangeDisposable = null;
+    this.resizing = false;
+    this.resizeStartY = 0;
+    this.resizeStartHeight = DEFAULT_EDITOR_HEIGHT;
+    this.ignoreContentChange = false;
+
+    const prefs = loadPrefs();
+    const initialType =
+      prefs.currentChartType && findChartOption(prefs.currentChartType)
+        ? prefs.currentChartType
+        : chartOptions[0].value;
+
     this.state = {
       version: "",
-      theme: "grafana",
-      format: formatOptions[0].value,
+      theme: prefs.theme || "grafana",
+      format: prefs.format || formatOptions[0].value,
       fontFamilies: [],
-      fontFamily: "",
+      fontFamily: prefs.fontFamily || "",
       themes: [],
       editor: null,
       width: 0,
@@ -1620,93 +1880,302 @@ class App extends Component<any, AppState> {
       svg: "",
       imageData: "",
       processing: false,
-      simply: true,
-      currentChartType: "",
+      simply: prefs.simply ?? true,
+      currentChartType: initialType,
+      galleryQuery: "",
+      editorHeight: prefs.editorHeight || DEFAULT_EDITOR_HEIGHT,
+      editorCollapsed: prefs.editorCollapsed ?? false,
+      jsonError: "",
+      renderMs: null,
+      previewFit: prefs.previewFit ?? true,
+      lastOkAt: null,
     };
   }
+
   async componentDidMount(): Promise<void> {
     if (this.editorInited) {
       return;
     }
     this.editorInited = true;
-    const editor = createEditor({
+
+    const ed = createEditor({
       dom: this.editorDom.current as HTMLElement,
     });
-    this.setState(
-      {
-        editor,
-        currentChartType: chartOptions[0].value,
-      },
-      () => {
-        this.changeChartOption(chartOptions[0].value);
-      },
-    );
-    const { data } = await axios.get<{
-      families: string[];
-      version: string;
-      themes: string[];
-    }>("./api/basic-info");
-    this.setState({
-      fontFamilies: data.families,
-      version: data.version,
-      themes: data.themes,
-    });
-  }
-  getChartOption() {
-    const { editor } = this.state;
-    if (editor) {
-      const value = editor.getValue() as string;
-      try {
-        return JSON.parse(value);
-      } catch (err: any) {
-        message.error(err?.message as string);
+
+    this.contentChangeDisposable = ed.onDidChangeModelContent(() => {
+      if (this.ignoreContentChange) {
+        return;
       }
+      this.scheduleAutoRun();
+    });
+
+    window.addEventListener("keydown", this.handleGlobalKeydown);
+    window.addEventListener("mousemove", this.handleResizeMove);
+    window.addEventListener("mouseup", this.handleResizeEnd);
+
+    this.setState({ editor: ed }, () => {
+      this.changeChartOption(this.state.currentChartType);
+      requestAnimationFrame(() => this.scrollActiveIntoView());
+    });
+
+    try {
+      const { data } = await axios.get<{
+        families: string[];
+        version: string;
+        themes: string[];
+      }>("./api/basic-info");
+      this.setState({
+        fontFamilies: data.families,
+        version: data.version,
+        themes: data.themes,
+      });
+    } catch {
+      // basic-info is optional for local static preview
     }
   }
-  changeChartOption(chartType: string) {
+
+  componentDidUpdate(_prev: Readonly<any>, prevState: Readonly<AppState>) {
+    if (prevState.currentChartType !== this.state.currentChartType) {
+      this.scrollActiveIntoView();
+    }
+  }
+
+  componentWillUnmount(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.contentChangeDisposable?.dispose();
+    window.removeEventListener("keydown", this.handleGlobalKeydown);
+    window.removeEventListener("mousemove", this.handleResizeMove);
+    window.removeEventListener("mouseup", this.handleResizeEnd);
+    this.state.editor?.dispose();
+  }
+
+  persistPrefs(partial: LabPrefs) {
+    savePrefs(partial);
+  }
+
+  scrollActiveIntoView() {
+    const root = this.galleryScrollRef.current;
+    if (!root) return;
+    const el = root.querySelector(".chart-item.active") as HTMLElement | null;
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  handleGlobalKeydown = (event: KeyboardEvent) => {
+    const mod = event.metaKey || event.ctrlKey;
+    if (mod && event.key === "Enter") {
+      event.preventDefault();
+      void this.generateChart({ silentJsonError: false });
+      return;
+    }
+    if (mod && event.key.toLowerCase() === "s") {
+      // Prevent browser save; treat as run
+      event.preventDefault();
+      void this.generateChart({ silentJsonError: false });
+    }
+  };
+
+  scheduleAutoRun = () => {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      void this.generateChart({ silentJsonError: true });
+    }, 480);
+  };
+
+  handleResizeStart = (event: ReactMouseEvent) => {
+    event.preventDefault();
+    this.resizing = true;
+    this.resizeStartY = event.clientY;
+    this.resizeStartHeight = this.state.editorHeight;
+    document.body.style.cursor = "ns-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  handleResizeMove = (event: MouseEvent) => {
+    if (!this.resizing) {
+      return;
+    }
+    const delta = this.resizeStartY - event.clientY;
+    const maxHeight = Math.floor(window.innerHeight * MAX_EDITOR_HEIGHT_RATIO);
+    const next = Math.min(
+      maxHeight,
+      Math.max(MIN_EDITOR_HEIGHT, this.resizeStartHeight + delta),
+    );
+    this.setState({ editorHeight: next, editorCollapsed: false }, () => {
+      this.state.editor?.layout();
+      this.persistPrefs({ editorHeight: next, editorCollapsed: false });
+    });
+  };
+
+  handleResizeEnd = () => {
+    if (!this.resizing) {
+      return;
+    }
+    this.resizing = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+
+  setEditorValue(text: string) {
+    const { editor } = this.state;
+    if (!editor) return;
+    this.ignoreContentChange = true;
+    editor.setValue(text);
+    // monaco may fire content change async
+    requestAnimationFrame(() => {
+      this.ignoreContentChange = false;
+    });
+  }
+
+  getChartOption(silent = false): Record<string, unknown> | null {
+    const { editor } = this.state;
+    if (!editor) {
+      return null;
+    }
+    const value = editor.getValue() as string;
+    try {
+      const parsed = JSON.parse(value) as Record<string, unknown>;
+      if (this.state.jsonError) {
+        this.setState({ jsonError: "" });
+      }
+      return parsed;
+    } catch (err: any) {
+      const msg = (err?.message as string) || "JSON 解析失败";
+      if (!silent) {
+        message.error(msg);
+      }
+      this.setState({ jsonError: msg });
+      return null;
+    }
+  }
+
+  changeChartOption(chartType: string, autoRun = true) {
     const options = Object.assign({}, chartDefaultOptions[chartType]);
     this.updateChartOption(options);
+    this.persistPrefs({ currentChartType: chartType });
+    if (autoRun) {
+      void this.generateChart({ silentJsonError: true });
+    }
   }
+
   updateChartOption(options: Record<string, unknown>) {
+    if (!options) {
+      return;
+    }
     options.theme = this.state.theme;
     if (this.state.fontFamily) {
       options.font_family = this.state.fontFamily;
     }
-    const { editor, simply } = this.state;
-    if (editor) {
-      const simplyKeys = options.simplyKeys as string[];
-      if (simply && simplyKeys) {
-        const opts: Record<string, unknown> = {};
-        simplyKeys.forEach((key) => {
-          opts[key] = options[key];
-        });
-        editor.setValue(formatJson(opts));
-      } else {
-        delete options["simplyKeys"];
-        editor.setValue(formatJson(options));
-      }
+    const { simply } = this.state;
+    const simplyKeys = options.simplyKeys as string[] | undefined;
+    if (simply && simplyKeys) {
+      const opts: Record<string, unknown> = {};
+      simplyKeys.forEach((key) => {
+        opts[key] = options[key];
+      });
+      this.setEditorValue(formatJson(opts));
+    } else {
+      delete options["simplyKeys"];
+      this.setEditorValue(formatJson(options));
     }
   }
-  refreshChartOption() {
-    this.updateChartOption(this.getChartOption());
+
+  refreshChartOption(autoRun = true) {
+    const current = this.getChartOption(true);
+    if (!current) {
+      return;
+    }
+    this.updateChartOption(current);
+    if (autoRun) {
+      void this.generateChart({ silentJsonError: true });
+    }
   }
+
   async generateAndCopy() {
-    const value = this.getChartOption();
+    const value = this.getChartOption(false);
+    if (!value) {
+      return;
+    }
     const { format } = this.state;
     try {
       const url = `${window.location.href}api/charts?format=${format}&opts=${JSON.stringify(value)}`;
       console.info(url);
       await navigator.clipboard.writeText(url);
-      message.info("已成功复制");
+      message.success("预览地址已复制到剪贴板");
     } catch (err: any) {
-      message.error(err, 10);
+      message.error(err?.message || String(err), 10);
     }
   }
-  async generateChart() {
-    if (this.state.processing) {
+
+  async copyChartOutput() {
+    const { format, svg, imageData } = this.state;
+    const hasPreview =
+      (format === "svg" && Boolean(svg)) ||
+      (format !== "svg" && Boolean(imageData));
+    if (!hasPreview) {
+      message.warning("暂无可复制的图表");
       return;
     }
-    const value = this.getChartOption();
+    try {
+      if (format === "svg") {
+        await navigator.clipboard.writeText(svg);
+        message.success("SVG 源码已复制");
+        return;
+      }
+      const res = await fetch(imageData);
+      const blob = await res.blob();
+      // ClipboardItem may not support all image types in all browsers
+      const type = blob.type || `image/${format}`;
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ [type]: blob }),
+        ]);
+        message.success("图片已复制到剪贴板");
+      } else {
+        message.info("当前浏览器不支持复制图片，请使用下载");
+      }
+    } catch (err: any) {
+      message.error(err?.message || "复制失败", 8);
+    }
+  }
+
+  downloadChart() {
+    const { format, svg, imageData, currentChartType } = this.state;
+    const name = `${currentChartType || "chart"}.${format === "jpeg" ? "jpg" : format}`;
+    if (format === "svg") {
+      if (!svg) {
+        message.warning("暂无 SVG 可下载");
+        return;
+      }
+      const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
+    if (!imageData) {
+      message.warning("暂无图片可下载");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = imageData;
+    a.download = name;
+    a.click();
+  }
+
+  async generateChart(opts?: { silentJsonError?: boolean }) {
+    const silent = opts?.silentJsonError ?? false;
+    const value = this.getChartOption(silent);
+    if (!value) {
+      return;
+    }
+    const requestId = ++this.chartRequestId;
     let isSvg = true;
     const { format } = this.state;
     let url = "./api/charts/svg";
@@ -1714,16 +2183,18 @@ class App extends Component<any, AppState> {
       url = `./api/charts/${format}`;
       isSvg = false;
     }
+    const started = performance.now();
     try {
-      this.setState({
-        processing: true,
-      });
+      this.setState({ processing: true });
       const config: AxiosRequestConfig = {};
       if (!isSvg) {
         config.responseType = "arraybuffer";
       }
 
       const { data } = await axios.post(url, value, config);
+      if (requestId !== this.chartRequestId) {
+        return;
+      }
       let svg = "";
       let imageData = "";
       if (isSvg) {
@@ -1737,28 +2208,70 @@ class App extends Component<any, AppState> {
         );
         imageData = `data:image/${format};base64,${base64}`;
       }
+      const renderMs = Math.round(performance.now() - started);
       this.setState({
         svg,
         imageData,
-        width: value.width || 0,
-        height: value.height || 0,
+        width: Number(value.width) || 0,
+        height: Number(value.height) || 0,
+        renderMs,
+        lastOkAt: Date.now(),
       });
     } catch (err: any) {
+      if (requestId !== this.chartRequestId) {
+        return;
+      }
       let msg = err?.message as string;
       const axiosErr = err as AxiosError;
       if (axiosErr?.response?.data) {
-        const data = axiosErr.response.data as {
-          message: string;
-        };
-        msg = data.message || "";
+        const raw = axiosErr.response.data as ArrayBuffer | { message: string };
+        if (raw instanceof ArrayBuffer) {
+          try {
+            const parsed = JSON.parse(new TextDecoder().decode(raw)) as {
+              message?: string;
+            };
+            msg = parsed.message || msg;
+          } catch {
+            // keep original message
+          }
+        } else {
+          msg = raw.message || msg;
+        }
       }
-      message.error(msg || "generate chart fail", 10);
+      message.error(msg || "图表生成失败", 10);
     } finally {
-      this.setState({
-        processing: false,
-      });
+      if (requestId === this.chartRequestId) {
+        this.setState({ processing: false });
+      }
     }
   }
+
+  filteredCategories() {
+    const q = this.state.galleryQuery.trim().toLowerCase();
+    if (!q) {
+      return chartCategories;
+    }
+    return chartCategories
+      .map((cat) => ({
+        ...cat,
+        items: cat.items.filter(
+          (item) =>
+            item.label.toLowerCase().includes(q) ||
+            item.short.toLowerCase().includes(q) ||
+            item.hint.toLowerCase().includes(q) ||
+            item.value.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((cat) => cat.items.length > 0);
+  }
+
+  filteredCount() {
+    return this.filteredCategories().reduce(
+      (n, cat) => n + cat.items.length,
+      0,
+    );
+  }
+
   render(): ReactNode {
     const {
       svg,
@@ -1772,178 +2285,411 @@ class App extends Component<any, AppState> {
       simply,
       currentChartType,
       themes,
+      galleryQuery,
+      editorHeight,
+      editorCollapsed,
+      jsonError,
+      renderMs,
+      previewFit,
     } = this.state;
-    let headerClass = "header";
-    if (isDarkMode()) {
-      headerClass += " dark";
-    }
-    const previewStyle: React.CSSProperties = {
-      position: "absolute",
-      left: "50%",
-      top: "50%",
-      marginTop: `-${height / 2}px`,
-      marginLeft: `-${width / 2}px`,
-    };
-    if (width === 0) {
-      previewStyle.left = "0px";
-    }
-    if (height === 0) {
-      previewStyle.top = "0px";
-    }
 
-    const familyOptions = fontFamilies.map((item) => {
-      return {
-        label: item,
-        value: item,
-      };
-    });
-    const themeOptions = themes.map((item) => {
-      return {
-        label: item.substring(0, 1).toUpperCase() + item.substring(1),
-        value: item,
-      };
-    });
+    const dark = isDarkMode();
+    const hasPreview =
+      (format === "svg" && Boolean(svg)) ||
+      (format !== "svg" && Boolean(imageData));
+    const current = findChartOption(currentChartType);
+    const categories = this.filteredCategories();
+    const matchCount = this.filteredCount();
+    const toolbarH = jsonError && !editorCollapsed ? 72 : 44;
+    const dockHeight = editorCollapsed ? 44 : editorHeight;
+    const runShortcut = isMac() ? "⌘↵" : "Ctrl+↵";
+
+    const familyOptions = fontFamilies.map((item) => ({
+      label: item,
+      value: item,
+    }));
+    const themeOptions = themes.map((item) => ({
+      label: item.substring(0, 1).toUpperCase() + item.substring(1),
+      value: item,
+    }));
+
+    const sizeLabel =
+      width > 0 && height > 0 ? `${width}×${height}` : "auto";
+    const formatLabel = format.toUpperCase();
 
     return (
       <ConfigProvider
         theme={{
-          algorithm: isDarkMode() ? darkAlgorithm : defaultAlgorithm,
+          algorithm: dark ? darkAlgorithm : defaultAlgorithm,
+          token: {
+            borderRadius: 9,
+            colorPrimary: dark ? "#38bdf8" : "#0284c7",
+            fontFamily:
+              '"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif',
+          },
         }}
       >
-        <Layout>
-          <Header className={headerClass}>
-            <div className="contentWrapper">
-              <Space>
-                <span
-                  style={{
-                    fontWeight: "bold",
-                  }}
-                >
-                  CHARTS-RS {version}
-                </span>
-              </Space>
-              <Space
-                style={{
-                  float: "right",
-                }}
-              >
+        <div className="app-shell">
+          <header className="topbar">
+            <div className="brand">
+              <div className="brand-glyph" aria-hidden="true" />
+              <div className="brand-copy">
+                <div className="brand-name">CHARTS-RS</div>
+                <div className="brand-tag">
+                  Chart Lab{version ? ` · v${version}` : ""} · JSON → 矢量/位图
+                </div>
+              </div>
+            </div>
+
+            <div className="topbar-actions">
+              <div className="field">
+                <span className="field-label">格式</span>
                 <Select
-                  size="large"
-                  style={{
-                    width: 150,
-                  }}
+                  size="middle"
+                  style={{ width: 96 }}
                   options={formatOptions}
-                  defaultValue={formatOptions[0].value}
-                  onChange={(format) => {
-                    this.setState({
-                      format,
+                  value={format}
+                  popupMatchSelectWidth={false}
+                  onChange={(nextFormat) => {
+                    this.setState({ format: nextFormat }, () => {
+                      this.persistPrefs({ format: nextFormat });
+                      void this.generateChart({ silentJsonError: true });
                     });
                   }}
                 />
+              </div>
+              <div className="field">
+                <span className="field-label">主题</span>
                 <Select
-                  size="large"
-                  style={{
-                    width: 150,
-                  }}
+                  size="middle"
+                  style={{ width: 118 }}
                   options={themeOptions}
-                  defaultValue={"grafana"}
-                  onChange={(theme) => {
-                    this.setState(
-                      {
-                        theme,
-                      },
-                      () => {
-                        this.refreshChartOption();
-                      },
-                    );
-                  }}
-                />
-                <Select
-                  size="large"
-                  style={{
-                    width: 150,
-                  }}
-                  defaultValue={"Roboto"}
-                  options={familyOptions}
-                  onChange={(fontFamily) => {
-                    this.setState(
-                      {
-                        fontFamily,
-                      },
-                      () => {
-                        this.refreshChartOption();
-                      },
-                    );
-                  }}
-                />
-                <Select
-                  size="large"
-                  style={{
-                    width: 250,
-                  }}
-                  options={chartOptions}
-                  defaultValue={chartOptions[0].value}
-                  onChange={(chartType) => {
-                    this.setState({
-                      currentChartType: chartType,
+                  value={this.state.theme}
+                  popupMatchSelectWidth={false}
+                  placeholder="主题"
+                  onChange={(nextTheme) => {
+                    this.setState({ theme: nextTheme }, () => {
+                      this.persistPrefs({ theme: nextTheme });
+                      this.refreshChartOption();
                     });
-                    this.changeChartOption(chartType);
                   }}
                 />
+              </div>
+              <div className="field">
+                <span className="field-label">字体</span>
+                <Select
+                  size="middle"
+                  style={{ width: 132 }}
+                  value={this.state.fontFamily || "Roboto"}
+                  options={
+                    familyOptions.length
+                      ? familyOptions
+                      : [{ label: "Roboto", value: "Roboto" }]
+                  }
+                  popupMatchSelectWidth={false}
+                  placeholder="字体"
+                  onChange={(fontFamily) => {
+                    this.setState({ fontFamily }, () => {
+                      this.persistPrefs({ fontFamily });
+                      this.refreshChartOption();
+                    });
+                  }}
+                />
+              </div>
+
+              <div className="action-divider" />
+
+              <Tooltip title={`${runShortcut} 运行渲染`}>
                 <Button
-                  size="large"
                   type="primary"
-                  style={{
-                    width: 120,
-                  }}
-                  onClick={() => this.generateChart()}
+                  loading={processing}
+                  onClick={() =>
+                    this.generateChart({ silentJsonError: false })
+                  }
                 >
-                  {processing ? "生成中..." : "运行"}
+                  运行
+                  <span className="btn-kbd">{runShortcut}</span>
                 </Button>
-                <Button
-                  size="large"
-                  style={{
-                    width: 120,
-                  }}
-                  onClick={() => this.generateAndCopy()}
-                >
-                  {"复制预览地址"}
-                </Button>
-                {window.location.host === "charts.npmtrend.com" &&
-                  getGithubIcon(isDarkMode())}
-              </Space>
+              </Tooltip>
+              <Tooltip title="复制可分享的预览 URL">
+                <Button onClick={() => this.generateAndCopy()}>复制链接</Button>
+              </Tooltip>
+              {getGithubIcon()}
             </div>
-          </Header>
-          <Content>
-            <div className="editorWrapper" ref={this.editorDom}></div>
-            <div className="toggleSimply">
-              <Switch
-                checkedChildren="简化配置"
-                unCheckedChildren="完整配置"
-                defaultChecked={simply}
-                onChange={(value) => {
-                  this.setState(
-                    {
-                      simply: value,
-                    },
-                    () => {
-                      this.changeChartOption(currentChartType);
-                    },
-                  );
-                }}
-              />
-            </div>
-            <div className="previewWrapper">
-              {format === "svg" && (
+          </header>
+
+          <div className="main-grid">
+            <aside className="gallery">
+              <div className="gallery-head">
+                <div className="gallery-title-row">
+                  <div className="gallery-title">图表图库</div>
+                  <div className="gallery-count">
+                    {galleryQuery
+                      ? `${matchCount}/${CHART_COUNT}`
+                      : `${CHART_COUNT}`}
+                  </div>
+                </div>
+                <Input.Search
+                  className="gallery-search"
+                  allowClear
+                  placeholder="搜索类型、用途…"
+                  value={galleryQuery}
+                  onChange={(e) =>
+                    this.setState({ galleryQuery: e.target.value })
+                  }
+                />
+              </div>
+              <div className="gallery-scroll" ref={this.galleryScrollRef}>
+                {categories.length === 0 && (
+                  <div className="gallery-empty">无匹配结果，试试其它关键词</div>
+                )}
+                {categories.map((cat) => (
+                  <div className="cat-block" key={cat.key}>
+                    <div className="cat-title">
+                      {cat.title}
+                      <span className="cat-count">{cat.items.length}</span>
+                    </div>
+                    <div className="chart-list">
+                      {cat.items.map((item) => {
+                        const active = item.value === currentChartType;
+                        return (
+                          <button
+                            type="button"
+                            key={item.value}
+                            className={`chart-item${active ? " active" : ""}`}
+                            aria-current={active ? "true" : undefined}
+                            onClick={() => {
+                              this.setState({ currentChartType: item.value });
+                              this.changeChartOption(item.value);
+                            }}
+                          >
+                            <span className="chart-badge" data-glyph={item.glyph}>
+                              <ChartGlyph kind={item.glyph} />
+                            </span>
+                            <span className="chart-meta">
+                              <span className="chart-name">{item.label}</span>
+                              <span className="chart-hint">{item.hint}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </aside>
+
+            <div className="stage">
+              <section className="preview-pane">
+                <div className="preview-toolbar">
+                  <div className="preview-heading">
+                    <span className="preview-label">Live Preview</span>
+                    <span className="preview-chart-name">
+                      {current ? (
+                        <>
+                          <span className="preview-glyph">
+                            <ChartGlyph kind={current.glyph} />
+                          </span>
+                          {current.label}
+                        </>
+                      ) : (
+                        "图表预览"
+                      )}
+                    </span>
+                    {current?.hint && (
+                      <span className="preview-sub">{current.hint}</span>
+                    )}
+                  </div>
+                  <div className="preview-stats">
+                    <span className="stat-chip">{formatLabel}</span>
+                    <span className="stat-chip">{sizeLabel}</span>
+                    {renderMs != null && !processing && (
+                      <span className="stat-chip" title="最近一次渲染耗时">
+                        {renderMs}ms
+                      </span>
+                    )}
+                    {processing ? (
+                      <span className="stat-chip busy">渲染中</span>
+                    ) : hasPreview ? (
+                      <span className="stat-chip live">就绪</span>
+                    ) : null}
+                    {jsonError ? (
+                      <span className="stat-chip danger" title={jsonError}>
+                        JSON 错误
+                      </span>
+                    ) : null}
+                    <div className="preview-actions">
+                      <Tooltip title={previewFit ? "实际尺寸 100%" : "适应窗口"}>
+                        <Button
+                          size="small"
+                          type="text"
+                          className="icon-btn"
+                          disabled={!hasPreview}
+                          onClick={() => {
+                            const next = !previewFit;
+                            this.setState({ previewFit: next });
+                            this.persistPrefs({ previewFit: next });
+                          }}
+                        >
+                          {previewFit ? "适应" : "1:1"}
+                        </Button>
+                      </Tooltip>
+                      <Tooltip
+                        title={
+                          format === "svg" ? "复制 SVG 源码" : "复制图片"
+                        }
+                      >
+                        <Button
+                          size="small"
+                          type="text"
+                          className="icon-btn"
+                          disabled={!hasPreview}
+                          onClick={() => this.copyChartOutput()}
+                        >
+                          复制
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="下载当前图表">
+                        <Button
+                          size="small"
+                          type="text"
+                          className="icon-btn"
+                          disabled={!hasPreview}
+                          onClick={() => this.downloadChart()}
+                        >
+                          下载
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+
                 <div
-                  style={previewStyle}
-                  dangerouslySetInnerHTML={{ __html: svg }}
-                ></div>
-              )}
-              {format !== "svg" && <img style={previewStyle} src={imageData} />}
+                  className={`preview-viewport${previewFit ? " is-fit" : " is-actual"}`}
+                >
+                  {processing && (
+                    <div className="preview-loading">
+                      <Spin description="生成中…" size="large">
+                        <div style={{ width: 120, height: 72 }} />
+                      </Spin>
+                    </div>
+                  )}
+
+                  {!hasPreview && !processing && (
+                    <div className="preview-empty">
+                      <div className="empty-orb" aria-hidden="true">
+                        <ChartGlyph kind="multi" />
+                      </div>
+                      <div className="empty-title">选择一个示例开始</div>
+                      <div className="empty-desc">
+                        从左侧图库挑选图表类型，或直接编辑下方 JSON。修改后约
+                        0.5s 自动渲染，也可按{" "}
+                        <kbd className="kbd">{runShortcut}</kbd> 手动运行。
+                      </div>
+                    </div>
+                  )}
+
+                  {hasPreview && format === "svg" && (
+                    <div
+                      className="preview-canvas"
+                      key={`${currentChartType}-${format}-${this.state.lastOkAt}-svg`}
+                      dangerouslySetInnerHTML={{ __html: svg }}
+                    />
+                  )}
+                  {hasPreview && format !== "svg" && (
+                    <div
+                      className="preview-canvas"
+                      key={`${currentChartType}-${format}-${this.state.lastOkAt}-img`}
+                    >
+                      <img
+                        src={imageData}
+                        alt={`${current?.label || "chart"} preview`}
+                      />
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="editor-dock" style={{ height: dockHeight }}>
+                {!editorCollapsed && (
+                  <div
+                    className="resize-handle"
+                    onMouseDown={this.handleResizeStart}
+                    title="拖拽调整编辑器高度"
+                  />
+                )}
+                <div className="editor-toolbar">
+                  <div className="editor-title-row">
+                    <span className="editor-title">JSON 配置</span>
+                    {jsonError ? (
+                      <span className="stat-chip danger" title={jsonError}>
+                        解析失败
+                      </span>
+                    ) : (
+                      <span className="stat-chip subtle">auto-run · 480ms</span>
+                    )}
+                  </div>
+                  <div className="editor-tools">
+                    <Tooltip title="简化模式只保留常用字段">
+                      <Switch
+                        size="small"
+                        checkedChildren="简化"
+                        unCheckedChildren="完整"
+                        checked={simply}
+                        onChange={(value) => {
+                          this.setState({ simply: value }, () => {
+                            this.persistPrefs({ simply: value });
+                            this.changeChartOption(currentChartType);
+                          });
+                        }}
+                      />
+                    </Tooltip>
+                    <Button
+                      size="small"
+                      type="text"
+                      className="icon-btn"
+                      onClick={() => {
+                        this.setState(
+                          (s) => ({
+                            editorCollapsed: !s.editorCollapsed,
+                          }),
+                          () => {
+                            this.persistPrefs({
+                              editorCollapsed: this.state.editorCollapsed,
+                            });
+                            requestAnimationFrame(() => {
+                              this.state.editor?.layout();
+                            });
+                          },
+                        );
+                      }}
+                    >
+                      {editorCollapsed ? "展开编辑器" : "收起"}
+                    </Button>
+                  </div>
+                </div>
+                {jsonError && !editorCollapsed && (
+                  <div className="editor-error" title={jsonError}>
+                    <span className="editor-error-label">JSON</span>
+                    {jsonError}
+                  </div>
+                )}
+                <div
+                  className="editor-body"
+                  ref={this.editorDom}
+                  style={{
+                    height: editorCollapsed
+                      ? 0
+                      : Math.max(0, editorHeight - toolbarH),
+                    overflow: "hidden",
+                    opacity: editorCollapsed ? 0 : 1,
+                    pointerEvents: editorCollapsed ? "none" : "auto",
+                  }}
+                />
+              </section>
             </div>
-          </Content>
-        </Layout>
+          </div>
+        </div>
       </ConfigProvider>
     );
   }

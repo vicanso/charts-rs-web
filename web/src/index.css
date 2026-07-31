@@ -1,10 +1,31 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Typography */
+  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Light — cool instrument panel */
+  --bg: #eef2f7;
+  --surface: #f7f9fc;
+  --elevated: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #d8e0ea;
+  --border-strong: #b7c3d4;
+  --hover: rgba(15, 23, 42, 0.05);
+  --accent: #0284c7;
+  --accent-2: #0ea5e9;
+  --accent-ink: #0369a1;
+  --glow-a: rgba(14, 165, 233, 0.16);
+  --glow-b: rgba(16, 185, 129, 0.1);
+  --preview-base: #e4ebf4;
+  --grid-line: rgba(100, 116, 139, 0.12);
+  --canvas-bg: #ffffff;
 
   color-scheme: light dark;
-
+  font-family: var(--font-body);
+  line-height: 1.5;
+  font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -12,17 +33,60 @@
   -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #070b14;
+    --surface: #0d1422;
+    --elevated: #121a2b;
+    --text: #e8eef9;
+    --muted: #8b9bb8;
+    --border: #1c2740;
+    --border-strong: #2a3a58;
+    --hover: rgba(232, 238, 249, 0.06);
+    --accent: #38bdf8;
+    --accent-2: #22d3ee;
+    --accent-ink: #7dd3fc;
+    --glow-a: rgba(56, 189, 248, 0.14);
+    --glow-b: rgba(52, 211, 153, 0.08);
+    --preview-base: #0a101c;
+    --grid-line: rgba(148, 163, 184, 0.07);
+    --canvas-bg: #0f172a;
+  }
 }
-a:hover {
-  color: #535bf2;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
+  overflow: hidden;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-2);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
 }
