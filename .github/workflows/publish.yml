@@ -38,6 +38,9 @@ jobs:
           df -lh
 
           export SWAP_FILE=/swapfile
+          # runner 自带的 swap 可能就是 /swapfile，使用中的 swap 文件无法 fallocate（Text file busy）
+          sudo swapoff -a
+          sudo rm -f $SWAP_FILE
           sudo fallocate -l 24G $SWAP_FILE
           sudo chmod 600 $SWAP_FILE
           sudo mkswap $SWAP_FILE
