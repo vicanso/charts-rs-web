@@ -364,6 +364,7 @@ const PREFS_KEY = "charts-rs-lab-prefs-v1";
 
 type LabPrefs = {
   simply?: boolean;
+  compact?: boolean;
   editorHeight?: number;
   editorCollapsed?: boolean;
   format?: string;
@@ -1818,7 +1819,9 @@ interface AppState {
   editorCollapsed: boolean;
   jsonError: string;
   renderMs: number | null;
+  outputBytes: number | null;
   previewFit: boolean;
+  compact: boolean;
   lastOkAt: number | null;
 }
 
@@ -1829,6 +1832,14 @@ function formatJson(data: Record<string, unknown>) {
     result[key] = data[key];
   });
   return JSON.stringify(result, null, 2);
+}
+
+function formatBytes(size: number) {
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  const kb = size / 1024;
+  return `${kb < 10 ? kb.toFixed(1) : Math.round(kb)} KB`;
 }
 
 const DEFAULT_EDITOR_HEIGHT = 280;
@@ -1887,7 +1898,9 @@ class App extends Component<any, AppState> {
       editorCollapsed: prefs.editorCollapsed ?? false,
       jsonError: "",
       renderMs: null,
+      outputBytes: null,
       previewFit: prefs.previewFit ?? true,
+      compact: prefs.compact ?? true,
       lastOkAt: null,
     };
   }
@@ -1906,6 +1919,7 @@ class App extends Component<any, AppState> {
       if (this.ignoreContentChange) {
         return;
       }
+      this.syncCompactFromEditor();
       this.scheduleAutoRun();
     });
 
@@ -2061,6 +2075,36 @@ class App extends Component<any, AppState> {
     }
   }
 
+  syncCompactFromEditor() {
+    const { editor, compact } = this.state;
+    if (!editor) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(editor.getValue()) as { compact?: unknown };
+      if (typeof parsed.compact !== "boolean" || parsed.compact === compact) {
+        return;
+      }
+      this.setState({ compact: parsed.compact });
+      this.persistPrefs({ compact: parsed.compact });
+    } catch {
+      // invalid json while typing; keep the switch until it parses
+    }
+  }
+
+  setCompact(compact: boolean) {
+    const current = this.getChartOption(false);
+    if (!current) {
+      return;
+    }
+    this.setState({ compact }, () => {
+      this.persistPrefs({ compact });
+      current.compact = compact;
+      this.updateChartOption(current);
+      void this.generateChart({ silentJsonError: true });
+    });
+  }
+
   updateChartOption(options: Record<string, unknown>) {
     if (!options) {
       return;
@@ -2069,6 +2113,7 @@ class App extends Component<any, AppState> {
     if (this.state.fontFamily) {
       options.font_family = this.state.fontFamily;
     }
+    options.compact = this.state.compact;
     const { simply } = this.state;
     const simplyKeys = options.simplyKeys as string[] | undefined;
     if (simply && simplyKeys) {
@@ -2076,6 +2121,7 @@ class App extends Component<any, AppState> {
       simplyKeys.forEach((key) => {
         opts[key] = options[key];
       });
+      opts.compact = options.compact;
       this.setEditorValue(formatJson(opts));
     } else {
       delete options["simplyKeys"];
@@ -2209,12 +2255,16 @@ class App extends Component<any, AppState> {
         imageData = `data:image/${format};base64,${base64}`;
       }
       const renderMs = Math.round(performance.now() - started);
+      const outputBytes = isSvg
+        ? new TextEncoder().encode(svg).length
+        : (data as ArrayBuffer).byteLength;
       this.setState({
         svg,
         imageData,
         width: Number(value.width) || 0,
         height: Number(value.height) || 0,
         renderMs,
+        outputBytes,
         lastOkAt: Date.now(),
       });
     } catch (err: any) {
@@ -2290,7 +2340,9 @@ class App extends Component<any, AppState> {
       editorCollapsed,
       jsonError,
       renderMs,
+      outputBytes,
       previewFit,
+      compact,
     } = this.state;
 
     const dark = isDarkMode();
@@ -2508,6 +2560,11 @@ class App extends Component<any, AppState> {
                         {renderMs}ms
                       </span>
                     )}
+                    {outputBytes != null && !processing && (
+                      <span className="stat-chip" title="响应体大小">
+                        {formatBytes(outputBytes)}
+                      </span>
+                    )}
                     {processing ? (
                       <span className="stat-chip busy">渲染中</span>
                     ) : hasPreview ? (
@@ -2630,6 +2687,15 @@ class App extends Component<any, AppState> {
                     )}
                   </div>
                   <div className="editor-tools">
+                    <Tooltip title="压缩 SVG：去掉空白、合并路径，画面不变，体积更小">
+                      <Switch
+                        size="small"
+                        checkedChildren="压缩"
+                        unCheckedChildren="原始"
+                        checked={compact}
+                        onChange={(value) => this.setCompact(value)}
+                      />
+                    </Tooltip>
                     <Tooltip title="简化模式只保留常用字段">
                       <Switch
                         size="small"

@@ -23,6 +23,7 @@
 
 - `type`: 图表类型，默认为`bar`，可选的值为：`line`，`horizontal_bar`，`pie`，`radar`，`table`，以及`bar`
 - `quality`: 输出的PNG图片质量，默认为`80`，若指定为`0`则表示不压缩。图片质量为`80`时，图片大小`7kb`，总体耗时`52ms`。不压缩时，图片大小`46kb`，总体耗时`26ms`
+- `compact`: 是否压缩 SVG，默认为`true`。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
 - `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`等多9种主题色
 - `width`: 图表宽度，默认为600
 - `height`: 图表调试，默认为400
@@ -127,7 +128,7 @@
 
 ## 表格相关属性
 
-表格的相关属性与其它图的不尽相同，与公共属性相同部分为：`type`，`quality`，`theme`，`width`，`height`，`font_family`，`background_color`，还有`title`与`sub_title`部分也一致。
+表格的相关属性与其它图的不尽相同，与公共属性相同部分为：`type`，`quality`，`compact`，`theme`，`width`，`height`，`font_family`，`background_color`，还有`title`与`sub_title`部分也一致。
 
 不相同的如下：
 
