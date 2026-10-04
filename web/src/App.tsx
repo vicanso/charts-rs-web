@@ -15,6 +15,7 @@ import {
   Spin,
   Tooltip,
   Input,
+  Modal,
 } from "antd";
 import { editor } from "monaco-editor";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
@@ -2376,6 +2377,7 @@ interface AppState {
   previewFit: boolean;
   compact: boolean;
   lastOkAt: number | null;
+  mcpOpen: boolean;
 }
 
 function formatJson(data: Record<string, unknown>) {
@@ -2455,6 +2457,7 @@ class App extends Component<any, AppState> {
       previewFit: prefs.previewFit ?? true,
       compact: prefs.compact ?? true,
       lastOkAt: null,
+      mcpOpen: false,
     };
   }
 
@@ -2707,6 +2710,86 @@ class App extends Component<any, AppState> {
     } catch (err: any) {
       message.error(err?.message || String(err), 10);
     }
+  }
+
+  async copyText(text: string, okMessage: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      message.success(okMessage);
+    } catch (err: any) {
+      message.error(err?.message || "复制失败", 8);
+    }
+  }
+
+  renderMcpCode(text: string, okMessage: string) {
+    return (
+      <div className="mcp-code">
+        <pre>{text}</pre>
+        <Button
+          size="small"
+          type="text"
+          onClick={() => this.copyText(text, okMessage)}
+        >
+          复制
+        </Button>
+      </div>
+    );
+  }
+
+  renderMcpGuide() {
+    // 与接口地址一致，按当前页面所在路径拼接，兼容部署在子路径的场景
+    const url = new URL("mcp", window.location.href).href;
+    const command = `claude mcp add --transport http charts ${url}`;
+    const config = JSON.stringify(
+      { mcpServers: { charts: { type: "http", url } } },
+      null,
+      2,
+    );
+    return (
+      <Modal
+        title="MCP 接入"
+        open={this.state.mcpOpen}
+        footer={null}
+        width={600}
+        onCancel={() => this.setState({ mcpOpen: false })}
+      >
+        <p className="mcp-lead">
+          通过 MCP（Streamable HTTP）让 LLM 直接调用本服务生成图表，可返回
+          PNG、JPEG、WebP 图片或 SVG 文本。
+        </p>
+        <section className="mcp-section">
+          <div className="mcp-label">服务地址</div>
+          {this.renderMcpCode(url, "MCP 地址已复制")}
+        </section>
+        <section className="mcp-section">
+          <div className="mcp-label">工具</div>
+          <ul className="mcp-tools">
+            <li>
+              <code>get_chart_options</code>
+              查询指定图表类型的 JSON 参数说明与示例。
+            </li>
+            <li>
+              <code>render_chart</code>
+              按 <code>chart_type</code>、<code>options</code>、
+              <code>format</code> 生成图表。<code>format</code> 默认为{" "}
+              <code>png</code>，可选 <code>jpeg</code>、<code>webp</code>、
+              <code>svg</code>。
+            </li>
+          </ul>
+        </section>
+        <section className="mcp-section">
+          <div className="mcp-label">Claude Code</div>
+          {this.renderMcpCode(command, "命令已复制")}
+        </section>
+        <section className="mcp-section">
+          <div className="mcp-label">JSON 配置（.mcp.json）</div>
+          {this.renderMcpCode(config, "配置已复制")}
+        </section>
+        <p className="mcp-note">
+          其它支持 Streamable HTTP 的客户端填入服务地址即可。参数有误时会返回具体的出错信息，模型可据此调整后重试。
+        </p>
+      </Modal>
+    );
   }
 
   async copyChartOutput() {
@@ -3019,6 +3102,11 @@ class App extends Component<any, AppState> {
               <Tooltip title="复制可分享的预览 URL">
                 <Button onClick={() => this.generateAndCopy()}>复制链接</Button>
               </Tooltip>
+              <Tooltip title="查看 MCP 接入说明">
+                <Button onClick={() => this.setState({ mcpOpen: true })}>
+                  MCP
+                </Button>
+              </Tooltip>
               {getGithubIcon()}
             </div>
           </header>
@@ -3308,6 +3396,7 @@ class App extends Component<any, AppState> {
               </section>
             </div>
           </div>
+          {this.renderMcpGuide()}
         </div>
       </ConfigProvider>
     );

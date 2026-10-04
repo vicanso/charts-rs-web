@@ -170,6 +170,74 @@
   fill: currentColor;
 }
 
+/* ---------- MCP guide ---------- */
+.mcp-lead,
+.mcp-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mcp-section,
+.mcp-note {
+  margin-top: 16px;
+}
+
+.mcp-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.mcp-code {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.mcp-code pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 2px 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.mcp-tools {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.mcp-tools code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 1px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.mcp-tools li > code:first-child {
+  margin-right: 8px;
+  color: var(--accent-ink);
+}
+
 /* ---------- Main grid ---------- */
 .main-grid {
   min-height: 0;
