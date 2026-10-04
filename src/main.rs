@@ -18,6 +18,7 @@ mod config;
 mod controller;
 mod dist;
 mod error;
+mod mcp;
 mod middleware;
 mod util;
 
@@ -79,6 +80,7 @@ async fn run() {
     // build our application with a route
     let app = Router::new()
         .merge(controller::new_router())
+        .nest_service("/mcp", mcp::new_service())
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(error::handle_error))

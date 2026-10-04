@@ -2,3 +2,6 @@
 basic:
   listen: 0.0.0.0:5000
   requestLimit: 1000
+mcp:
+  # 允许访问/mcp的Host，多个以,分隔，为空表示不校验
+  allowedHosts: ""

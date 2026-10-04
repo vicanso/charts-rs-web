@@ -18,8 +18,8 @@ use charts_rs::{
     BarChart, BoxPlotChart, CalendarChart, CandlestickChart, ChordChart, FunnelChart, GaugeChart,
     GraphChart, HeatmapChart, HistogramChart, HorizontalBarChart, LineChart, MultiChart,
     ParallelChart, PieChart, PolarBarChart, RadarChart, SankeyChart, ScatterChart, SunburstChart,
-    TableChart, ThemeRiverChart, TreeChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png,
-    svg_to_webp,
+    TableChart, ThemeRiverChart, TreeChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_jpeg,
+    svg_to_png, svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -129,12 +129,26 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
     }))
 }
 
-enum FormatType {
+#[derive(Debug, Clone, Copy)]
+pub enum FormatType {
     Svg,
     Png,
     Webp,
     Avif,
     Jpeg,
+}
+
+impl FormatType {
+    /// 输出格式对应的mime类型
+    pub fn mime(&self) -> &'static str {
+        match self {
+            FormatType::Svg => mime::IMAGE_SVG.as_ref(),
+            FormatType::Png => mime::IMAGE_PNG.as_ref(),
+            FormatType::Webp => "image/webp",
+            FormatType::Avif => "image/avif",
+            FormatType::Jpeg => mime::IMAGE_JPEG.as_ref(),
+        }
+    }
 }
 
 async fn render_from_bdoy(req: Request<Body>, format: FormatType) -> HttpResult<Response> {
@@ -144,6 +158,13 @@ async fn render_from_bdoy(req: Request<Body>, format: FormatType) -> HttpResult<
 }
 
 async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
+    let data = render_chart(params, format)?;
+    let content_type = HeaderValue::from_static(format.mime());
+    Ok(([(header::CONTENT_TYPE, content_type)], data).into_response())
+}
+
+/// 根据json参数生成图表，返回对应格式的数据
+pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
     let json = std::string::String::from_utf8_lossy(params);
     let value: serde_json::Value = serde_json::from_str(&json)?;
     let chart_type = if let Some(value) = value.get("type") {
@@ -273,7 +294,11 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
             let data = svg_to_avif(&svg)?;
             Bytes::from(data)
         }
-        _ => {
+        FormatType::Jpeg => {
+            let data = svg_to_jpeg(&svg)?;
+            Bytes::from(data)
+        }
+        FormatType::Png => {
             let data = svg_to_png(&svg)?;
             if quality == 0 {
                 Bytes::from(data)
@@ -330,14 +355,7 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
             }
         }
     };
-    let content_type = match format {
-        FormatType::Png => HeaderValue::from_static(mime::IMAGE_PNG.as_ref()),
-        FormatType::Avif => HeaderValue::from_static("image/avif"),
-        FormatType::Webp => HeaderValue::from_static("image/webp"),
-        FormatType::Jpeg => HeaderValue::from_static(mime::JPEG.as_ref()),
-        _ => HeaderValue::from_static(mime::IMAGE_SVG.as_ref()),
-    };
-    Ok(([(header::CONTENT_TYPE, content_type)], data).into_response())
+    Ok(data)
 }
 
 async fn chart_svg(req: Request<Body>) -> HttpResult<Response> {

@@ -128,3 +128,21 @@ pub fn must_new_basic_config() -> BasicConfig {
     basic_config.validate().unwrap();
     basic_config
 }
+
+// MCP配置
+#[derive(Debug, Clone, Default)]
+pub struct McpConfig {
+    // 允许访问的Host列表，为空表示不校验
+    pub allowed_hosts: Vec<String>,
+}
+
+pub fn must_new_mcp_config() -> McpConfig {
+    let config = must_new_config().set_prefix("mcp");
+    let allowed_hosts = config
+        .get_value_from_env_first("allowedHosts")
+        .split(',')
+        .map(|item| item.trim().to_string())
+        .filter(|item| !item.is_empty())
+        .collect();
+    McpConfig { allowed_hosts }
+}

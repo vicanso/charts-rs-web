@@ -15,6 +15,21 @@
 - `POST /api/charts/avif`: 生成Avif图表（注意生成avif需要时间较长）
 - `POST /api/charts/svg`: 生成Svg图表
 
+## MCP
+
+服务在`/mcp`提供 [MCP](https://modelcontextprotocol.io) 接口（Streamable HTTP，无状态），LLM可通过它生成图表，包含两个工具：
+
+- `get_chart_options`: 返回指定图表类型的JSON参数说明与示例，参数为`chart_type`
+- `render_chart`: 根据参数生成图表，参数为`chart_type`、`options`（图表的JSON参数）以及`format`。`format`可选`png`（默认）、`jpeg`、`webp`以及`svg`，其中`svg`以文本形式返回，其它以图片形式返回。参数有误时返回具体的出错信息，便于模型调整后重试
+
+客户端配置地址为`http://127.0.0.1:5000/mcp`即可，以 Claude Code 为例：
+
+```bash
+claude mcp add --transport http charts http://127.0.0.1:5000/mcp
+```
+
+默认不校验请求的`Host`。如果需要限制，可通过ENV指定`MCP_ALLOWEDHOSTS`（多个以,分隔），如`MCP_ALLOWEDHOSTS=charts.example.com`，不在列表中的`Host`返回403。
+
 ## JSON参数
 
 生成PNG与SVG的json参数基本一致，下面针对各参数一下讲解。各图表的完整参数（含专属参数与示例）可参考 charts-rs 的 [JSON 参数文档](https://github.com/vicanso/charts-rs/blob/main/docs/json-zh.md)。
