@@ -17,14 +17,16 @@
 
 ## JSON参数
 
-生成PNG与SVG的json参数基本一致，下面针对各参数一下讲解：
+生成PNG与SVG的json参数基本一致，下面针对各参数一下讲解。各图表的完整参数（含专属参数与示例）可参考 charts-rs 的 [JSON 参数文档](https://github.com/vicanso/charts-rs/blob/main/docs/json-zh.md)。
+
+需要注意，参数在使用前会先校验：未知的键、类型不对的值或未知的枚举值都会返回出错，而不是被忽略。
 
 ### 公共参数
 
-- `type`: 图表类型，默认为`bar`，可选的值为：`line`，`horizontal_bar`，`pie`，`radar`，`table`，以及`bar`
+- `type`: 图表类型，默认为`bar`，可选的值见[图表类型](#图表类型)
 - `quality`: 输出的PNG图片质量，默认为`80`，若指定为`0`则表示不压缩。图片质量为`80`时，图片大小`7kb`，总体耗时`52ms`。不压缩时，图片大小`46kb`，总体耗时`26ms`
 - `compact`: 是否压缩 SVG，默认为`true`。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
-- `theme`: 图表主题，支持`light`, `dark`, `ant`以及`grafana`等多9种主题色
+- `theme`: 图表主题，支持`light`，`dark`，`ant`，`vintage`，`shine`，`walden`，`westeros`，`chalk`，`grafana`以及`shadcn`共10种主题色
 - `width`: 图表宽度，默认为600
 - `height`: 图表调试，默认为400
 - `background_color`: 图表底色，不同的主题有不同的默认颜色
@@ -51,6 +53,38 @@
 - `legend_margin`: 图示的margin，默认为`0`
 - `legend_category`: 图示的类型，默认为`normal`，可选值为：`normal`以及`rect`
 - `legend_show`: 图示是否显示，默认为`true`
+
+### 图表类型
+
+`type`可选的值如下，未指定或未知的值按`bar`处理：
+
+| type | 图表 |
+| --- | --- |
+| `bar` | 柱状图（默认），可堆叠或与折线混合 |
+| `horizontal_bar` | 水平柱状图 |
+| `line` | 折线图，支持平滑、填充、区间带（`band`）以及数值/时间X轴（`x_axis_values`） |
+| `pie` | 饼图、南丁格尔玫瑰图 |
+| `radar` | 雷达图 |
+| `scatter` | 散点图，`bubble`为`true`时为气泡图 |
+| `candlestick` | 蜡烛图 |
+| `table` | 表格 |
+| `heatmap` | 热力图 |
+| `funnel` | 漏斗图 |
+| `waterfall` | 瀑布图 |
+| `calendar` | 日历图 |
+| `gauge` | 仪表盘（兼容旧拼写`guage`） |
+| `treemap` | 矩形树图 |
+| `box_plot` | 箱线图 |
+| `sunburst` | 旭日图 |
+| `sankey` | 桑基图 |
+| `tree` | 树图 |
+| `graph` | 关系图 |
+| `parallel` | 平行坐标图 |
+| `theme_river` | 主题河流图 |
+| `histogram` | 直方图 |
+| `polar_bar` | 极坐标柱状图 |
+| `chord` | 和弦图 |
+| `multi_chart` | 多图表拼合，见[多图的相关属性](#多图的相关属性) |
 
 ### 网格属性
 

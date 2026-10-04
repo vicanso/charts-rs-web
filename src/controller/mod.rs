@@ -15,9 +15,10 @@ use std::io::Cursor;
 use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    BarChart, BoxPlotChart, CalendarChart, CandlestickChart, FunnelChart, GaugeChart, HeatmapChart,
-    HorizontalBarChart, LineChart, MultiChart, PieChart, RadarChart, SankeyChart, ScatterChart,
-    SunburstChart, TableChart, TreeChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png,
+    BarChart, BoxPlotChart, CalendarChart, CandlestickChart, ChordChart, FunnelChart, GaugeChart,
+    GraphChart, HeatmapChart, HistogramChart, HorizontalBarChart, LineChart, MultiChart,
+    ParallelChart, PieChart, PolarBarChart, RadarChart, SankeyChart, ScatterChart, SunburstChart,
+    TableChart, ThemeRiverChart, TreeChart, TreemapChart, WaterfallChart, svg_to_avif, svg_to_png,
     svg_to_webp,
 };
 
@@ -207,7 +208,8 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
             let chart = WaterfallChart::from_json(&json)?;
             chart.svg()?
         }
-        "guage" => {
+        // guage为历史拼写，保留兼容
+        "gauge" | "guage" => {
             let chart = GaugeChart::from_json(&json)?;
             chart.svg()?
         }
@@ -229,6 +231,30 @@ async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
         }
         "tree" => {
             let chart = TreeChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "graph" => {
+            let chart = GraphChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "parallel" => {
+            let chart = ParallelChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "theme_river" => {
+            let chart = ThemeRiverChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "histogram" => {
+            let chart = HistogramChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "polar_bar" => {
+            let chart = PolarBarChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "chord" => {
+            let chart = ChordChart::from_json(&json)?;
             chart.svg()?
         }
         _ => {

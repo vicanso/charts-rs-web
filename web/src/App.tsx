@@ -96,6 +96,13 @@ type GlyphKind =
   | "treemap"
   | "sankey"
   | "tree"
+  | "histogram"
+  | "polar"
+  | "chord"
+  | "bubble"
+  | "graph"
+  | "parallel"
+  | "river"
   | "table"
   | "multi";
 
@@ -267,6 +274,59 @@ function ChartGlyph({ kind }: { kind: GlyphKind }) {
           <circle cx="9" cy="3" r="1.2" fill="currentColor" stroke="none" />
         </svg>
       );
+    case "histogram":
+      return (
+        <svg {...common}>
+          <path d="M3 14v-3h3V7h3V4h3v5h3v5M2 14h14" />
+          <path d="M6 11v3M9 7v7M12 9v5" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "polar":
+      return (
+        <svg {...common}>
+          <path d="M9 2.5A6.5 6.5 0 1 1 2.5 9" />
+          <path d="M9 5.5A3.5 3.5 0 0 1 9 12.5" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "chord":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="9" r="6.3" />
+          <path d="M4.5 4.6Q9 9 13.5 4.6M3 10.8Q9 9 12.6 14.2" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "bubble":
+      return (
+        <svg {...common}>
+          <circle cx="6" cy="11" r="3.2" />
+          <circle cx="12.5" cy="6" r="2.2" />
+          <circle cx="13" cy="12.5" r="1.3" />
+        </svg>
+      );
+    case "graph":
+      return (
+        <svg {...common}>
+          <path d="M5 5l7 2M5 5l2 8M12 7l-5 6M12 7l2 6" strokeOpacity="0.55" />
+          <circle cx="5" cy="5" r="1.4" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="7" r="1.4" fill="currentColor" stroke="none" />
+          <circle cx="7" cy="13" r="1.4" fill="currentColor" stroke="none" />
+          <circle cx="14" cy="13" r="1.4" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "parallel":
+      return (
+        <svg {...common}>
+          <path d="M3.5 3v12M9 3v12M14.5 3v12" />
+          <path d="M3.5 6 9 11l5.5-5M3.5 12 9 6l5.5 6" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "river":
+      return (
+        <svg {...common}>
+          <path d="M2.5 8C5 4 7 5 9 6.5S13 8 15.5 5M2.5 10C5 14 7 13 9 11.5S13 10 15.5 13" />
+          <path d="M2.5 9h13" strokeOpacity="0.55" />
+        </svg>
+      );
     case "table":
       return (
         <svg {...common}>
@@ -310,6 +370,9 @@ const chartCategories: ChartCategory[] = [
       { value: "lineSmooth", label: "平滑曲线 (log2)", short: "Log2", hint: "对数坐标", glyph: "line" },
       { value: "lineSmoothFill", label: "填充平滑曲线", short: "Area", hint: "面积填充", glyph: "area" },
       { value: "lineNullData", label: "缺失数据曲线", short: "Null", hint: "断点处理", glyph: "line" },
+      { value: "lineBand", label: "区间带曲线", short: "Band", hint: "置信区间", glyph: "area" },
+      { value: "lineTimeAxis", label: "时间轴曲线", short: "Time", hint: "非等距采样", glyph: "line" },
+      { value: "themeRiverChart", label: "主题河流图", short: "River", hint: "流量演变", glyph: "river" },
     ],
   },
   {
@@ -320,6 +383,8 @@ const chartCategories: ChartCategory[] = [
       { value: "radarBasic", label: "雷达图", short: "Radar", hint: "多维对比", glyph: "radar" },
       { value: "guageChart", label: "仪表盘", short: "Gauge", hint: "单值进度", glyph: "gauge" },
       { value: "sunburstChart", label: "旭日图", short: "Sun", hint: "层级占比", glyph: "sunburst" },
+      { value: "polarBarChart", label: "极坐标柱状图", short: "Polar", hint: "周期对比", glyph: "polar" },
+      { value: "polarBarRadial", label: "径向柱状图", short: "Ring", hint: "目标进度", glyph: "polar" },
     ],
   },
   {
@@ -327,9 +392,12 @@ const chartCategories: ChartCategory[] = [
     title: "分布 / 矩阵",
     items: [
       { value: "scatterBasic", label: "散点图", short: "Dot", hint: "相关分布", glyph: "scatter" },
+      { value: "bubbleChart", label: "气泡图", short: "Bubble", hint: "三维对比", glyph: "bubble" },
       { value: "heatmapBasic", label: "热力图", short: "Heat", hint: "密度矩阵", glyph: "heat" },
       { value: "calendarChart", label: "日历图", short: "Cal", hint: "日期贡献", glyph: "calendar" },
       { value: "boxPlotChart", label: "箱线图", short: "Box", hint: "统计分布", glyph: "box" },
+      { value: "histogramChart", label: "直方图", short: "Hist", hint: "频数分布", glyph: "histogram" },
+      { value: "parallelChart", label: "平行坐标图", short: "Para", hint: "多维记录", glyph: "parallel" },
       { value: "candlestick", label: "蜡烛图", short: "K", hint: "行情走势", glyph: "candle" },
     ],
   },
@@ -341,6 +409,8 @@ const chartCategories: ChartCategory[] = [
       { value: "treemapChart", label: "矩形树图", short: "TreeM", hint: "体量占比", glyph: "treemap" },
       { value: "sankeyChart", label: "桑基图", short: "Sankey", hint: "流量迁移", glyph: "sankey" },
       { value: "treeChart", label: "树图", short: "Tree", hint: "层级结构", glyph: "tree" },
+      { value: "chordChart", label: "和弦图", short: "Chord", hint: "相互流向", glyph: "chord" },
+      { value: "graphChart", label: "关系图", short: "Graph", hint: "节点网络", glyph: "graph" },
     ],
   },
   {
@@ -817,6 +887,146 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  lineBand: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Band Chart",
+    sub_title_text: "Forecast with confidence band",
+    legend_align: "right",
+    legend_category: "round_rect",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_boundary_gap: false,
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    series_smooth: true,
+    tooltip_show: true,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Actual",
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Forecast",
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+        band: {
+          lower: [205.0, 160.0, 162.0, 196.0, 240.0, 268.0, 236.0],
+          upper: [235.0, 204.0, 220.0, 272.0, 340.0, 392.0, 384.0],
+        },
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "x_boundary_gap",
+      "series_smooth",
+      "tooltip_show",
+      "series_list",
+      "theme",
+    ],
+  }),
+  lineTimeAxis: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Time Axis Chart",
+    sub_title_text: "Unevenly sampled data",
+    legend_align: "right",
+    legend_category: "round_rect",
+    x_axis_type: "time",
+    x_axis_values: [
+      "2024-03-01 08:00",
+      "2024-03-01 08:30",
+      "2024-03-01 09:00",
+      "2024-03-01 11:00",
+      "2024-03-01 12:30",
+      "2024-03-01 16:00",
+      "2024-03-01 20:00",
+    ],
+    x_axis_formatter: "%H:%M",
+    x_axis_title: "Time",
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    y_axis_configs: [
+      {
+        axis_formatter: "{c} ms",
+      },
+    ],
+    margin: {
+      left: 15,
+      top: 15,
+      right: 25,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "API",
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Web",
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "x_axis_type",
+      "x_axis_values",
+      "x_axis_formatter",
+      "x_axis_title",
+      "y_axis_configs",
+      "series_list",
+      "theme",
+    ],
+  }),
+  themeRiverChart: {
+    type: "theme_river",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Theme River",
+    legend_show: false,
+    series_smooth: true,
+    stream_opacity: 0.85,
+    x_axis_data: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+    series_list: [
+      { name: "News", data: [10, 25, 18, 30, 42, 35, 28, 20] },
+      { name: "Sport", data: [15, 12, 22, 16, 20, 38, 45, 30] },
+      { name: "Music", data: [8, 14, 30, 36, 24, 18, 22, 34] },
+      { name: "Movie", data: [20, 18, 12, 22, 34, 40, 26, 16] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "legend_show",
+      "series_smooth",
+      "stream_opacity",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  },
   barLineMixin: Object.assign({}, defaultOption, {
     type: "bar",
     title_text: "Bar Line Mixin",
@@ -1100,6 +1310,74 @@ const chartDefaultOptions: Record<string, unknown> = {
       "y_axis_configs",
       "x_axis_config",
       "series_symbol_sizes",
+      "series_list",
+      "theme",
+    ],
+  }),
+  bubbleChart: Object.assign({}, defaultOption, {
+    type: "scatter",
+    title_text: "Bubble Chart",
+    sub_title_text: "Bubble size: orders",
+    legend_align: "right",
+    legend_category: "circle",
+    bubble: true,
+    bubble_min_size: 4,
+    bubble_max_size: 30,
+    tooltip_show: true,
+    x_axis_title: "Ad spend",
+    margin: {
+      left: 5,
+      top: 5,
+      right: 20,
+      bottom: 5,
+    },
+    y_axis_configs: [
+      {
+        axis_min: 0,
+        axis_max: 120,
+        axis_formatter: "{c}k",
+        axis_title: "Revenue",
+      },
+    ],
+    x_axis_config: {
+      axis_min: 0,
+      axis_max: 60,
+      axis_formatter: "{c}k",
+    },
+    series_symbols: ["circle", "circle"],
+    series_list: [
+      {
+        name: "Online",
+        data: [
+          8, 22, 120, 15, 38, 260, 24, 52, 410, 33, 71, 640, 42, 88, 520, 51,
+          104, 900,
+        ],
+      },
+      {
+        name: "Retail",
+        data: [
+          6, 12, 80, 14, 20, 150, 22, 34, 300, 30, 40, 220, 40, 58, 480, 54,
+          66, 360,
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "bubble",
+      "bubble_min_size",
+      "bubble_max_size",
+      "x_axis_title",
+      "y_axis_configs",
+      "x_axis_config",
+      "series_symbols",
       "series_list",
       "theme",
     ],
@@ -1420,7 +1698,7 @@ const chartDefaultOptions: Record<string, unknown> = {
     ]
   }),
   guageChart: Object.assign({}, defaultOption, {
-    type: "guage",
+    type: "gauge",
     title_text: "Gauge",
     min: 0,
     max: 200,
@@ -1632,6 +1910,281 @@ const chartDefaultOptions: Record<string, unknown> = {
       "orient",
       "symbol_size",
       "series_data",
+      "theme",
+    ],
+  },
+  histogramChart: Object.assign({}, defaultOption, {
+    type: "histogram",
+    title_text: "Height Distribution",
+    sub_title_text: "Data from: Heinz 2003",
+    legend_align: "right",
+    legend_category: "rect",
+    bin_width: 5,
+    bar_gap: 1,
+    percent: false,
+    x_axis_title: "Height (cm)",
+    tooltip_show: true,
+    series_list: [
+      {
+        name: "Female",
+        data: [
+          161.2, 167.5, 159.5, 157.0, 155.8, 170.0, 159.1, 166.0, 176.2, 160.2,
+          172.5, 170.9, 172.9, 153.4, 160.0, 147.2, 168.2, 175.0, 157.0, 167.6,
+          159.5, 175.0, 166.8, 176.5, 170.2,
+        ],
+      },
+      {
+        name: "Male",
+        data: [
+          174.0, 175.3, 193.5, 186.5, 187.2, 181.5, 184.0, 184.5, 175.0, 184.0,
+          180.0, 177.8, 192.0, 176.0, 174.0, 184.0, 192.7, 171.5, 173.0, 176.0,
+          176.0, 180.5, 172.7, 176.0, 173.5,
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "bin_width",
+      "percent",
+      "x_axis_title",
+      "tooltip_show",
+      "series_list",
+      "theme",
+    ],
+  }),
+  polarBarChart: {
+    type: "polar_bar",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Polar Bar",
+    legend_align: "left",
+    legend_category: "rect",
+    category_axis: "angle",
+    inner_radius: 30,
+    category_gap: 0.2,
+    tooltip_show: true,
+    y_axis_configs: [
+      {
+        axis_max: 600,
+        axis_split_number: 4,
+      },
+    ],
+    animation: {
+      duration: 1000,
+      easing: "ease-out",
+      delay: 80,
+    },
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    series_list: [
+      {
+        name: "Email",
+        stack: "total",
+        data: [120.0, 132.0, 101.0, 134.0, 90.0, 230.0, 210.0],
+      },
+      {
+        name: "Union Ads",
+        stack: "total",
+        data: [220.0, 182.0, 191.0, 234.0, 290.0, 330.0, 310.0],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "legend_align",
+      "legend_category",
+      "category_axis",
+      "inner_radius",
+      "y_axis_configs",
+      "x_axis_data",
+      "series_list",
+      "animation",
+      "theme",
+    ],
+  },
+  polarBarRadial: {
+    type: "polar_bar",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Daily Goals",
+    legend_show: false,
+    category_axis: "radius",
+    round_cap: true,
+    start_angle: 0,
+    end_angle: 270,
+    tooltip_show: true,
+    series_label_formatter: "{c}%",
+    y_axis_configs: [
+      {
+        axis_max: 100,
+        axis_split_number: 5,
+      },
+    ],
+    x_axis_data: ["Sleep", "Steps", "Water", "Reading"],
+    series_list: [
+      {
+        name: "Done",
+        label_show: true,
+        data: [92, 74, 61, 48],
+        colors: ["#5470c6", "#91cc75", "#fac858", "#ee6666"],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "legend_show",
+      "category_axis",
+      "round_cap",
+      "end_angle",
+      "series_label_formatter",
+      "y_axis_configs",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  },
+  chordChart: {
+    type: "chord",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Trade Flows",
+    node_width: 12,
+    node_gap: 3,
+    link_opacity: 0.5,
+    link_gradient: true,
+    tooltip_show: true,
+    animation: {
+      duration: 1000,
+      easing: "ease-out",
+      delay: 100,
+    },
+    nodes: [
+      { name: "Asia" },
+      { name: "Europe" },
+      { name: "Americas" },
+      { name: "Africa" },
+      { name: "Oceania" },
+    ],
+    links: [
+      { source: "Asia", target: "Europe", value: 60 },
+      { source: "Asia", target: "Americas", value: 45 },
+      { source: "Asia", target: "Oceania", value: 15 },
+      { source: "Europe", target: "Americas", value: 50 },
+      { source: "Europe", target: "Africa", value: 25 },
+      { source: "Americas", target: "Asia", value: 30 },
+      { source: "Africa", target: "Asia", value: 20 },
+      { source: "Oceania", target: "Europe", value: 10 },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "link_gradient",
+      "nodes",
+      "links",
+      "animation",
+      "theme",
+    ],
+  },
+  parallelChart: {
+    type: "parallel",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Parallel",
+    title_align: "left",
+    legend_align: "right",
+    x_axis_data: ["Price", "Weight", "Battery", "Rating"],
+    y_axis_configs: [
+      { axis_min: 0, axis_max: 200, axis_formatter: "${c}" },
+      { axis_min: 0, axis_max: 6, axis_formatter: "{c} kg" },
+      { axis_min: 0, axis_max: 24, axis_formatter: "{c} h" },
+      { axis_min: 0, axis_max: 5 },
+    ],
+    series_list: [
+      { name: "Model A", data: [120, 3.2, 12, 4.5] },
+      { name: "Model B", data: [90, 4.1, 18, 3.8] },
+      { name: "Model C", data: [160, 2.4, 9, 4.8] },
+      { name: "Model D", data: [60, 5.2, 21, 3.1] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "title_align",
+      "legend_align",
+      "x_axis_data",
+      "y_axis_configs",
+      "series_list",
+      "theme",
+    ],
+  },
+  graphChart: {
+    type: "graph",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Team Graph",
+    layout: "force",
+    symbol_size: 10,
+    tooltip_show: true,
+    categories: ["Team", "Tool", "Service"],
+    nodes: [
+      { name: "Ann", category: 0, value: 5 },
+      { name: "Bob", category: 0, value: 3 },
+      { name: "Cid", category: 0, value: 2 },
+      { name: "Git", category: 1, value: 4 },
+      { name: "CI", category: 1, value: 3 },
+      { name: "Docs", category: 1, value: 1 },
+      { name: "API", category: 2, value: 4 },
+      { name: "Web", category: 2, value: 2 },
+    ],
+    links: [
+      { source: "Ann", target: "Bob", value: 3 },
+      { source: "Ann", target: "Cid", value: 1 },
+      { source: "Bob", target: "Cid", value: 1 },
+      { source: "Ann", target: "Git", value: 2 },
+      { source: "Bob", target: "Git", value: 2 },
+      { source: "Cid", target: "Git", value: 1 },
+      { source: "Ann", target: "Docs", value: 1 },
+      { source: "Cid", target: "Docs", value: 2 },
+      { source: "Git", target: "CI", value: 3 },
+      { source: "CI", target: "API", value: 2 },
+      { source: "CI", target: "Web", value: 1 },
+      { source: "Bob", target: "API", value: 2 },
+      { source: "Cid", target: "Web", value: 1 },
+      { source: "API", target: "Web", value: 2 },
+      { source: "Docs", target: "Web", value: 1 },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "layout",
+      "categories",
+      "nodes",
+      "links",
       "theme",
     ],
   },

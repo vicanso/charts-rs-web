@@ -6,17 +6,18 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.95.0 AS builder
+FROM rust:1.98.1-trixie AS builder
+
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
 
 RUN apt update \
-  && apt install -y --no-install-recommends git make build-essential pkg-config nasm curl 
-RUN apt install -y --no-install-recommends ca-certificates tzdata 
+  && apt install -y --no-install-recommends git make build-essential pkg-config nasm curl
+RUN apt install -y --no-install-recommends ca-certificates tzdata
 RUN rustup target list --installed
 RUN cd /charts-rs-web \
   && curl -L https://github.com/vicanso/http-stat-rs/releases/latest/download/httpstat-linux-musl-$(uname -m).tar.gz | tar -xzf - \
-  && make release 
+  && make release
 
 FROM debian:trixie-slim
 
