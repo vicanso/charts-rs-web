@@ -3287,22 +3287,22 @@ class App extends Component<any, AppState> {
                     </div>
                   )}
 
-                  {hasPreview && format === "svg" && (
-                    <div
-                      className="preview-canvas"
-                      key={`${currentChartType}-${format}-${this.state.lastOkAt}-svg`}
-                      dangerouslySetInnerHTML={{ __html: svg }}
-                    />
-                  )}
-                  {hasPreview && format !== "svg" && (
-                    <div
-                      className="preview-canvas"
-                      key={`${currentChartType}-${format}-${this.state.lastOkAt}-img`}
-                    >
-                      <img
-                        src={imageData}
-                        alt={`${current?.label || "chart"} preview`}
-                      />
+                  {hasPreview && (
+                    <div className="preview-canvas">
+                      {format === "svg" ? (
+                        // Remount per render so the chart's own SVG animation
+                        // replays; the canvas itself stays mounted, otherwise
+                        // its entrance animation would flash on every render.
+                        <div
+                          key={this.state.lastOkAt}
+                          dangerouslySetInnerHTML={{ __html: svg }}
+                        />
+                      ) : (
+                        <img
+                          src={imageData}
+                          alt={`${current?.label || "chart"} preview`}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

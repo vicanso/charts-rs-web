@@ -727,6 +727,17 @@ kbd.kbd {
   background: color-mix(in srgb, var(--bg) 35%, transparent);
   backdrop-filter: blur(2px);
   pointer-events: none;
+  /* Only show up for slow renders: a quick one would just flash the veil. */
+  animation: loading-in 0.2s ease 0.2s both;
+}
+
+@keyframes loading-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ---------- Editor dock ---------- */
