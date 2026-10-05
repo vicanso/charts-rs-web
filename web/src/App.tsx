@@ -20,8 +20,18 @@ import {
   Input,
   Modal,
 } from "antd";
+import zhCN from "antd/locale/zh_CN";
+import enUS from "antd/locale/en_US";
 import { editor } from "monaco-editor";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
+
+import {
+  Lang,
+  MessageKey,
+  chartTextEn,
+  detectLang,
+  translate,
+} from "./i18n";
 
 import "./App.css";
 
@@ -58,12 +68,12 @@ function createEditor(params: {
   return e;
 }
 
-const getGithubIcon = () => {
+const getGithubIcon = (lang: Lang) => {
   if (window.location.host !== "charts.npmtrend.com") {
     return null;
   }
   return (
-    <Tooltip title="在 GitHub 查看 charts-rs">
+    <Tooltip title={translate(lang, "githubTooltip")}>
       <a
         href="https://github.com/vicanso/charts-rs"
         className="github-link"
@@ -124,7 +134,7 @@ type ChartOption = {
 
 type ChartCategory = {
   key: string;
-  title: string;
+  title: MessageKey;
   items: ChartOption[];
 };
 
@@ -385,7 +395,7 @@ function ChartGlyph({ kind }: { kind: GlyphKind }) {
 const chartCategories: ChartCategory[] = [
   {
     key: "bar",
-    title: "柱状 / 条形",
+    title: "categoryBar",
     items: [
       { value: "barBasic", label: "常规柱状图", short: "Bar", hint: "基础分组柱状", glyph: "bar" },
       { value: "barStacked", label: "堆叠柱状图", short: "Stack", hint: "总量对比", glyph: "stack" },
@@ -398,7 +408,7 @@ const chartCategories: ChartCategory[] = [
   },
   {
     key: "line",
-    title: "折线 / 曲线",
+    title: "categoryLine",
     items: [
       { value: "lineBasic", label: "常规曲线图", short: "Line", hint: "基础趋势", glyph: "line" },
       { value: "lineAnimation", label: "动画曲线图", short: "Anim", hint: "入场动画", glyph: "line" },
@@ -415,7 +425,7 @@ const chartCategories: ChartCategory[] = [
   },
   {
     key: "radial",
-    title: "环形 / 径向",
+    title: "categoryRadial",
     items: [
       { value: "pieBasic", label: "南丁格尔玫瑰", short: "Pie", hint: "占比分布", glyph: "pie" },
       { value: "pieHalf", label: "半环饼图", short: "Half", hint: "半圆占比", glyph: "halfpie" },
@@ -431,7 +441,7 @@ const chartCategories: ChartCategory[] = [
   },
   {
     key: "matrix",
-    title: "分布 / 矩阵",
+    title: "categoryMatrix",
     items: [
       { value: "scatterBasic", label: "散点图", short: "Dot", hint: "相关分布", glyph: "scatter" },
       { value: "scatterRegression", label: "回归散点图", short: "Fit", hint: "趋势拟合", glyph: "scatter" },
@@ -450,7 +460,7 @@ const chartCategories: ChartCategory[] = [
   },
   {
     key: "flow",
-    title: "流程 / 层级",
+    title: "categoryFlow",
     items: [
       { value: "funnelChart", label: "漏斗图", short: "Funnel", hint: "转化路径", glyph: "funnel" },
       { value: "treemapChart", label: "矩形树图", short: "TreeM", hint: "体量占比", glyph: "treemap" },
@@ -465,7 +475,7 @@ const chartCategories: ChartCategory[] = [
   },
   {
     key: "other",
-    title: "其他",
+    title: "categoryOther",
     items: [
       { value: "tableBasic", label: "表格", short: "Table", hint: "结构化数据", glyph: "table" },
       { value: "multiChart", label: "多图表拼合", short: "Multi", hint: "组合看板", glyph: "multi" },
@@ -478,6 +488,12 @@ const CHART_COUNT = chartOptions.length;
 
 function findChartOption(value: string): ChartOption | undefined {
   return chartOptions.find((item) => item.value === value);
+}
+
+/** Name and use of an example in the given language. */
+function chartText(item: ChartOption, lang: Lang) {
+  const text = lang === "en" ? chartTextEn[item.value] : undefined;
+  return text || { label: item.label, hint: item.hint };
 }
 
 // The charts a first visit opens on: the first one is selected by default and
@@ -494,7 +510,7 @@ const FEATURED_CHARTS = [
 
 const featuredCategory: ChartCategory = {
   key: "featured",
-  title: "精选",
+  title: "categoryFeatured",
   items: FEATURED_CHARTS.map(findChartOption).filter(
     (item): item is ChartOption => Boolean(item),
   ),
@@ -512,6 +528,7 @@ type LabPrefs = {
   fontFamily?: string;
   currentChartType?: string;
   previewFit?: boolean;
+  lang?: Lang;
 };
 
 function loadPrefs(): LabPrefs {
@@ -3604,6 +3621,7 @@ const chartDefaultOptions: Record<string, unknown> = {
 };
 
 interface AppState {
+  lang: Lang;
   version: string;
   theme: string;
   format: string;
@@ -3630,6 +3648,22 @@ interface AppState {
   lastOkAt: number | null;
   mcpOpen: boolean;
 }
+
+// The server lays charts out with its embedded Roboto, and a browser has no
+// such font unless it happens to be installed: an svg would then be drawn in a
+// substitute the layout was not measured for. Load the server's own copy.
+function loadChartFont() {
+  if (typeof FontFace === "undefined") {
+    return;
+  }
+  new FontFace("Roboto", "url(./api/fonts/default)").load().then(
+    (face) => document.fonts.add(face),
+    () => {
+      // no server (static preview): the browser keeps its substitute
+    },
+  );
+}
+loadChartFont();
 
 // Gallery thumbnails are the examples themselves, rendered by the server in
 // the current theme. A few at a time, so opening the page does not queue fifty
@@ -3670,13 +3704,7 @@ function loadThumb(chartType: string, theme: string): Promise<string> {
       };
       delete options.simplyKeys;
       const { data } = await axios.post<string>("./api/charts/svg", options);
-      // An svg shown as an image cannot use the fonts of the page: without a
-      // generic fallback its text drops to the browser's serif default.
-      const svg = data.replace(
-        /font-family="([^"]+)"/g,
-        'font-family="$1, system-ui, sans-serif"',
-      );
-      return URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      return data;
     });
     // a failed render may succeed later (server restarted, theme registered)
     pending.catch(() => thumbCache.delete(key));
@@ -3684,6 +3712,11 @@ function loadThumb(chartType: string, theme: string): Promise<string> {
   }
   return pending;
 }
+
+// The thumbnail svg lives in a shadow root: its ids and styles stay its own,
+// and unlike an svg shown as an image it can use the fonts of the page.
+const THUMB_STYLE =
+  "<style>svg{display:block;width:100%;height:100%;pointer-events:none}</style>";
 
 function ChartThumb({
   chartType,
@@ -3695,7 +3728,8 @@ function ChartThumb({
   glyph: GlyphKind;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [src, setSrc] = useState("");
+  const hostRef = useRef<HTMLSpanElement>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -3710,10 +3744,18 @@ function ChartThumb({
         }
         observer.disconnect();
         loadThumb(chartType, theme).then(
-          (url) => {
-            if (!cancelled) {
-              setSrc(url);
+          (svg) => {
+            const host = hostRef.current;
+            if (cancelled || !host) {
+              return;
             }
+            const root = host.shadowRoot || host.attachShadow({ mode: "open" });
+            root.innerHTML = THUMB_STYLE + svg;
+            // fill the frame like object-fit: cover
+            root
+              .querySelector("svg")
+              ?.setAttribute("preserveAspectRatio", "xMidYMid slice");
+            setReady(true);
           },
           () => {
             // keep the glyph: the gallery still works without thumbnails
@@ -3730,11 +3772,11 @@ function ChartThumb({
   }, [chartType, theme]);
 
   return (
-    <span className={`chart-thumb${src ? " is-ready" : ""}`} ref={ref}>
+    <span className={`chart-thumb${ready ? " is-ready" : ""}`} ref={ref}>
       <span className="chart-thumb-glyph">
         <ChartGlyph kind={glyph} />
       </span>
-      {src && <img src={src} alt="" draggable={false} />}
+      <span className="chart-thumb-svg" ref={hostRef} aria-hidden="true" />
     </span>
   );
 }
@@ -3821,6 +3863,7 @@ class App extends Component<any, AppState> {
         : featuredCategory.items[0]?.value || chartOptions[0].value;
 
     this.state = {
+      lang: prefs.lang === "zh" || prefs.lang === "en" ? prefs.lang : detectLang(),
       version: "",
       theme: prefs.theme || "grafana",
       format: prefs.format || formatOptions[0].value,
@@ -3857,6 +3900,7 @@ class App extends Component<any, AppState> {
     window.addEventListener("keydown", this.handleGlobalKeydown);
     window.addEventListener("mousemove", this.handleResizeMove);
     window.addEventListener("mouseup", this.handleResizeEnd);
+    this.syncDocumentLang();
     if (this.editorInited) {
       this.bindEditorChange();
       return;
@@ -3900,6 +3944,9 @@ class App extends Component<any, AppState> {
     ) {
       this.scrollActiveIntoView();
     }
+    if (prevState.lang !== this.state.lang) {
+      this.syncDocumentLang();
+    }
   }
 
   componentWillUnmount(): void {
@@ -3911,6 +3958,17 @@ class App extends Component<any, AppState> {
     window.removeEventListener("mousemove", this.handleResizeMove);
     window.removeEventListener("mouseup", this.handleResizeEnd);
     this.state.editor?.dispose();
+  }
+
+  t = (key: MessageKey) => translate(this.state.lang, key);
+
+  syncDocumentLang() {
+    document.documentElement.lang = this.state.lang === "zh" ? "zh-CN" : "en";
+  }
+
+  setLang(lang: Lang) {
+    this.setState({ lang });
+    this.persistPrefs({ lang });
   }
 
   bindEditorChange() {
@@ -4035,7 +4093,7 @@ class App extends Component<any, AppState> {
       }
       return parsed;
     } catch (err: any) {
-      const msg = (err?.message as string) || "JSON 解析失败";
+      const msg = (err?.message as string) || this.t("invalidJson");
       if (!silent) {
         message.error(msg);
       }
@@ -4128,7 +4186,7 @@ class App extends Component<any, AppState> {
       const url = `${window.location.href}api/charts?format=${format}&opts=${JSON.stringify(value)}`;
       console.info(url);
       await navigator.clipboard.writeText(url);
-      message.success("预览地址已复制到剪贴板");
+      message.success(this.t("linkCopied"));
     } catch (err: any) {
       message.error(err?.message || String(err), 10);
     }
@@ -4139,7 +4197,7 @@ class App extends Component<any, AppState> {
       await navigator.clipboard.writeText(text);
       message.success(okMessage);
     } catch (err: any) {
-      message.error(err?.message || "复制失败", 8);
+      message.error(err?.message || this.t("copyFailed"), 8);
     }
   }
 
@@ -4152,7 +4210,7 @@ class App extends Component<any, AppState> {
           type="text"
           onClick={() => this.copyText(text, okMessage)}
         >
-          复制
+          {this.t("copy")}
         </Button>
       </div>
     );
@@ -4169,47 +4227,54 @@ class App extends Component<any, AppState> {
     );
     return (
       <Modal
-        title="MCP 接入"
+        title={this.t("mcpTitle")}
         open={this.state.mcpOpen}
         footer={null}
         width={600}
         onCancel={() => this.setState({ mcpOpen: false })}
       >
-        <p className="mcp-lead">
-          通过 MCP（Streamable HTTP）让 LLM 直接调用本服务生成图表，可返回
-          PNG、JPEG、WebP 图片或 SVG 文本。
-        </p>
+        <p className="mcp-lead">{this.t("mcpLead")}</p>
         <section className="mcp-section">
-          <div className="mcp-label">服务地址</div>
-          {this.renderMcpCode(url, "MCP 地址已复制")}
+          <div className="mcp-label">{this.t("mcpEndpoint")}</div>
+          {this.renderMcpCode(url, this.t("mcpEndpointCopied"))}
         </section>
         <section className="mcp-section">
-          <div className="mcp-label">工具</div>
+          <div className="mcp-label">{this.t("mcpTools")}</div>
           <ul className="mcp-tools">
             <li>
               <code>get_chart_options</code>
-              查询指定图表类型的 JSON 参数说明与示例。
+              {this.t("mcpToolOptions")}
             </li>
             <li>
               <code>render_chart</code>
-              按 <code>chart_type</code>、<code>options</code>、
-              <code>format</code> 生成图表。<code>format</code> 默认为{" "}
-              <code>png</code>，可选 <code>jpeg</code>、<code>webp</code>、
-              <code>svg</code>。
+              {this.state.lang === "zh" ? (
+                <>
+                  按 <code>chart_type</code>、<code>options</code>、
+                  <code>format</code> 生成图表。<code>format</code> 默认为{" "}
+                  <code>png</code>，可选 <code>jpeg</code>、<code>webp</code>、
+                  <code>svg</code>。
+                </>
+              ) : (
+                <>
+                  Renders a chart from <code>chart_type</code>,{" "}
+                  <code>options</code> and <code>format</code>.{" "}
+                  <code>format</code> is <code>png</code> by default;{" "}
+                  <code>jpeg</code>, <code>webp</code> and <code>svg</code> are
+                  available too.
+                </>
+              )}
             </li>
           </ul>
         </section>
         <section className="mcp-section">
           <div className="mcp-label">Claude Code</div>
-          {this.renderMcpCode(command, "命令已复制")}
+          {this.renderMcpCode(command, this.t("mcpCommandCopied"))}
         </section>
         <section className="mcp-section">
-          <div className="mcp-label">JSON 配置（.mcp.json）</div>
-          {this.renderMcpCode(config, "配置已复制")}
+          <div className="mcp-label">{this.t("mcpConfig")}</div>
+          {this.renderMcpCode(config, this.t("mcpConfigCopied"))}
         </section>
-        <p className="mcp-note">
-          其它支持 Streamable HTTP 的客户端填入服务地址即可。参数有误时会返回具体的出错信息，模型可据此调整后重试。
-        </p>
+        <p className="mcp-note">{this.t("mcpNote")}</p>
       </Modal>
     );
   }
@@ -4220,13 +4285,13 @@ class App extends Component<any, AppState> {
       (format === "svg" && Boolean(svg)) ||
       (format !== "svg" && Boolean(imageData));
     if (!hasPreview) {
-      message.warning("暂无可复制的图表");
+      message.warning(this.t("nothingToCopy"));
       return;
     }
     try {
       if (format === "svg") {
         await navigator.clipboard.writeText(svg);
-        message.success("SVG 源码已复制");
+        message.success(this.t("svgCopied"));
         return;
       }
       const res = await fetch(imageData);
@@ -4237,12 +4302,12 @@ class App extends Component<any, AppState> {
         await navigator.clipboard.write([
           new ClipboardItem({ [type]: blob }),
         ]);
-        message.success("图片已复制到剪贴板");
+        message.success(this.t("imageCopied"));
       } else {
-        message.info("当前浏览器不支持复制图片，请使用下载");
+        message.info(this.t("copyImageUnsupported"));
       }
     } catch (err: any) {
-      message.error(err?.message || "复制失败", 8);
+      message.error(err?.message || this.t("copyFailed"), 8);
     }
   }
 
@@ -4251,7 +4316,7 @@ class App extends Component<any, AppState> {
     const name = `${currentChartType || "chart"}.${format === "jpeg" ? "jpg" : format}`;
     if (format === "svg") {
       if (!svg) {
-        message.warning("暂无 SVG 可下载");
+        message.warning(this.t("noSvgToDownload"));
         return;
       }
       const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
@@ -4264,7 +4329,7 @@ class App extends Component<any, AppState> {
       return;
     }
     if (!imageData) {
-      message.warning("暂无图片可下载");
+      message.warning(this.t("noImageToDownload"));
       return;
     }
     const a = document.createElement("a");
@@ -4346,7 +4411,7 @@ class App extends Component<any, AppState> {
           msg = raw.message || msg;
         }
       }
-      message.error(msg || "图表生成失败", 10);
+      message.error(msg || this.t("renderFailed"), 10);
     } finally {
       if (requestId === this.chartRequestId) {
         this.setState({ processing: false });
@@ -4362,12 +4427,15 @@ class App extends Component<any, AppState> {
     return chartCategories
       .map((cat) => ({
         ...cat,
-        items: cat.items.filter(
-          (item) =>
-            item.label.toLowerCase().includes(q) ||
-            item.short.toLowerCase().includes(q) ||
-            item.hint.toLowerCase().includes(q) ||
-            item.value.toLowerCase().includes(q),
+        items: cat.items.filter((item) =>
+          [
+            item.label,
+            item.short,
+            item.hint,
+            item.value,
+            chartTextEn[item.value]?.label,
+            chartTextEn[item.value]?.hint,
+          ].some((text) => text?.toLowerCase().includes(q)),
         ),
       }))
       .filter((cat) => cat.items.length > 0);
@@ -4401,13 +4469,16 @@ class App extends Component<any, AppState> {
       outputBytes,
       previewFit,
       compact,
+      lang,
     } = this.state;
+    const t = this.t;
 
     const dark = isDarkMode();
     const hasPreview =
       (format === "svg" && Boolean(svg)) ||
       (format !== "svg" && Boolean(imageData));
     const current = findChartOption(currentChartType);
+    const currentText = current ? chartText(current, lang) : null;
     const categories = this.filteredCategories();
     const matchCount = this.filteredCount();
     const toolbarH = jsonError && !editorCollapsed ? 72 : 44;
@@ -4435,6 +4506,7 @@ class App extends Component<any, AppState> {
 
     return (
       <ConfigProvider
+        locale={lang === "zh" ? zhCN : enUS}
         theme={{
           algorithm: dark ? darkAlgorithm : defaultAlgorithm,
           token: {
@@ -4452,14 +4524,14 @@ class App extends Component<any, AppState> {
               <div className="brand-copy">
                 <div className="brand-name">CHARTS-RS</div>
                 <div className="brand-tag">
-                  Chart Lab{version ? ` · v${version}` : ""} · JSON → 矢量/位图
+                  Chart Lab{version ? ` · v${version}` : ""} · {t("brandTag")}
                 </div>
               </div>
             </div>
 
             <div className="topbar-actions">
               <div className="field">
-                <span className="field-label">格式</span>
+                <span className="field-label">{t("format")}</span>
                 <Select
                   size="middle"
                   style={{ width: 96 }}
@@ -4475,14 +4547,14 @@ class App extends Component<any, AppState> {
                 />
               </div>
               <div className="field">
-                <span className="field-label">主题</span>
+                <span className="field-label">{t("theme")}</span>
                 <Select
                   size="middle"
                   style={{ width: 118 }}
                   options={themeOptions}
                   value={this.state.theme}
                   popupMatchSelectWidth={false}
-                  placeholder="主题"
+                  placeholder={t("theme")}
                   onChange={(nextTheme) => {
                     this.setState({ theme: nextTheme }, () => {
                       this.persistPrefs({ theme: nextTheme });
@@ -4492,7 +4564,7 @@ class App extends Component<any, AppState> {
                 />
               </div>
               <div className="field">
-                <span className="field-label">字体</span>
+                <span className="field-label">{t("font")}</span>
                 <Select
                   size="middle"
                   style={{ width: 132 }}
@@ -4503,7 +4575,7 @@ class App extends Component<any, AppState> {
                       : [{ label: "Roboto", value: "Roboto" }]
                   }
                   popupMatchSelectWidth={false}
-                  placeholder="字体"
+                  placeholder={t("font")}
                   onChange={(fontFamily) => {
                     this.setState({ fontFamily }, () => {
                       this.persistPrefs({ fontFamily });
@@ -4515,7 +4587,7 @@ class App extends Component<any, AppState> {
 
               <div className="action-divider" />
 
-              <Tooltip title={`${runShortcut} 运行渲染`}>
+              <Tooltip title={`${t("runTooltip")} (${runShortcut})`}>
                 <Button
                   type="primary"
                   loading={processing}
@@ -4523,19 +4595,31 @@ class App extends Component<any, AppState> {
                     this.generateChart({ silentJsonError: false })
                   }
                 >
-                  运行
+                  {t("run")}
                   <span className="btn-kbd">{runShortcut}</span>
                 </Button>
               </Tooltip>
-              <Tooltip title="复制可分享的预览 URL">
-                <Button onClick={() => this.generateAndCopy()}>复制链接</Button>
+              <Tooltip title={t("copyLinkTooltip")}>
+                <Button onClick={() => this.generateAndCopy()}>
+                  {t("copyLink")}
+                </Button>
               </Tooltip>
-              <Tooltip title="查看 MCP 接入说明">
+              <Tooltip title={t("mcpTooltip")}>
                 <Button onClick={() => this.setState({ mcpOpen: true })}>
                   MCP
                 </Button>
               </Tooltip>
-              {getGithubIcon()}
+              <Tooltip title={t("switchLangTooltip")}>
+                <Button
+                  type="text"
+                  className="lang-switch"
+                  lang={lang === "zh" ? "en" : "zh-CN"}
+                  onClick={() => this.setLang(lang === "zh" ? "en" : "zh")}
+                >
+                  {t("switchLang")}
+                </Button>
+              </Tooltip>
+              {getGithubIcon(lang)}
             </div>
           </header>
 
@@ -4545,14 +4629,18 @@ class App extends Component<any, AppState> {
             <aside className="gallery">
               <div className="gallery-head">
                 <div className="gallery-title-row">
-                  <div className="gallery-title">图表图库</div>
+                  <div className="gallery-title">{t("gallery")}</div>
                   <div className="gallery-count">
                     {galleryQuery
                       ? `${matchCount}/${CHART_COUNT}`
                       : `${CHART_COUNT}`}
                   </div>
                   <Tooltip
-                    title={galleryExpanded ? "返回编辑 (Esc)" : "全屏浏览全部图表"}
+                    title={t(
+                      galleryExpanded
+                        ? "galleryCollapseTooltip"
+                        : "galleryExpandTooltip",
+                    )}
                   >
                     <Button
                       size="small"
@@ -4563,14 +4651,14 @@ class App extends Component<any, AppState> {
                         this.setState({ galleryExpanded: !galleryExpanded })
                       }
                     >
-                      {galleryExpanded ? "收起" : "展开"}
+                      {t(galleryExpanded ? "galleryCollapse" : "galleryExpand")}
                     </Button>
                   </Tooltip>
                 </div>
                 <Input.Search
                   className="gallery-search"
                   allowClear
-                  placeholder="搜索类型、用途…"
+                  placeholder={t("searchPlaceholder")}
                   value={galleryQuery}
                   onChange={(e) =>
                     this.setState({ galleryQuery: e.target.value })
@@ -4579,12 +4667,12 @@ class App extends Component<any, AppState> {
               </div>
               <div className="gallery-scroll" ref={this.galleryScrollRef}>
                 {categories.length === 0 && (
-                  <div className="gallery-empty">无匹配结果，试试其它关键词</div>
+                  <div className="gallery-empty">{t("galleryEmpty")}</div>
                 )}
                 {categories.map((cat) => (
                   <div className="cat-block" key={cat.key}>
                     <div className="cat-title">
-                      {cat.title}
+                      {t(cat.title)}
                       <span className="cat-count">{cat.items.length}</span>
                     </div>
                     <div
@@ -4592,13 +4680,14 @@ class App extends Component<any, AppState> {
                     >
                       {cat.items.map((item) => {
                         const active = item.value === currentChartType;
+                        const text = chartText(item, lang);
                         return (
                           <button
                             type="button"
                             key={item.value}
                             className={`chart-item${active ? " active" : ""}`}
                             aria-current={active ? "true" : undefined}
-                            title={item.hint}
+                            title={text.hint}
                             onClick={() => {
                               this.setState({
                                 currentChartType: item.value,
@@ -4612,9 +4701,9 @@ class App extends Component<any, AppState> {
                               theme={this.state.theme}
                               glyph={item.glyph}
                             />
-                            <span className="chart-name">{item.label}</span>
+                            <span className="chart-name">{text.label}</span>
                             {galleryExpanded && (
-                              <span className="chart-hint">{item.hint}</span>
+                              <span className="chart-hint">{text.hint}</span>
                             )}
                           </button>
                         );
@@ -4635,41 +4724,43 @@ class App extends Component<any, AppState> {
                           <span className="preview-glyph">
                             <ChartGlyph kind={current.glyph} />
                           </span>
-                          {current.label}
+                          {currentText?.label}
                         </>
                       ) : (
-                        "图表预览"
+                        t("preview")
                       )}
                     </span>
-                    {current?.hint && (
-                      <span className="preview-sub">{current.hint}</span>
+                    {currentText?.hint && (
+                      <span className="preview-sub">{currentText.hint}</span>
                     )}
                   </div>
                   <div className="preview-stats">
                     <span className="stat-chip">{formatLabel}</span>
                     <span className="stat-chip">{sizeLabel}</span>
                     {renderMs != null && !processing && (
-                      <span className="stat-chip" title="最近一次渲染耗时">
+                      <span className="stat-chip" title={t("renderTimeTitle")}>
                         {renderMs}ms
                       </span>
                     )}
                     {outputBytes != null && !processing && (
-                      <span className="stat-chip" title="响应体大小">
+                      <span className="stat-chip" title={t("outputSizeTitle")}>
                         {formatBytes(outputBytes)}
                       </span>
                     )}
                     {processing ? (
-                      <span className="stat-chip busy">渲染中</span>
+                      <span className="stat-chip busy">{t("rendering")}</span>
                     ) : hasPreview ? (
-                      <span className="stat-chip live">就绪</span>
+                      <span className="stat-chip live">{t("ready")}</span>
                     ) : null}
                     {jsonError ? (
                       <span className="stat-chip danger" title={jsonError}>
-                        JSON 错误
+                        {t("jsonError")}
                       </span>
                     ) : null}
                     <div className="preview-actions">
-                      <Tooltip title={previewFit ? "实际尺寸 100%" : "适应窗口"}>
+                      <Tooltip
+                        title={t(previewFit ? "actualSizeTooltip" : "fitTooltip")}
+                      >
                         <Button
                           size="small"
                           type="text"
@@ -4681,12 +4772,14 @@ class App extends Component<any, AppState> {
                             this.persistPrefs({ previewFit: next });
                           }}
                         >
-                          {previewFit ? "适应" : "1:1"}
+                          {previewFit ? t("fit") : "1:1"}
                         </Button>
                       </Tooltip>
                       <Tooltip
                         title={
-                          format === "svg" ? "复制 SVG 源码" : "复制图片"
+                          format === "svg"
+                            ? t("copySvgTooltip")
+                            : t("copyImageTooltip")
                         }
                       >
                         <Button
@@ -4696,10 +4789,10 @@ class App extends Component<any, AppState> {
                           disabled={!hasPreview}
                           onClick={() => this.copyChartOutput()}
                         >
-                          复制
+                          {t("copy")}
                         </Button>
                       </Tooltip>
-                      <Tooltip title="下载当前图表">
+                      <Tooltip title={t("downloadTooltip")}>
                         <Button
                           size="small"
                           type="text"
@@ -4707,7 +4800,7 @@ class App extends Component<any, AppState> {
                           disabled={!hasPreview}
                           onClick={() => this.downloadChart()}
                         >
-                          下载
+                          {t("download")}
                         </Button>
                       </Tooltip>
                     </div>
@@ -4719,7 +4812,7 @@ class App extends Component<any, AppState> {
                 >
                   {processing && (
                     <div className="preview-loading">
-                      <Spin description="生成中…" size="large">
+                      <Spin description={t("generating")} size="large">
                         <div style={{ width: 120, height: 72 }} />
                       </Spin>
                     </div>
@@ -4730,11 +4823,22 @@ class App extends Component<any, AppState> {
                       <div className="empty-orb" aria-hidden="true">
                         <ChartGlyph kind="multi" />
                       </div>
-                      <div className="empty-title">选择一个示例开始</div>
+                      <div className="empty-title">{t("emptyTitle")}</div>
                       <div className="empty-desc">
-                        从左侧图库挑选图表类型，或直接编辑下方 JSON。修改后约
-                        0.5s 自动渲染，也可按{" "}
-                        <kbd className="kbd">{runShortcut}</kbd> 手动运行。
+                        {lang === "zh" ? (
+                          <>
+                            从图库挑选图表类型，或直接编辑下方 JSON。修改后约
+                            0.5s 自动渲染，也可按{" "}
+                            <kbd className="kbd">{runShortcut}</kbd> 手动运行。
+                          </>
+                        ) : (
+                          <>
+                            Pick a chart from the gallery, or edit the JSON
+                            below. It renders about 0.5s after a change, or
+                            press <kbd className="kbd">{runShortcut}</kbd> to
+                            run it yourself.
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -4755,7 +4859,7 @@ class App extends Component<any, AppState> {
                       ) : (
                         <img
                           src={imageData}
-                          alt={`${current?.label || "chart"} preview`}
+                          alt={currentText?.label || t("preview")}
                         />
                       )}
                     </div>
@@ -4768,15 +4872,15 @@ class App extends Component<any, AppState> {
                   <div
                     className="resize-handle"
                     onMouseDown={this.handleResizeStart}
-                    title="拖拽调整编辑器高度"
+                    title={t("resizeEditor")}
                   />
                 )}
                 <div className="editor-toolbar">
                   <div className="editor-title-row">
-                    <span className="editor-title">JSON 配置</span>
+                    <span className="editor-title">{t("jsonOptions")}</span>
                     {jsonError ? (
                       <span className="stat-chip danger" title={jsonError}>
-                        解析失败
+                        {t("parseError")}
                       </span>
                     ) : (
                       <span className="stat-chip subtle editor-hint">
@@ -4785,20 +4889,20 @@ class App extends Component<any, AppState> {
                     )}
                   </div>
                   <div className="editor-tools">
-                    <Tooltip title="压缩 SVG：去掉空白、合并路径，画面不变，体积更小">
+                    <Tooltip title={t("compactTooltip")}>
                       <Switch
                         size="small"
-                        checkedChildren="压缩"
-                        unCheckedChildren="原始"
+                        checkedChildren={t("compactOn")}
+                        unCheckedChildren={t("compactOff")}
                         checked={compact}
                         onChange={(value) => this.setCompact(value)}
                       />
                     </Tooltip>
-                    <Tooltip title="简化模式只保留常用字段">
+                    <Tooltip title={t("simpleTooltip")}>
                       <Switch
                         size="small"
-                        checkedChildren="简化"
-                        unCheckedChildren="完整"
+                        checkedChildren={t("simpleOn")}
+                        unCheckedChildren={t("simpleOff")}
                         checked={simply}
                         onChange={(value) => {
                           this.setState({ simply: value }, () => {
@@ -4828,7 +4932,7 @@ class App extends Component<any, AppState> {
                         );
                       }}
                     >
-                      {editorCollapsed ? "展开编辑器" : "收起"}
+                      {t(editorCollapsed ? "editorExpand" : "editorCollapse")}
                     </Button>
                   </div>
                 </div>

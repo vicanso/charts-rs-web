@@ -58,6 +58,7 @@ pub fn new_router() -> Router {
         .route("/ping", get(ping))
         .route("/api/charts", get(preview))
         .route("/api/basic-info", get(get_basic_info))
+        .route("/api/fonts/default", get(get_default_font))
         .route("/api/charts/svg", post(chart_svg))
         .route("/api/charts/png", post(chart_png))
         .route("/api/charts/webp", post(chart_webp))
@@ -127,6 +128,23 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
         themes: charts_rs::list_theme_name(),
         version: charts_rs::version().to_string(),
     }))
+}
+
+/// 返回图表默认使用的字体(Roboto)，
+/// 浏览器若未安装该字体，svg中的文本会以其它字体展示，与服务端计算文本宽度所使用的字体不一致，
+/// 因此提供给页面加载
+async fn get_default_font() -> Response {
+    (
+        [
+            (header::CONTENT_TYPE, HeaderValue::from_static("font/ttf")),
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=604800"),
+            ),
+        ],
+        charts_rs::DEFAULT_FONT_DATA,
+    )
+        .into_response()
 }
 
 #[derive(Debug, Clone, Copy)]
