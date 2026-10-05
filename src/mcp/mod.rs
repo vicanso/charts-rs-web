@@ -16,6 +16,21 @@ use crate::controller::{FormatType, render_chart};
 // charts-rs的JSON参数文档（docs/json.md），升级charts-rs后执行`make sync-chart-docs`同步
 static CHART_OPTIONS_DOC: &str = include_str!("chart_options.md");
 
+// 气泡图、半环饼图等变体是基础类型加参数实现的，在`chart_type`的枚举中看不到，
+// 因此在工具描述中给出变体与基础类型的对应关系，其中的参数名需与文档保持一致（有测试校验）
+const CHART_OPTIONS_DESCRIPTION: &str = "Describe the JSON options of a chart type: every accepted key with its type and default, plus an example. Call it before render_chart. \
+Many charts are options of a base type rather than a type of their own: \
+bubble chart and regression line: scatter (bubble, regression); \
+doughnut, half doughnut and nested pies: pie (inner_radius, end_angle, ring); \
+area, step line, confidence band and bump (ranking) chart: line (series_fill, step, band, axis_inverse); \
+stacked and 100% stacked bars, bars with a line, error bars: bar (stack, stack_percent, category, error_bar); \
+OHLC: candlestick (candlestick_style); \
+color classes and punch card: heatmap (thresholds, symbol); \
+segmented dial and ring progress: gauge (thresholds, multi_ring); \
+radial tree: tree (layout); \
+vertical sankey: sankey (orient); \
+choropleth map: map, which takes the regions as GeoJSON in geo_json.";
+
 // 标题与图例默认均为顶部居中，同时使用时会重叠，因此提示模型调整
 const LAYOUT_TIPS: &str = "\n## Tips\n\n- The title and the legend are both centered at the top by default, so they overlap when a chart has a `title_text` and a legend. Set `legend_align` to `\"right\"` or `\"left\"`, or `legend_position` to `\"bottom\"`.\n";
 
@@ -49,6 +64,8 @@ enum ChartType {
     Histogram,
     PolarBar,
     Chord,
+    Gantt,
+    Map,
     MultiChart,
 }
 
@@ -80,6 +97,8 @@ impl ChartType {
             ChartType::Histogram => ("histogram", "Histogram"),
             ChartType::PolarBar => ("polar_bar", "Polar bar"),
             ChartType::Chord => ("chord", "Chord"),
+            ChartType::Gantt => ("gantt", "Gantt"),
+            ChartType::Map => ("map", "Map"),
             ChartType::MultiChart => ("multi_chart", "Multi chart"),
         }
     }
@@ -190,7 +209,7 @@ pub struct ChartServer;
 #[tool_router]
 impl ChartServer {
     #[tool(
-        description = "Describe the JSON options of a chart type: every accepted key with its type and default, plus an example. Call it before render_chart.",
+        description = CHART_OPTIONS_DESCRIPTION,
         annotations(
             title = "Get chart options",
             read_only_hint = true,
@@ -252,7 +271,7 @@ impl ChartServer {
 
 #[tool_handler(
     name = "charts-rs-web",
-    instructions = "Renders charts (bar, line, pie, scatter, sankey and more) from JSON options. Call get_chart_options for the chart type first to learn the accepted keys and see an example, then call render_chart. Options are validated: an unknown key or a wrongly typed value is reported as an error naming the key, so fix the options and call again."
+    instructions = "Renders charts (bar, line, pie, scatter, heatmap, sankey, gantt, map and more) from JSON options. Call get_chart_options for the chart type first to learn the accepted keys and see an example, then call render_chart. Options are validated: an unknown key or a wrongly typed value is reported as an error naming the key, so fix the options and call again."
 )]
 impl ServerHandler for ChartServer {}
 
@@ -274,7 +293,7 @@ pub fn new_service() -> StreamableHttpService<ChartServer, NeverSessionManager> 
 mod tests {
     use super::*;
 
-    const CHART_TYPES: [ChartType; 25] = [
+    const CHART_TYPES: [ChartType; 27] = [
         ChartType::Bar,
         ChartType::HorizontalBar,
         ChartType::Line,
@@ -299,6 +318,8 @@ mod tests {
         ChartType::Histogram,
         ChartType::PolarBar,
         ChartType::Chord,
+        ChartType::Gantt,
+        ChartType::Map,
         ChartType::MultiChart,
     ];
 
@@ -363,6 +384,43 @@ mod tests {
         assert!(jpeg.starts_with(b"\xff\xd8\xff"));
         let webp = render_chart(json.as_bytes(), FormatType::Webp).unwrap();
         assert!(webp.starts_with(b"RIFF"));
+    }
+
+    /// 工具描述中提到的参数名均需在文档中存在，避免升级后描述与实际不符
+    #[test]
+    fn variant_hint_keys_are_documented() {
+        let keys = [
+            "bubble",
+            "regression",
+            "inner_radius",
+            "end_angle",
+            "ring",
+            "series_fill",
+            "step",
+            "band",
+            "axis_inverse",
+            "stack",
+            "stack_percent",
+            "category",
+            "error_bar",
+            "candlestick_style",
+            "thresholds",
+            "symbol",
+            "multi_ring",
+            "layout",
+            "orient",
+            "geo_json",
+        ];
+        for key in keys {
+            assert!(
+                CHART_OPTIONS_DESCRIPTION.contains(key),
+                "{key} is not in the description"
+            );
+            assert!(
+                CHART_OPTIONS_DOC.contains(&format!("| `{key}` |")),
+                "{key} is not in the options doc"
+            );
+        }
     }
 
     /// 文档需与当前依赖的charts-rs版本一致，不一致时执行`make sync-chart-docs`

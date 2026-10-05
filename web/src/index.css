@@ -78,6 +78,19 @@ body {
   overflow: hidden;
 }
 
+/* Below the workbench breakpoint the page is a normal scrolling document. */
+@media (max-width: 960px) {
+  html,
+  body,
+  #root {
+    height: auto;
+  }
+
+  #root {
+    overflow: visible;
+  }
+}
+
 a {
   color: var(--accent);
   text-decoration: none;

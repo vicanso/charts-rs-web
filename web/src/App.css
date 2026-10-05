@@ -242,7 +242,7 @@
 .main-grid {
   min-height: 0;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 304px minmax(0, 1fr);
   overflow: hidden;
 }
 
@@ -263,8 +263,7 @@
 
 .gallery-title-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
@@ -283,6 +282,11 @@
   font-weight: 600;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  margin-right: auto;
+}
+
+.gallery-toggle.ant-btn {
+  margin: -2px -6px -2px 0;
 }
 
 .gallery-search {
@@ -337,9 +341,9 @@
 }
 
 .chart-list {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .chart-item {
@@ -349,23 +353,20 @@
   color: inherit;
   text-align: left;
   border-radius: 10px;
-  padding: 7px 9px;
+  padding: 5px 5px 7px;
   cursor: pointer;
-  display: grid;
-  grid-template-columns: 36px 1fr;
-  gap: 10px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
   transition:
     background 0.14s ease,
-    border-color 0.14s ease,
-    box-shadow 0.14s ease;
-  width: 100%;
+    border-color 0.14s ease;
   font: inherit;
 }
 
 .chart-item:hover {
   background: var(--hover);
-  border-color: var(--border);
 }
 
 .chart-item:focus-visible {
@@ -374,64 +375,177 @@
 }
 
 .chart-item.active {
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
 }
 
-.chart-badge {
-  width: 36px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* The thumbnail is the example itself, rendered by the server. Until it
+   arrives (or when there is no server) the glyph stands in for it. */
+.chart-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--elevated);
+  box-shadow: 0 0 0 1px var(--border);
+  transition:
+    box-shadow 0.14s ease,
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chart-thumb-glyph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   color: var(--accent-ink);
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--accent) 20%, transparent),
-      transparent 72%
-    ),
-    var(--elevated);
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
 }
 
-.chart-item.active .chart-badge {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--accent) 42%, transparent),
-      transparent 75%
-    ),
-    var(--elevated);
+.chart-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.chart-meta {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.chart-thumb.is-ready img {
+  opacity: 1;
+}
+
+.chart-thumb.is-ready .chart-thumb-glyph {
+  opacity: 0;
+}
+
+.chart-item:hover .chart-thumb {
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    0 8px 18px rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
+}
+
+.chart-item.active .chart-thumb {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .chart-name {
-  font-size: 13px;
+  padding: 0 3px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.chart-item.active .chart-name {
+  color: var(--accent-ink);
+}
+
+/* Featured: the first chart leads at full width. */
+.chart-list.is-featured .chart-item:first-child {
+  grid-column: 1 / -1;
+}
+
+.chart-list.is-featured .chart-item:first-child .chart-name {
+  font-size: 13px;
+}
+
+/* ---------- Expanded gallery ----------
+   The gallery takes the whole workbench: browse every chart at a readable
+   size, pick one, and the stage comes back with it. */
+.main-grid.is-gallery-expanded {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.main-grid.is-gallery-expanded .stage {
+  display: none;
+}
+
+.main-grid.is-gallery-expanded .gallery {
+  border-right: none;
+}
+
+.is-gallery-expanded .gallery-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px;
+}
+
+.is-gallery-expanded .gallery-title-row {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.is-gallery-expanded .gallery-search {
+  order: -1;
+  width: min(320px, 40%);
+}
+
+.is-gallery-expanded .gallery-scroll {
+  padding: 18px 20px 40px;
+}
+
+.is-gallery-expanded .cat-block + .cat-block {
+  margin-top: 26px;
+}
+
+.is-gallery-expanded .cat-title {
+  padding: 0 4px 10px;
+}
+
+.is-gallery-expanded .chart-list {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.is-gallery-expanded .chart-item {
+  padding: 8px 8px 10px;
+  gap: 8px;
+}
+
+.is-gallery-expanded .chart-thumb {
+  border-radius: 8px;
+}
+
+.is-gallery-expanded .chart-name {
+  font-size: 13px;
+}
+
 .chart-hint {
-  font-size: 11px;
+  margin-top: -6px;
+  padding: 0 3px;
+  font-size: 12px;
+  line-height: 1.3;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Featured leads with a card of two columns by two rows. Its thumbnail fills
+   what the rows give it, so the mosaic closes without a gap. */
+.is-gallery-expanded .chart-list.is-featured .chart-item:first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.is-gallery-expanded .chart-list.is-featured .chart-item:first-child .chart-thumb {
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.is-gallery-expanded .chart-list.is-featured .chart-item:first-child .chart-name {
+  font-size: 15px;
 }
 
 /* ---------- Stage ---------- */
@@ -452,7 +566,7 @@
 
 .preview-toolbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
@@ -468,17 +582,9 @@
   min-width: 0;
 }
 
-.preview-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .preview-chart-name {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 650;
   line-height: 1.25;
   display: flex;
@@ -579,8 +685,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px 24px;
+  padding: 24px;
   position: relative;
+  /* the canvas sizes itself against the stage (cqw / cqh) in fit mode */
+  container-type: size;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
   background-color: var(--preview-base);
   background-image:
     linear-gradient(var(--grid-line) 1px, transparent 1px),
@@ -622,7 +732,7 @@
 .preview-viewport.is-fit .preview-canvas svg,
 .preview-viewport.is-fit .preview-canvas img {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 
@@ -653,8 +763,15 @@
     animation: none;
   }
 
-  .chart-item {
+  .chart-item,
+  .chart-thumb,
+  .chart-thumb img,
+  .chart-thumb-glyph {
     transition: none;
+  }
+
+  .chart-item:hover .chart-thumb {
+    transform: none;
   }
 }
 
@@ -868,39 +985,82 @@ kbd.kbd {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
+  /* One column, and the page scrolls: there is no room to hold the gallery,
+     the stage and the editor in a single screen. */
+  .app-shell {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
   .main-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    display: block;
+    overflow: visible;
   }
 
   .gallery {
     border-right: none;
     border-bottom: 1px solid var(--border);
-    max-height: 196px;
   }
 
+  /* the gallery becomes one strip of thumbnails, swiped sideways */
   .gallery-scroll {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-bottom: 12px;
+    padding: 10px 12px 12px;
   }
 
   .cat-block {
-    min-width: 210px;
+    flex: none;
     margin-top: 0 !important;
   }
 
+  .cat-title {
+    padding-left: 5px;
+  }
+
   .chart-list {
-    display: grid;
+    grid-template-columns: none;
     grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
-    gap: 4px;
+    grid-auto-columns: 132px;
+  }
+
+  .chart-list.is-featured .chart-item:first-child {
+    grid-column: auto;
+  }
+
+  /* expanded: the strip unfolds into a grid that scrolls with the page */
+  .is-gallery-expanded .gallery {
+    border-bottom: none;
+  }
+
+  .is-gallery-expanded .gallery-scroll {
+    display: block;
+    overflow: visible;
+    padding: 14px 12px 32px;
+  }
+
+  .is-gallery-expanded .cat-block + .cat-block {
+    margin-top: 22px !important;
+  }
+
+  .is-gallery-expanded .chart-list {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
   }
 
   .stage {
-    grid-template-rows: minmax(200px, 1fr) auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .preview-viewport {
+    flex: none;
+    height: min(72vw, 440px);
   }
 
   .topbar {
@@ -925,10 +1085,27 @@ kbd.kbd {
     justify-content: flex-start;
     max-width: none;
   }
+
+  /* the actions wrap to a row of their own: no divider in front of it */
+  .preview-actions {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+  }
 }
 
 @media (max-width: 640px) {
-  .field-label {
+  /* format / theme / font share a row, the buttons the next one */
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .topbar-actions .ant-select {
+    width: 100% !important;
+  }
+
+  .action-divider {
     display: none;
   }
 
@@ -936,11 +1113,31 @@ kbd.kbd {
     padding: 16px;
   }
 
-  .action-divider {
+  /* leave the row to the title and the two switches */
+  .editor-hint {
     display: none;
   }
 
-  .main-grid {
-    grid-template-columns: 1fr;
+  .is-gallery-expanded .gallery-head {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 12px;
+  }
+
+  .is-gallery-expanded .gallery-search {
+    order: 1;
+    width: 100%;
+  }
+
+  /* two columns: the lead card takes a row of its own instead of 2 x 2,
+     whose rows would have nothing else to size them */
+  .is-gallery-expanded .chart-list.is-featured .chart-item:first-child {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .is-gallery-expanded .chart-list.is-featured .chart-item:first-child .chart-thumb {
+    flex: none;
+    aspect-ratio: 3 / 2;
   }
 }

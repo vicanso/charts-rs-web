@@ -75,30 +75,32 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 
 | type | 图表 |
 | --- | --- |
-| `bar` | 柱状图（默认），可堆叠或与折线混合 |
+| `bar` | 柱状图（默认），可堆叠（`stack_percent`为百分比堆叠）、与折线混合或添加误差线（`error_bar`） |
 | `horizontal_bar` | 水平柱状图 |
-| `line` | 折线图，支持平滑、填充、区间带（`band`）以及数值/时间X轴（`x_axis_values`） |
-| `pie` | 饼图、南丁格尔玫瑰图 |
+| `line` | 折线图，支持平滑、阶梯线（`step`）、填充、区间带（`band`）以及数值/时间X轴（`x_axis_values`） |
+| `pie` | 饼图、南丁格尔玫瑰图，支持半环（`end_angle`）与嵌套多环（`ring`） |
 | `radar` | 雷达图 |
-| `scatter` | 散点图，`bubble`为`true`时为气泡图 |
-| `candlestick` | 蜡烛图 |
+| `scatter` | 散点图，`bubble`为`true`时为气泡图，`regression`可添加回归线 |
+| `candlestick` | 蜡烛图，`candlestick_style`为`ohlc`时为OHLC图 |
 | `table` | 表格 |
-| `heatmap` | 热力图 |
+| `heatmap` | 热力图，支持多色与分段配色，`symbol`为`circle`时为打卡图 |
 | `funnel` | 漏斗图 |
 | `waterfall` | 瀑布图 |
 | `calendar` | 日历图 |
-| `gauge` | 仪表盘（兼容旧拼写`guage`） |
+| `gauge` | 仪表盘，支持分段着色（`thresholds`）与多环进度（`multi_ring`），兼容旧拼写`guage` |
 | `treemap` | 矩形树图 |
 | `box_plot` | 箱线图 |
 | `sunburst` | 旭日图 |
-| `sankey` | 桑基图 |
-| `tree` | 树图 |
+| `sankey` | 桑基图，`orient`为`vertical`时为纵向 |
+| `tree` | 树图，支持四个方向以及径向布局（`layout`） |
 | `graph` | 关系图 |
 | `parallel` | 平行坐标图 |
 | `theme_river` | 主题河流图 |
 | `histogram` | 直方图 |
 | `polar_bar` | 极坐标柱状图 |
 | `chord` | 和弦图 |
+| `gantt` | 甘特图 |
+| `map` | 地图（区域着色），地图数据以GeoJSON的形式通过`geo_json`传入 |
 | `multi_chart` | 多图表拼合，见[多图的相关属性](#多图的相关属性) |
 
 ### 网格属性

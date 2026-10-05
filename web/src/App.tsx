@@ -4,6 +4,9 @@ import {
   createRef,
   RefObject,
   MouseEvent as ReactMouseEvent,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
 import {
   ConfigProvider,
@@ -104,6 +107,10 @@ type GlyphKind =
   | "graph"
   | "parallel"
   | "river"
+  | "step"
+  | "halfpie"
+  | "gantt"
+  | "map"
   | "table"
   | "multi";
 
@@ -328,6 +335,32 @@ function ChartGlyph({ kind }: { kind: GlyphKind }) {
           <path d="M2.5 9h13" strokeOpacity="0.55" />
         </svg>
       );
+    case "step":
+      return (
+        <svg {...common}>
+          <path d="M2.5 13H6V9h3.5V6h3V4h3" />
+        </svg>
+      );
+    case "halfpie":
+      return (
+        <svg {...common}>
+          <path d="M3 12a6 6 0 0 1 12 0h-3a3 3 0 0 0-6 0Z" />
+          <path d="M9 6v3" strokeOpacity="0.55" />
+        </svg>
+      );
+    case "gantt":
+      return (
+        <svg {...common}>
+          <path d="M3 4h6v2.5H3zM6 8h7v2.5H6zM10 12h5v2.5h-5z" />
+        </svg>
+      );
+    case "map":
+      return (
+        <svg {...common}>
+          <path d="M3 5l4-1.5 4 1.5 4-1.5v10l-4 1.5-4-1.5-4 1.5Z" />
+          <path d="M7 3.5v10M11 5v10" strokeOpacity="0.55" />
+        </svg>
+      );
     case "table":
       return (
         <svg {...common}>
@@ -356,6 +389,8 @@ const chartCategories: ChartCategory[] = [
     items: [
       { value: "barBasic", label: "常规柱状图", short: "Bar", hint: "基础分组柱状", glyph: "bar" },
       { value: "barStacked", label: "堆叠柱状图", short: "Stack", hint: "总量对比", glyph: "stack" },
+      { value: "barStackPercent", label: "百分比堆叠柱状图", short: "Pct", hint: "占比构成", glyph: "stack" },
+      { value: "barErrorBar", label: "误差线柱状图", short: "Err", hint: "误差范围", glyph: "bar" },
       { value: "horizontalBar", label: "水平柱状图", short: "HBar", hint: "排行类数据", glyph: "hbar" },
       { value: "barLineMixin", label: "柱线混合图", short: "Mix", hint: "双轴混合", glyph: "mix" },
       { value: "waterfallChart", label: "瀑布图", short: "Fall", hint: "增减拆解", glyph: "waterfall" },
@@ -373,6 +408,8 @@ const chartCategories: ChartCategory[] = [
       { value: "lineNullData", label: "缺失数据曲线", short: "Null", hint: "断点处理", glyph: "line" },
       { value: "lineBand", label: "区间带曲线", short: "Band", hint: "置信区间", glyph: "area" },
       { value: "lineTimeAxis", label: "时间轴曲线", short: "Time", hint: "非等距采样", glyph: "line" },
+      { value: "lineStep", label: "阶梯线图", short: "Step", hint: "阶跃变化", glyph: "step" },
+      { value: "lineBump", label: "排名图", short: "Bump", hint: "名次变化", glyph: "line" },
       { value: "themeRiverChart", label: "主题河流图", short: "River", hint: "流量演变", glyph: "river" },
     ],
   },
@@ -381,8 +418,12 @@ const chartCategories: ChartCategory[] = [
     title: "环形 / 径向",
     items: [
       { value: "pieBasic", label: "南丁格尔玫瑰", short: "Pie", hint: "占比分布", glyph: "pie" },
+      { value: "pieHalf", label: "半环饼图", short: "Half", hint: "半圆占比", glyph: "halfpie" },
+      { value: "pieNested", label: "嵌套饼图", short: "Nested", hint: "两级占比", glyph: "sunburst" },
       { value: "radarBasic", label: "雷达图", short: "Radar", hint: "多维对比", glyph: "radar" },
-      { value: "guageChart", label: "仪表盘", short: "Gauge", hint: "单值进度", glyph: "gauge" },
+      { value: "gaugeChart", label: "仪表盘", short: "Gauge", hint: "单值进度", glyph: "gauge" },
+      { value: "gaugeSegments", label: "分段仪表盘", short: "Stage", hint: "区间着色", glyph: "gauge" },
+      { value: "gaugeRings", label: "多环进度", short: "Rings", hint: "多指标进度", glyph: "polar" },
       { value: "sunburstChart", label: "旭日图", short: "Sun", hint: "层级占比", glyph: "sunburst" },
       { value: "polarBarChart", label: "极坐标柱状图", short: "Polar", hint: "周期对比", glyph: "polar" },
       { value: "polarBarRadial", label: "径向柱状图", short: "Ring", hint: "目标进度", glyph: "polar" },
@@ -393,13 +434,18 @@ const chartCategories: ChartCategory[] = [
     title: "分布 / 矩阵",
     items: [
       { value: "scatterBasic", label: "散点图", short: "Dot", hint: "相关分布", glyph: "scatter" },
+      { value: "scatterRegression", label: "回归散点图", short: "Fit", hint: "趋势拟合", glyph: "scatter" },
       { value: "bubbleChart", label: "气泡图", short: "Bubble", hint: "三维对比", glyph: "bubble" },
       { value: "heatmapBasic", label: "热力图", short: "Heat", hint: "密度矩阵", glyph: "heat" },
+      { value: "heatmapScale", label: "分段热力图", short: "Scale", hint: "分级配色", glyph: "heat" },
+      { value: "heatmapPunchCard", label: "打卡图", short: "Punch", hint: "时段活跃", glyph: "bubble" },
       { value: "calendarChart", label: "日历图", short: "Cal", hint: "日期贡献", glyph: "calendar" },
       { value: "boxPlotChart", label: "箱线图", short: "Box", hint: "统计分布", glyph: "box" },
       { value: "histogramChart", label: "直方图", short: "Hist", hint: "频数分布", glyph: "histogram" },
       { value: "parallelChart", label: "平行坐标图", short: "Para", hint: "多维记录", glyph: "parallel" },
       { value: "candlestick", label: "蜡烛图", short: "K", hint: "行情走势", glyph: "candle" },
+      { value: "candlestickOhlc", label: "OHLC 图", short: "OHLC", hint: "美国线", glyph: "candle" },
+      { value: "mapChart", label: "地图", short: "Map", hint: "区域分布", glyph: "map" },
     ],
   },
   {
@@ -409,9 +455,12 @@ const chartCategories: ChartCategory[] = [
       { value: "funnelChart", label: "漏斗图", short: "Funnel", hint: "转化路径", glyph: "funnel" },
       { value: "treemapChart", label: "矩形树图", short: "TreeM", hint: "体量占比", glyph: "treemap" },
       { value: "sankeyChart", label: "桑基图", short: "Sankey", hint: "流量迁移", glyph: "sankey" },
+      { value: "sankeyVertical", label: "纵向桑基图", short: "SankeyV", hint: "自上而下", glyph: "sankey" },
       { value: "treeChart", label: "树图", short: "Tree", hint: "层级结构", glyph: "tree" },
+      { value: "treeRadial", label: "径向树图", short: "Radial", hint: "放射层级", glyph: "tree" },
       { value: "chordChart", label: "和弦图", short: "Chord", hint: "相互流向", glyph: "chord" },
       { value: "graphChart", label: "关系图", short: "Graph", hint: "节点网络", glyph: "graph" },
+      { value: "ganttChart", label: "甘特图", short: "Gantt", hint: "项目排期", glyph: "gantt" },
     ],
   },
   {
@@ -430,6 +479,26 @@ const CHART_COUNT = chartOptions.length;
 function findChartOption(value: string): ChartOption | undefined {
   return chartOptions.find((item) => item.value === value);
 }
+
+// The charts a first visit opens on: the first one is selected by default and
+// leads the gallery, the rest follow it ahead of the regular categories.
+const FEATURED_CHARTS = [
+  "chordChart",
+  "sankeyChart",
+  "mapChart",
+  "sunburstChart",
+  "treeRadial",
+  "ganttChart",
+  "pieNested",
+];
+
+const featuredCategory: ChartCategory = {
+  key: "featured",
+  title: "精选",
+  items: FEATURED_CHARTS.map(findChartOption).filter(
+    (item): item is ChartOption => Boolean(item),
+  ),
+};
 
 const PREFS_KEY = "charts-rs-lab-prefs-v1";
 
@@ -544,6 +613,385 @@ const defaultOption = {
     bottom: 0,
   },
 };
+// Fictional regions for the map example, from asset/map_chart of charts-rs.
+const mapGeoJson = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      properties: {
+        name: "Alder",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [100.25, 27.37],
+            [101.41, 27.18],
+            [102.6, 27.25],
+            [103.78, 27.32],
+            [104.95, 27.08],
+            [105.14, 28.26],
+            [104.54, 29.34],
+            [104.25, 30.46],
+            [104.38, 31.64],
+            [103.33, 31.54],
+            [102.52, 32.5],
+            [101.51, 32.59],
+            [100.47, 32.54],
+            [100.04, 31.26],
+            [100.13, 29.96],
+            [100.53, 28.65],
+            [100.25, 27.37],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Birch",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [104.95, 27.08],
+            [105.76, 26.94],
+            [106.49, 27.49],
+            [107.27, 27.72],
+            [108.09, 27.41],
+            [108.01, 28.42],
+            [108.49, 29.39],
+            [108.39, 30.4],
+            [108.28, 31.4],
+            [107.33, 31.8],
+            [106.34, 31.71],
+            [105.34, 31.31],
+            [104.38, 31.64],
+            [104.25, 30.46],
+            [104.54, 29.34],
+            [105.14, 28.26],
+            [104.95, 27.08],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Cedar",
+      },
+      geometry: {
+        type: "MultiPolygon",
+        coordinates: [
+          [
+            [
+              [108.09, 27.41],
+              [109.09, 28.13],
+              [110.46, 27.83],
+              [111.53, 28.37],
+              [112.54, 29.05],
+              [112.59, 29.69],
+              [112.03, 30.22],
+              [112.66, 30.96],
+              [112.12, 31.49],
+              [111.15, 31.91],
+              [110.19, 31.74],
+              [109.24, 31.57],
+              [108.28, 31.4],
+              [108.39, 30.4],
+              [108.49, 29.39],
+              [108.01, 28.42],
+              [108.09, 27.41],
+            ],
+          ],
+          [
+            [
+              [114.75, 30.0],
+              [114.56, 30.37],
+              [114.27, 30.66],
+              [113.75, 30.72],
+              [113.28, 30.48],
+              [113.17, 30.0],
+              [113.5, 29.53],
+              [113.7, 29.18],
+              [114.2, 29.2],
+              [114.79, 29.46],
+              [114.75, 30.0],
+            ],
+          ],
+          [
+            [
+              [115.71, 28.9],
+              [115.64, 29.21],
+              [115.38, 29.29],
+              [115.08, 29.33],
+              [114.72, 29.24],
+              [114.81, 28.9],
+              [114.85, 28.61],
+              [115.06, 28.39],
+              [115.33, 28.37],
+              [115.59, 28.55],
+              [115.71, 28.9],
+            ],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Dune",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [99.52, 23.59],
+            [100.56, 24.08],
+            [101.61, 24.56],
+            [102.92, 24.17],
+            [103.89, 24.92],
+            [104.27, 25.4],
+            [104.41, 26.0],
+            [104.55, 26.6],
+            [104.95, 27.08],
+            [103.78, 27.32],
+            [102.6, 27.25],
+            [101.41, 27.18],
+            [100.25, 27.37],
+            [99.82, 26.47],
+            [99.78, 25.5],
+            [99.74, 24.53],
+            [99.52, 23.59],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Elm",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [103.89, 24.92],
+            [104.83, 24.59],
+            [105.78, 24.4],
+            [106.81, 25.01],
+            [107.74, 24.55],
+            [107.93, 25.25],
+            [107.88, 25.99],
+            [107.82, 26.72],
+            [108.09, 27.41],
+            [107.27, 27.72],
+            [106.49, 27.49],
+            [105.76, 26.94],
+            [104.95, 27.08],
+            [104.55, 26.6],
+            [104.41, 26.0],
+            [104.27, 25.4],
+            [103.89, 24.92],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Fir",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [107.74, 24.55],
+            [109.08, 24.8],
+            [110.27, 23.89],
+            [111.58, 23.87],
+            [112.89, 23.91],
+            [112.44, 25.17],
+            [113.1, 26.51],
+            [112.87, 27.78],
+            [112.54, 29.05],
+            [111.53, 28.37],
+            [110.46, 27.83],
+            [109.09, 28.13],
+            [108.09, 27.41],
+            [107.82, 26.72],
+            [107.88, 25.99],
+            [107.93, 25.25],
+            [107.74, 24.55],
+          ],
+          [
+            [111.03, 26.2],
+            [110.83, 26.56],
+            [110.33, 26.7],
+            [109.84, 26.56],
+            [109.63, 26.2],
+            [109.84, 25.85],
+            [110.33, 25.7],
+            [110.83, 25.85],
+            [111.03, 26.2],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Glen",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [112.89, 23.91],
+            [113.57, 24.36],
+            [114.28, 23.96],
+            [114.96, 24.13],
+            [115.66, 24.04],
+            [115.65, 25.02],
+            [115.69, 25.99],
+            [116.61, 26.79],
+            [116.38, 27.81],
+            [115.41, 28.08],
+            [114.4, 28.25],
+            [113.58, 28.98],
+            [112.54, 29.05],
+            [112.87, 27.78],
+            [113.1, 26.51],
+            [112.44, 25.17],
+            [112.89, 23.91],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Heath",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [100.7, 19.82],
+            [101.63, 19.54],
+            [102.47, 19.81],
+            [103.31, 20.09],
+            [104.15, 20.36],
+            [103.64, 21.47],
+            [104.01, 22.64],
+            [103.8, 23.77],
+            [103.89, 24.92],
+            [102.92, 24.17],
+            [101.61, 24.56],
+            [100.56, 24.08],
+            [99.52, 23.59],
+            [99.8, 22.64],
+            [100.23, 21.74],
+            [100.11, 20.67],
+            [100.7, 19.82],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Ivy",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [104.15, 20.36],
+            [105.0, 20.62],
+            [105.87, 20.57],
+            [106.73, 20.77],
+            [107.61, 20.58],
+            [107.47, 21.57],
+            [107.94, 22.55],
+            [107.83, 23.55],
+            [107.74, 24.55],
+            [106.81, 25.01],
+            [105.78, 24.4],
+            [104.83, 24.59],
+            [103.89, 24.92],
+            [103.8, 23.77],
+            [104.01, 22.64],
+            [103.64, 21.47],
+            [104.15, 20.36],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Juniper",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [107.61, 20.58],
+            [108.64, 20.75],
+            [109.42, 19.8],
+            [110.4, 19.72],
+            [111.39, 19.72],
+            [111.42, 20.89],
+            [112.2, 21.79],
+            [112.44, 22.89],
+            [112.89, 23.91],
+            [111.58, 23.87],
+            [110.27, 23.89],
+            [109.08, 24.8],
+            [107.74, 24.55],
+            [107.83, 23.55],
+            [107.94, 22.55],
+            [107.47, 21.57],
+            [107.61, 20.58],
+          ],
+        ],
+      },
+    },
+    {
+      type: "Feature",
+      properties: {
+        name: "Kelp",
+      },
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [111.39, 19.72],
+            [112.35, 20.28],
+            [113.41, 19.99],
+            [114.41, 20.27],
+            [115.43, 20.26],
+            [115.15, 21.23],
+            [115.64, 22.14],
+            [115.56, 23.1],
+            [115.66, 24.04],
+            [114.96, 24.13],
+            [114.28, 23.96],
+            [113.57, 24.36],
+            [112.89, 23.91],
+            [112.44, 22.89],
+            [112.2, 21.79],
+            [111.42, 20.89],
+            [111.39, 19.72],
+          ],
+        ],
+      },
+    },
+  ],
+};
 const chartDefaultOptions: Record<string, unknown> = {
   barBasic: Object.assign({}, defaultOption, {
     type: "bar",
@@ -606,6 +1054,117 @@ const chartDefaultOptions: Record<string, unknown> = {
       "legend_align",
       "type",
       "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  }),
+  barStackPercent: Object.assign({}, defaultOption, {
+    type: "bar",
+    title_text: "Bar Percent Stacked Chart",
+    title_align: "left",
+    sub_title_text: "Share of visits",
+    sub_title_align: "left",
+    legend_align: "right",
+    legend_category: "round_rect",
+    stack_percent: true,
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    series_list: [
+      {
+        name: "Direct",
+        stack: "total",
+        label_show: true,
+        data: [100, 302, 301, 334, 390, 330, 320],
+      },
+      {
+        name: "Email",
+        stack: "total",
+        label_show: true,
+        data: [320, 132, 101, 134, 90, 230, 210],
+      },
+      {
+        name: "Ads",
+        stack: "total",
+        label_show: true,
+        data: [220, 182, 191, 234, 290, 330, 310],
+      },
+      {
+        name: "Search",
+        stack: "total",
+        label_show: true,
+        data: [150, 212, 201, 154, 190, 330, 410],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "sub_title_align",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "title_align",
+      "stack_percent",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  }),
+  barErrorBar: Object.assign({}, defaultOption, {
+    type: "bar",
+    title_text: "Bar Error Bar Chart",
+    title_align: "left",
+    sub_title_text: "Yield by plot",
+    sub_title_align: "left",
+    legend_align: "right",
+    legend_category: "round_rect",
+    tooltip_show: true,
+    x_axis_data: ["A", "B", "C", "D", "E"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    series_list: [
+      {
+        name: "Spring",
+        data: [42, 55, 48, 61, 39],
+        error_bar: {
+          lower: [37, 49, 44, 52, 35],
+          upper: [47, 60, 55, 68, 44],
+        },
+      },
+      {
+        name: "Autumn",
+        data: [35, 47, 52, 44, 30],
+        error_bar: {
+          lower: [31, 40, 47, 39, 27],
+          upper: [40, 52, 58, 50, 36],
+        },
+      },
+      {
+        name: "Rainfall",
+        category: "line",
+        data: [20, 26, 31, 24, 18],
+        error_bar: {
+          lower: [16, 22, 25, null, 15],
+          upper: [24, 31, 36, 28, 22],
+        },
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "sub_title_align",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "title_align",
+      "tooltip_show",
       "x_axis_data",
       "series_list",
       "theme",
@@ -998,6 +1557,111 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  lineStep: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Line Step Chart",
+    sub_title_text: "start / middle / end",
+    legend_align: "right",
+    legend_category: "round_rect",
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    margin: {
+      left: 15,
+      top: 15,
+      right: 15,
+      bottom: 15,
+    },
+    series_list: [
+      {
+        name: "Start",
+        step: "start",
+        data: [120, 132, 101, 134, 90, 230, 210],
+      },
+      {
+        name: "Middle",
+        step: "middle",
+        data: [220, 282, 201, 234, 290, 430, 410],
+      },
+      {
+        name: "End",
+        step: "end",
+        data: [450, 432, 401, 454, 590, 530, 510],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "legend_category",
+      "type",
+      "title_text",
+      "x_axis_data",
+      "series_list",
+      "theme",
+    ],
+  }),
+  lineBump: Object.assign({}, defaultOption, {
+    type: "line",
+    title_text: "Bump Chart",
+    title_align: "left",
+    sub_title_text: "Ranking by year",
+    sub_title_align: "left",
+    legend_align: "right",
+    series_smooth: true,
+    x_boundary_gap: false,
+    x_axis_data: ["2019", "2020", "2021", "2022", "2023", "2024"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    margin: {
+      left: 5,
+      top: 5,
+      right: 20,
+      bottom: 5,
+    },
+    y_axis_configs: [
+      {
+        axis_inverse: true,
+        axis_min: 1,
+        axis_max: 5,
+        axis_split_number: 4,
+        axis_title: "Place",
+      },
+    ],
+    series_symbol: {
+      type: "circle",
+      size: 4,
+    },
+    series_list: [
+      { name: "Alpha", data: [1, 2, 2, 1, 1, 3] },
+      { name: "Beta", data: [2, 1, 3, 3, 4, 5] },
+      { name: "Gamma", data: [3, 3, 1, 2, 2, 1] },
+      { name: "Delta", data: [4, 5, 5, 4, 3, 2] },
+      { name: "Epsilon", data: [5, 4, 4, 5, 5, 4] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "sub_title_align",
+      "legend_align",
+      "type",
+      "title_text",
+      "title_align",
+      "series_smooth",
+      "x_boundary_gap",
+      "x_axis_data",
+      "y_axis_configs",
+      "series_symbol",
+      "series_list",
+      "theme",
+    ],
+  }),
   themeRiverChart: {
     type: "theme_river",
     width: 600,
@@ -1190,6 +1854,82 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  pieHalf: {
+    type: "pie",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Half Doughnut",
+    rose_type: false,
+    start_angle: -90,
+    end_angle: 90,
+    radius: 180,
+    inner_radius: 100,
+    border_radius: 4,
+    series_list: [
+      { name: "Search", data: [1048] },
+      { name: "Direct", data: [735] },
+      { name: "Email", data: [580] },
+      { name: "Ads", data: [484] },
+      { name: "Video", data: [300] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "rose_type",
+      "start_angle",
+      "end_angle",
+      "radius",
+      "inner_radius",
+      "border_radius",
+      "series_list",
+      "theme",
+    ],
+  },
+  pieNested: {
+    type: "pie",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Nested Pies",
+    rose_type: false,
+    radius: 150,
+    inner_radius: 0,
+    border_radius: 2,
+    ring_gap: 6,
+    tooltip_show: true,
+    series_list: [
+      { name: "Search", data: [1548], ring: 0 },
+      { name: "Direct", data: [775], ring: 0 },
+      { name: "Marketing", data: [679], ring: 0 },
+      { name: "Baidu", data: [1048], ring: 1 },
+      { name: "Google", data: [251], ring: 1 },
+      { name: "Bing", data: [147], ring: 1 },
+      { name: "Others", data: [102], ring: 1 },
+      { name: "Typed", data: [335], ring: 1 },
+      { name: "Bookmarks", data: [440], ring: 1 },
+      { name: "Email", data: [310], ring: 1 },
+      { name: "Ads", data: [234], ring: 1 },
+      { name: "Video", data: [135], ring: 1 },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "rose_type",
+      "radius",
+      "inner_radius",
+      "ring_gap",
+      "tooltip_show",
+      "series_list",
+      "theme",
+    ],
+  },
   radarBasic: Object.assign({}, defaultOption, {
     type: "radar",
     title_text: "Radar Chart",
@@ -1310,6 +2050,54 @@ const chartDefaultOptions: Record<string, unknown> = {
       "title_text",
       "y_axis_configs",
       "x_axis_config",
+      "series_symbol_sizes",
+      "series_list",
+      "theme",
+    ],
+  }),
+  scatterRegression: Object.assign({}, defaultOption, {
+    type: "scatter",
+    title_text: "Scatter Regression Chart",
+    sub_title_text: "Polynomial fit",
+    legend_align: "right",
+    margin: {
+      left: 5,
+      top: 5,
+      right: 20,
+      bottom: 5,
+    },
+    regression: "polynomial",
+    regression_order: 2,
+    regression_label_show: true,
+    series_symbol_sizes: [5, 5],
+    series_list: [
+      {
+        name: "Trial A",
+        data: [
+          1, 4.8, 2, 6.9, 3, 9.6, 4, 11.2, 5, 14.1, 6, 15.3, 7, 18.8, 8, 20.6,
+          9, 22.1, 10, 25.9,
+        ],
+      },
+      {
+        name: "Trial B",
+        data: [
+          1, 2.1, 2, 2.4, 3, 3.9, 4, 5.2, 5, 7.9, 6, 10.4, 7, 14.8, 8, 18.9, 9,
+          24.6, 10, 30.2,
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "sub_title_text",
+      "legend_align",
+      "type",
+      "title_text",
+      "regression",
+      "regression_order",
+      "regression_label_show",
       "series_symbol_sizes",
       "series_list",
       "theme",
@@ -1521,6 +2309,78 @@ const chartDefaultOptions: Record<string, unknown> = {
     candlestick_down_color: "rgb(0, 218, 60)",
     candlestick_down_border_color: "rgb(0, 143, 40)",
   }),
+  candlestickOhlc: Object.assign({}, defaultOption, {
+    type: "candlestick",
+    title_text: "OHLC Chart",
+    sub_title_text: "open / close / lowest / highest",
+    legend_show: false,
+    candlestick_style: "ohlc",
+    y_axis_configs: [
+      {
+        axis_min: 2150,
+        axis_max: 2270,
+        axis_formatter: "{t}",
+      },
+    ],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    series_list: [
+      {
+        name: "日K",
+        data: [
+          2232.69, 2225.29, 2217.25, 2241.34, 2196.24, 2211.59, 2180.67,
+          2212.59, 2215.47, 2225.77, 2215.47, 2234.73, 2224.93, 2226.13,
+          2212.56, 2233.04, 2236.98, 2219.55, 2217.26, 2242.48, 2218.09,
+          2206.78, 2204.44, 2226.26, 2199.91, 2181.94, 2177.39, 2204.99,
+          2169.63, 2194.85, 2165.78, 2196.43, 2195.03, 2193.8, 2178.47,
+          2197.51, 2181.82, 2197.6, 2175.44, 2206.03, 2201.12, 2244.64, 2200.58,
+          2250.11, 2236.4, 2242.17, 2232.26, 2245.12, 2242.62, 2184.54, 2182.81,
+          2242.62, 2187.35, 2218.32, 2184.11, 2226.12, 2213.19, 2199.31,
+          2191.85, 2224.63, 2203.89, 2177.91, 2173.86, 2210.58,
+        ],
+      },
+    ],
+    x_axis_data: [
+      "2013/4/3",
+      "2013/4/8",
+      "2013/4/9",
+      "2013/4/10",
+      "2013/4/11",
+      "2013/4/12",
+      "2013/4/15",
+      "2013/4/16",
+      "2013/4/17",
+      "2013/4/18",
+      "2013/4/19",
+      "2013/4/22",
+      "2013/4/23",
+      "2013/4/24",
+      "2013/4/25",
+      "2013/4/26",
+    ],
+    candlestick_up_color: "rgb(236, 0, 0)",
+    candlestick_up_border_color: "rgb(138, 0, 0)",
+    candlestick_down_color: "rgb(0, 218, 60)",
+    candlestick_down_border_color: "rgb(0, 143, 40)",
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "sub_title_text",
+      "legend_show",
+      "type",
+      "title_text",
+      "candlestick_style",
+      "y_axis_configs",
+      "series_list",
+      "x_axis_data",
+      "candlestick_up_color",
+      "candlestick_up_border_color",
+      "candlestick_down_color",
+      "candlestick_down_border_color",
+      "theme",
+    ],
+  }),
   tableBasic: Object.assign(
     {
       quality: 80,
@@ -1643,6 +2503,81 @@ const chartDefaultOptions: Record<string, unknown> = {
       "type",
     ],
   }),
+  heatmapScale: {
+    type: "heatmap",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Air Quality by Hour",
+    tooltip_show: true,
+    x_axis_data: ["0h", "3h", "6h", "9h", "12h", "15h", "18h", "21h"],
+    y_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    series: {
+      colors: ["#1a9850", "#a6d96a", "#fee08b", "#f46d43", "#a50026"],
+      thresholds: [50, 100, 150, 200],
+      data: [
+        [0, 32], [1, 28], [2, 45], [3, 88], [4, 120], [5, 135], [6, 162],
+        [7, 96], [8, 41], [9, 35], [10, 52], [11, 104], [12, 148], [13, 171],
+        [14, 205], [15, 143], [16, 55], [17, 47], [18, 66], [19, 125],
+        [20, 182], [21, 214], [22, 236], [23, 158], [24, 38], [25, 30],
+        [26, 49], [27, 92], [28, 110], [29, 128], [30, 151], [31, 87],
+        [32, 22], [33, 18], [34, 27], [35, 61], [36, 74], [37, 83], [38, 98],
+        [39, 54],
+      ],
+    },
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "tooltip_show",
+      "x_axis_data",
+      "y_axis_data",
+      "series",
+      "theme",
+    ],
+  },
+  heatmapPunchCard: {
+    type: "heatmap",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Commits by Hour",
+    tooltip_show: true,
+    x_axis_data: [
+      "0h", "2h", "4h", "6h", "8h", "10h", "12h", "14h", "16h", "18h", "20h",
+      "22h",
+    ],
+    y_axis_data: ["Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"],
+    series: {
+      symbol: "circle",
+      min: 0,
+      min_color: "#9ecae1",
+      max_color: "#08519c",
+      data: [
+        [1, 1], [5, 2], [6, 3], [7, 1], [9, 2], [10, 1], [14, 1], [17, 2],
+        [18, 4], [19, 3], [20, 2], [22, 1], [28, 3], [29, 8], [30, 6], [31, 9],
+        [32, 7], [33, 4], [34, 2], [40, 5], [41, 11], [42, 8], [43, 12],
+        [44, 10], [45, 5], [46, 3], [47, 1], [51, 1], [52, 6], [53, 12],
+        [54, 9], [55, 14], [56, 11], [57, 6], [58, 2], [64, 4], [65, 10],
+        [66, 7], [67, 13], [68, 9], [69, 7], [70, 4], [71, 2], [75, 2], [76, 7],
+        [77, 9], [78, 6], [79, 10], [80, 8], [81, 3], [82, 1],
+      ],
+    },
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "tooltip_show",
+      "x_axis_data",
+      "y_axis_data",
+      "series",
+      "theme",
+    ],
+  },
   calendarChart: {
     type: "calendar",
     title_text: "2024 Contributions",
@@ -1698,13 +2633,79 @@ const chartDefaultOptions: Record<string, unknown> = {
       [0, true]
     ]
   }),
-  guageChart: Object.assign({}, defaultOption, {
+  gaugeChart: Object.assign({}, defaultOption, {
     type: "gauge",
     title_text: "Gauge",
     min: 0,
     max: 200,
     series_list: [{ name: "Speed", data: [120] }]
   }),
+  gaugeSegments: {
+    type: "gauge",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Speed",
+    title_align: "left",
+    legend_show: false,
+    min: 0,
+    max: 200,
+    split_number: 4,
+    thresholds: [80, 140],
+    colors: ["#91cc75", "#fac858", "#ee6666"],
+    value_formatter: "{c} km/h",
+    series_list: [{ name: "Now", data: [156] }],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "title_align",
+      "legend_show",
+      "min",
+      "max",
+      "split_number",
+      "thresholds",
+      "colors",
+      "value_formatter",
+      "series_list",
+      "theme",
+    ],
+  },
+  gaugeRings: {
+    type: "gauge",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Activity",
+    legend_show: false,
+    multi_ring: true,
+    start_angle: 360,
+    sweep_angle: 360,
+    arc_width: 22,
+    value_formatter: "{c}%",
+    series_list: [
+      { name: "Move", data: [82] },
+      { name: "Exercise", data: [64] },
+      { name: "Stand", data: [45] },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "legend_show",
+      "multi_ring",
+      "start_angle",
+      "sweep_angle",
+      "arc_width",
+      "value_formatter",
+      "series_list",
+      "theme",
+    ],
+  },
   treemapChart: Object.assign({}, defaultOption, {
     type: "treemap",
     title_text: "Disk Usage",
@@ -1872,6 +2873,52 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   },
+  sankeyVertical: {
+    type: "sankey",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Energy Flow",
+    orient: "vertical",
+    node_align: "justify",
+    link_gradient: true,
+    tooltip_show: true,
+    nodes: [
+      { name: "Coal" },
+      { name: "Gas" },
+      { name: "Solar" },
+      { name: "Electricity" },
+      { name: "Heat" },
+      { name: "Residential" },
+      { name: "Industrial" },
+      { name: "Commercial" },
+    ],
+    links: [
+      { source: "Coal", target: "Electricity", value: 25 },
+      { source: "Coal", target: "Heat", value: 10 },
+      { source: "Gas", target: "Electricity", value: 15 },
+      { source: "Gas", target: "Heat", value: 20 },
+      { source: "Solar", target: "Electricity", value: 10 },
+      { source: "Electricity", target: "Residential", value: 18 },
+      { source: "Electricity", target: "Industrial", value: 22 },
+      { source: "Electricity", target: "Commercial", value: 10 },
+      { source: "Heat", target: "Residential", value: 12 },
+      { source: "Heat", target: "Industrial", value: 18 },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "orient",
+      "node_align",
+      "link_gradient",
+      "nodes",
+      "links",
+      "theme",
+    ],
+  },
   treeChart: {
     type: "tree",
     width: 600,
@@ -1910,6 +2957,93 @@ const chartDefaultOptions: Record<string, unknown> = {
       "title_text",
       "orient",
       "symbol_size",
+      "series_data",
+      "theme",
+    ],
+  },
+  treeRadial: {
+    type: "tree",
+    width: 700,
+    height: 680,
+    font_family: "Roboto",
+    title_text: "Radial Tree",
+    layout: "radial",
+    edge_shape: "curve",
+    tooltip_show: true,
+    series_data: [
+      {
+        name: "flare",
+        children: [
+          {
+            name: "analytics",
+            children: [
+              {
+                name: "cluster",
+                children: [
+                  { name: "Agglomerative" },
+                  { name: "Community" },
+                  { name: "Hierarchical" },
+                ],
+              },
+              {
+                name: "graph",
+                children: [
+                  { name: "Betweenness" },
+                  { name: "LinkDistance" },
+                  { name: "MaxFlow" },
+                  { name: "ShortestPaths" },
+                ],
+              },
+            ],
+          },
+          {
+            name: "animate",
+            children: [
+              { name: "Easing" },
+              { name: "Parallel" },
+              { name: "Pause" },
+              { name: "Scheduler" },
+              { name: "Sequence" },
+              { name: "Transition" },
+            ],
+          },
+          {
+            name: "data",
+            children: [
+              {
+                name: "converters",
+                children: [
+                  { name: "Converters" },
+                  { name: "GraphML" },
+                  { name: "JSON" },
+                ],
+              },
+              { name: "DataField" },
+              { name: "DataSchema" },
+              { name: "DataSet" },
+            ],
+          },
+          {
+            name: "display",
+            children: [
+              { name: "DirtySprite" },
+              { name: "LineSprite" },
+              { name: "RectSprite" },
+              { name: "TextSprite" },
+            ],
+          },
+        ],
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "layout",
+      "edge_shape",
+      "tooltip_show",
       "series_data",
       "theme",
     ],
@@ -2189,6 +3323,122 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   },
+  ganttChart: {
+    type: "gantt",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Website Relaunch",
+    title_align: "left",
+    legend_align: "right",
+    legend_category: "round_rect",
+    tooltip_show: true,
+    now: "2024-03-19",
+    tasks: [
+      {
+        name: "Research",
+        category: "Plan",
+        start: "2024-03-04",
+        end: "2024-03-08",
+        progress: 1,
+      },
+      {
+        name: "Wireframes",
+        category: "Design",
+        start: "2024-03-07",
+        end: "2024-03-14",
+        progress: 1,
+      },
+      {
+        name: "Visual design",
+        category: "Design",
+        start: "2024-03-12",
+        end: "2024-03-22",
+        progress: 0.7,
+      },
+      { name: "Design sign-off", category: "Design", start: "2024-03-22" },
+      {
+        name: "Frontend",
+        category: "Build",
+        start: "2024-03-18",
+        end: "2024-04-05",
+        progress: 0.1,
+      },
+      {
+        name: "Backend",
+        category: "Build",
+        start: "2024-03-14",
+        end: "2024-04-02",
+        progress: 0.3,
+      },
+      {
+        name: "Testing",
+        category: "Launch",
+        start: "2024-04-01",
+        end: "2024-04-10",
+      },
+      { name: "Go live", category: "Launch", start: "2024-04-11" },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "title_align",
+      "legend_align",
+      "legend_category",
+      "tooltip_show",
+      "now",
+      "tasks",
+      "theme",
+    ],
+  },
+  mapChart: {
+    type: "map",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Population by Region",
+    title_align: "left",
+    sub_title_text: "thousands",
+    sub_title_align: "left",
+    projection: "mercator",
+    label_show: true,
+    tooltip_show: true,
+    colors: ["#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"],
+    thresholds: [100, 250, 400, 550],
+    data: [
+      ["Alder", 412],
+      ["Birch", 268],
+      ["Cedar", 530],
+      ["Dune", 145],
+      ["Elm", 96],
+      ["Fir", 325],
+      ["Glen", 610],
+      ["Heath", 204],
+      ["Ivy", 78],
+      ["Juniper", 356],
+    ],
+    geo_json: mapGeoJson,
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "title_align",
+      "sub_title_text",
+      "sub_title_align",
+      "label_show",
+      "tooltip_show",
+      "colors",
+      "thresholds",
+      "data",
+      "geo_json",
+      "theme",
+    ],
+  },
   multiChart: {
     type: "multi_chart",
     margin: {
@@ -2369,6 +3619,7 @@ interface AppState {
   simply: boolean;
   currentChartType: string;
   galleryQuery: string;
+  galleryExpanded: boolean;
   editorHeight: number;
   editorCollapsed: boolean;
   jsonError: string;
@@ -2380,13 +3631,147 @@ interface AppState {
   mcpOpen: boolean;
 }
 
+// Gallery thumbnails are the examples themselves, rendered by the server in
+// the current theme. A few at a time, so opening the page does not queue fifty
+// renders in front of the chart the visitor is looking at.
+const THUMB_CONCURRENCY = 4;
+const thumbCache = new Map<string, Promise<string>>();
+const thumbQueue: Array<() => void> = [];
+let thumbRunning = 0;
+
+function runThumbTask<T>(task: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const run = () => {
+      thumbRunning++;
+      task()
+        .then(resolve, reject)
+        .finally(() => {
+          thumbRunning--;
+          thumbQueue.shift()?.();
+        });
+    };
+    if (thumbRunning < THUMB_CONCURRENCY) {
+      run();
+    } else {
+      thumbQueue.push(run);
+    }
+  });
+}
+
+function loadThumb(chartType: string, theme: string): Promise<string> {
+  const key = `${theme}:${chartType}`;
+  let pending = thumbCache.get(key);
+  if (!pending) {
+    pending = runThumbTask(async () => {
+      const options: Record<string, unknown> = {
+        ...(chartDefaultOptions[chartType] as Record<string, unknown>),
+        theme,
+        compact: true,
+      };
+      delete options.simplyKeys;
+      const { data } = await axios.post<string>("./api/charts/svg", options);
+      // An svg shown as an image cannot use the fonts of the page: without a
+      // generic fallback its text drops to the browser's serif default.
+      const svg = data.replace(
+        /font-family="([^"]+)"/g,
+        'font-family="$1, system-ui, sans-serif"',
+      );
+      return URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    });
+    // a failed render may succeed later (server restarted, theme registered)
+    pending.catch(() => thumbCache.delete(key));
+    thumbCache.set(key, pending);
+  }
+  return pending;
+}
+
+function ChartThumb({
+  chartType,
+  theme,
+  glyph,
+}: {
+  chartType: string;
+  theme: string;
+  glyph: GlyphKind;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [src, setSrc] = useState("");
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) {
+      return;
+    }
+    let cancelled = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+        observer.disconnect();
+        loadThumb(chartType, theme).then(
+          (url) => {
+            if (!cancelled) {
+              setSrc(url);
+            }
+          },
+          () => {
+            // keep the glyph: the gallery still works without thumbnails
+          },
+        );
+      },
+      { rootMargin: "240px" },
+    );
+    observer.observe(el);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [chartType, theme]);
+
+  return (
+    <span className={`chart-thumb${src ? " is-ready" : ""}`} ref={ref}>
+      <span className="chart-thumb-glyph">
+        <ChartGlyph kind={glyph} />
+      </span>
+      {src && <img src={src} alt="" draggable={false} />}
+    </span>
+  );
+}
+
+// Like JSON.stringify(value, null, 2), but an array of plain values stays on
+// one line while it fits, so data and coordinates read as rows, not columns.
+function stringifyJson(value: unknown, indent = ""): string {
+  const next = `${indent}  `;
+  if (Array.isArray(value)) {
+    if (value.every((item) => item === null || typeof item !== "object")) {
+      const line = `[${value.map((item) => JSON.stringify(item) ?? "null").join(", ")}]`;
+      if (indent.length + line.length <= 80) {
+        return line;
+      }
+    }
+    const items = value.map((item) => next + stringifyJson(item, next));
+    return `[\n${items.join(",\n")}\n${indent}]`;
+  }
+  if (value !== null && typeof value === "object") {
+    const items = Object.entries(value)
+      .filter(([, item]) => item !== undefined)
+      .map(
+        ([key, item]) =>
+          `${next}${JSON.stringify(key)}: ${stringifyJson(item, next)}`,
+      );
+    return items.length ? `{\n${items.join(",\n")}\n${indent}}` : "{}";
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
 function formatJson(data: Record<string, unknown>) {
   const keys = Object.keys(data).sort();
   const result: Record<string, unknown> = {};
   keys.forEach((key) => {
     result[key] = data[key];
   });
-  return JSON.stringify(result, null, 2);
+  return stringifyJson(result);
 }
 
 function formatBytes(size: number) {
@@ -2408,6 +3793,7 @@ class App extends Component<any, AppState> {
   chartRequestId: number;
   debounceTimer: ReturnType<typeof setTimeout> | null;
   contentChangeDisposable: { dispose: () => void } | null;
+  editorInstance: editor.IStandaloneCodeEditor | null;
   resizing: boolean;
   resizeStartY: number;
   resizeStartHeight: number;
@@ -2422,6 +3808,7 @@ class App extends Component<any, AppState> {
     this.chartRequestId = 0;
     this.debounceTimer = null;
     this.contentChangeDisposable = null;
+    this.editorInstance = null;
     this.resizing = false;
     this.resizeStartY = 0;
     this.resizeStartHeight = DEFAULT_EDITOR_HEIGHT;
@@ -2431,7 +3818,7 @@ class App extends Component<any, AppState> {
     const initialType =
       prefs.currentChartType && findChartOption(prefs.currentChartType)
         ? prefs.currentChartType
-        : chartOptions[0].value;
+        : featuredCategory.items[0]?.value || chartOptions[0].value;
 
     this.state = {
       version: "",
@@ -2449,6 +3836,8 @@ class App extends Component<any, AppState> {
       simply: prefs.simply ?? true,
       currentChartType: initialType,
       galleryQuery: "",
+      // the page opens on the gallery: browse first, then pick a chart
+      galleryExpanded: true,
       editorHeight: prefs.editorHeight || DEFAULT_EDITOR_HEIGHT,
       editorCollapsed: prefs.editorCollapsed ?? false,
       jsonError: "",
@@ -2462,7 +3851,14 @@ class App extends Component<any, AppState> {
   }
 
   async componentDidMount(): Promise<void> {
+    // In development React StrictMode mounts, unmounts and mounts again:
+    // whatever componentWillUnmount tears down is set up on every mount, and
+    // only the editor itself is created once.
+    window.addEventListener("keydown", this.handleGlobalKeydown);
+    window.addEventListener("mousemove", this.handleResizeMove);
+    window.addEventListener("mouseup", this.handleResizeEnd);
     if (this.editorInited) {
+      this.bindEditorChange();
       return;
     }
     this.editorInited = true;
@@ -2470,22 +3866,15 @@ class App extends Component<any, AppState> {
     const ed = createEditor({
       dom: this.editorDom.current as HTMLElement,
     });
-
-    this.contentChangeDisposable = ed.onDidChangeModelContent(() => {
-      if (this.ignoreContentChange) {
-        return;
-      }
-      this.syncCompactFromEditor();
-      this.scheduleAutoRun();
-    });
-
-    window.addEventListener("keydown", this.handleGlobalKeydown);
-    window.addEventListener("mousemove", this.handleResizeMove);
-    window.addEventListener("mouseup", this.handleResizeEnd);
+    this.editorInstance = ed;
+    this.bindEditorChange();
 
     this.setState({ editor: ed }, () => {
       this.changeChartOption(this.state.currentChartType);
-      requestAnimationFrame(() => this.scrollActiveIntoView());
+      // the gallery opens from its top, not at the chart of the last visit
+      if (!this.state.galleryExpanded) {
+        requestAnimationFrame(() => this.scrollActiveIntoView());
+      }
     });
 
     try {
@@ -2505,7 +3894,10 @@ class App extends Component<any, AppState> {
   }
 
   componentDidUpdate(_prev: Readonly<any>, prevState: Readonly<AppState>) {
-    if (prevState.currentChartType !== this.state.currentChartType) {
+    if (
+      prevState.currentChartType !== this.state.currentChartType ||
+      prevState.galleryExpanded !== this.state.galleryExpanded
+    ) {
       this.scrollActiveIntoView();
     }
   }
@@ -2521,6 +3913,18 @@ class App extends Component<any, AppState> {
     this.state.editor?.dispose();
   }
 
+  bindEditorChange() {
+    this.contentChangeDisposable?.dispose();
+    this.contentChangeDisposable =
+      this.editorInstance?.onDidChangeModelContent(() => {
+        if (this.ignoreContentChange) {
+          return;
+        }
+        this.syncCompactFromEditor();
+        this.scheduleAutoRun();
+      }) ?? null;
+  }
+
   persistPrefs(partial: LabPrefs) {
     savePrefs(partial);
   }
@@ -2528,11 +3932,29 @@ class App extends Component<any, AppState> {
   scrollActiveIntoView() {
     const root = this.galleryScrollRef.current;
     if (!root) return;
-    const el = root.querySelector(".chart-item.active") as HTMLElement | null;
-    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    const items = Array.from(
+      root.querySelectorAll<HTMLElement>(".chart-item.active"),
+    );
+    const view = root.getBoundingClientRect();
+    const inView = items.some((item) => {
+      const rect = item.getBoundingClientRect();
+      return (
+        rect.top >= view.top &&
+        rect.bottom <= view.bottom &&
+        rect.left >= view.left &&
+        rect.right <= view.right
+      );
+    });
+    if (!inView) {
+      items[0]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   handleGlobalKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape" && this.state.galleryExpanded) {
+      this.setState({ galleryExpanded: false });
+      return;
+    }
     const mod = event.metaKey || event.ctrlKey;
     if (mod && event.key === "Enter") {
       event.preventDefault();
@@ -2935,7 +4357,7 @@ class App extends Component<any, AppState> {
   filteredCategories() {
     const q = this.state.galleryQuery.trim().toLowerCase();
     if (!q) {
-      return chartCategories;
+      return [featuredCategory, ...chartCategories];
     }
     return chartCategories
       .map((cat) => ({
@@ -2952,10 +4374,9 @@ class App extends Component<any, AppState> {
   }
 
   filteredCount() {
-    return this.filteredCategories().reduce(
-      (n, cat) => n + cat.items.length,
-      0,
-    );
+    return this.filteredCategories()
+      .filter((cat) => cat !== featuredCategory)
+      .reduce((n, cat) => n + cat.items.length, 0);
   }
 
   render(): ReactNode {
@@ -2972,6 +4393,7 @@ class App extends Component<any, AppState> {
       currentChartType,
       themes,
       galleryQuery,
+      galleryExpanded,
       editorHeight,
       editorCollapsed,
       jsonError,
@@ -3003,6 +4425,12 @@ class App extends Component<any, AppState> {
 
     const sizeLabel =
       width > 0 && height > 0 ? `${width}×${height}` : "auto";
+    // Fit mode: as large as the stage allows. A vector chart may grow past its
+    // own size (up to 2x); a bitmap would only blur, so it stops at 100%.
+    const fitWidth =
+      previewFit && width > 0 && height > 0
+        ? `min(${width * (format === "svg" ? 2 : 1)}px, 100cqw, 100cqh * ${(width / height).toFixed(4)})`
+        : undefined;
     const formatLabel = format.toUpperCase();
 
     return (
@@ -3111,7 +4539,9 @@ class App extends Component<any, AppState> {
             </div>
           </header>
 
-          <div className="main-grid">
+          <div
+            className={`main-grid${galleryExpanded ? " is-gallery-expanded" : ""}`}
+          >
             <aside className="gallery">
               <div className="gallery-head">
                 <div className="gallery-title-row">
@@ -3121,6 +4551,21 @@ class App extends Component<any, AppState> {
                       ? `${matchCount}/${CHART_COUNT}`
                       : `${CHART_COUNT}`}
                   </div>
+                  <Tooltip
+                    title={galleryExpanded ? "返回编辑 (Esc)" : "全屏浏览全部图表"}
+                  >
+                    <Button
+                      size="small"
+                      type="text"
+                      className="icon-btn gallery-toggle"
+                      aria-expanded={galleryExpanded}
+                      onClick={() =>
+                        this.setState({ galleryExpanded: !galleryExpanded })
+                      }
+                    >
+                      {galleryExpanded ? "收起" : "展开"}
+                    </Button>
+                  </Tooltip>
                 </div>
                 <Input.Search
                   className="gallery-search"
@@ -3142,7 +4587,9 @@ class App extends Component<any, AppState> {
                       {cat.title}
                       <span className="cat-count">{cat.items.length}</span>
                     </div>
-                    <div className="chart-list">
+                    <div
+                      className={`chart-list${cat === featuredCategory ? " is-featured" : ""}`}
+                    >
                       {cat.items.map((item) => {
                         const active = item.value === currentChartType;
                         return (
@@ -3151,18 +4598,24 @@ class App extends Component<any, AppState> {
                             key={item.value}
                             className={`chart-item${active ? " active" : ""}`}
                             aria-current={active ? "true" : undefined}
+                            title={item.hint}
                             onClick={() => {
-                              this.setState({ currentChartType: item.value });
+                              this.setState({
+                                currentChartType: item.value,
+                                galleryExpanded: false,
+                              });
                               this.changeChartOption(item.value);
                             }}
                           >
-                            <span className="chart-badge" data-glyph={item.glyph}>
-                              <ChartGlyph kind={item.glyph} />
-                            </span>
-                            <span className="chart-meta">
-                              <span className="chart-name">{item.label}</span>
+                            <ChartThumb
+                              chartType={item.value}
+                              theme={this.state.theme}
+                              glyph={item.glyph}
+                            />
+                            <span className="chart-name">{item.label}</span>
+                            {galleryExpanded && (
                               <span className="chart-hint">{item.hint}</span>
-                            </span>
+                            )}
                           </button>
                         );
                       })}
@@ -3176,7 +4629,6 @@ class App extends Component<any, AppState> {
               <section className="preview-pane">
                 <div className="preview-toolbar">
                   <div className="preview-heading">
-                    <span className="preview-label">Live Preview</span>
                     <span className="preview-chart-name">
                       {current ? (
                         <>
@@ -3288,7 +4740,10 @@ class App extends Component<any, AppState> {
                   )}
 
                   {hasPreview && (
-                    <div className="preview-canvas">
+                    <div
+                      className="preview-canvas"
+                      style={fitWidth ? { width: fitWidth } : undefined}
+                    >
                       {format === "svg" ? (
                         // Remount per render so the chart's own SVG animation
                         // replays; the canvas itself stays mounted, otherwise
@@ -3324,7 +4779,9 @@ class App extends Component<any, AppState> {
                         解析失败
                       </span>
                     ) : (
-                      <span className="stat-chip subtle">auto-run · 480ms</span>
+                      <span className="stat-chip subtle editor-hint">
+                        auto-run · 480ms
+                      </span>
                     )}
                   </div>
                   <div className="editor-tools">

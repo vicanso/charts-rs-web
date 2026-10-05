@@ -14,7 +14,7 @@ Every chart can be created from a JSON document with its `from_json`, e.g. `BarC
 
 - [Value types](#value-types)
 - [Common options](#common-options)
-- Charts: [Bar](#bar), [Horizontal bar](#horizontal-bar), [Line](#line), [Pie](#pie), [Radar](#radar), [Scatter](#scatter), [Candlestick](#candlestick), [Table](#table), [Heatmap](#heatmap), [Funnel](#funnel), [Waterfall](#waterfall), [Calendar](#calendar), [Gauge](#gauge), [Treemap](#treemap), [Box plot](#box-plot), [Sunburst](#sunburst), [Sankey](#sankey), [Tree](#tree), [Graph](#graph), [Parallel](#parallel), [Theme river](#theme-river), [Histogram](#histogram), [Polar bar](#polar-bar), [Chord](#chord), [Multi chart](#multi-chart)
+- Charts: [Bar](#bar), [Horizontal bar](#horizontal-bar), [Line](#line), [Pie](#pie), [Radar](#radar), [Scatter](#scatter), [Candlestick](#candlestick), [Table](#table), [Heatmap](#heatmap), [Funnel](#funnel), [Waterfall](#waterfall), [Calendar](#calendar), [Gauge](#gauge), [Treemap](#treemap), [Box plot](#box-plot), [Sunburst](#sunburst), [Sankey](#sankey), [Tree](#tree), [Graph](#graph), [Parallel](#parallel), [Theme river](#theme-river), [Histogram](#histogram), [Polar bar](#polar-bar), [Chord](#chord), [Gantt](#gantt), [Map](#map), [Multi chart](#multi-chart)
 - [Keys for tools](#keys-for-tools)
 
 ## Value types
@@ -46,7 +46,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `x` | number | `0` | Horizontal offset of the chart inside the SVG. |
 | `y` | number | `0` | Vertical offset of the chart inside the SVG. |
 | `margin` | margin | `5` | Margin around the whole chart. |
-| `font_family` | string | `"Roboto"` | Font family of every text. The font has to be loaded (see “Load more fonts” in the README) for text to be measured correctly. |
+| `font_family` | string | `"Roboto"` | Font family of every text. The font has to be loaded (see [Fonts](./guide.md#fonts) in the guide) for text to be measured correctly. |
 | `compact` | boolean | `false` | Emits compact SVG: the same picture, typically 20–30% smaller. |
 | `empty_text` | string |  | Text shown in the middle of the plot when there is no data to draw. |
 
@@ -102,6 +102,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `x_axis_hidden` | boolean | `false` | Hides the x axis. In a polar bar chart: the category labels. |
 | `x_axis_height` | number | `30` | Height reserved for the x axis. |
 | `x_axis_stroke_color` | color | theme | Color of the x axis line and ticks. |
+| `x_axis_stroke_width` | number | `1` | Width of the x axis line and ticks. |
 | `x_axis_font_size` | number | `14` | Font size of the x axis labels. |
 | `x_axis_font_color` | color | theme | Font color of the x axis labels. |
 | `x_axis_font_weight` | string |  | Font weight of the x axis labels, e.g. `"bold"`. |
@@ -124,6 +125,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 |---|---|---|---|
 | `grid_stroke_color` | color | theme | Color of the grid lines. |
 | `grid_stroke_width` | number | `1` | Width of the grid lines. |
+| `grid_stroke_dash_array` | string |  | Dashes of the grid lines, as the `stroke-dasharray` of SVG takes them (e.g. `"4,2"`). Solid lines by default. Applies to the grid of the charts with an x and a y axis, to those of the gantt, radar and polar bar charts, to the lines of a punch card and to the axes of a parallel chart. |
 
 ### Series
 
@@ -135,17 +137,22 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `series_symbol` | object |  | Marker drawn on the data points of every line; `null` draws none. Default: a circle as large as `series_stroke_width`, filled with the background color. |
 | `series_smooth` | boolean | `false` | Draws line series as smooth curves. |
 | `series_fill` | boolean | `false` | Fills the area under line series. |
+| `series_fill_opacity` | number |  | How opaque the fill of an area is, from 0 to 1. Default: `0.39` under a line, `0.2` in a radar chart. |
 | `series_label_formatter` | string |  | Format of the data labels: `{c}` value, `{a}` series name, `{b}` category, `{d}` percentage, `{t}` value in thousands notation. |
 | `series_label_font_size` | number | `14` | Font size of the data labels. |
 | `series_label_font_color` | color | theme | Font color of the data labels. |
 | `series_label_font_weight` | string |  | Font weight of the data labels, e.g. `"bold"`. |
 | `series_label_hide_overlap` | boolean | `false` | Leaves out a data label that would overlap one already drawn. |
+| `stack_percent` | boolean | `false` | Shows the series of a stack as their shares of it: every stack adds up to 100%, on an axis in percent (bar, horizontal bar, line and polar bar charts). |
 
 ### Tooltip and animation
 
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `tooltip_show` | boolean | `false` | Gives every data shape a tooltip that shows on hover (plain CSS, no script), and a `<title>` for assistive tools. Not available in calendar, gauge, parallel, radar and theme river charts. |
+| `tooltip_font_size` | number |  | Font size of the tooltips. Default: that of the data labels (`series_label_font_size`); a scatter chart leaves it to the viewer. |
+| `tooltip_font_color` | color |  | Font color of the tooltips. Default: that of the data labels (`series_label_font_color`); a scatter chart leaves it to the viewer. |
+| `tooltip_font_weight` | string |  | Font weight of the tooltips, e.g. `"bold"`. None by default. |
 | `animation` | object |  | Animates the chart as it appears; `{}` uses the defaults. Supported by the bar, horizontal bar, line, pie, funnel, sunburst, treemap, sankey, histogram, polar bar and chord charts. |
 
 ### `series_list[]`
@@ -172,6 +179,9 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `symbol` | object |  | Overrides `series_symbol` for this series; `null` draws no marker. |
 | `x_values` | x value[] |  | The x value of each data point, for a series that is not sampled at the chart’s `x_axis_values`. |
 | `band` | object |  | A filled band around the line: a lower and an upper bound for each data point. |
+| `step` | `"start"` / `"middle"` / `"end"` |  | Draws the line as steps: level between two points, changing to the next value at the point itself (`start`), half way to the next one (`middle`) or at the next point (`end`). Wins over `smooth`. |
+| `error_bar` | object |  | Error bars: a lower and an upper bound for each data point, drawn as a line with a cap at both ends over the bar or the point (bar, line and scatter charts). The y axis makes room for them, and tooltips tell the bounds. |
+| `ring` | integer ≥ 0 | `0` | In a pie chart: the ring the series is a slice of. The series of a ring share a circle of their own, the lowest ring innermost — nested pies. |
 
 #### `series_list[].mark_lines[]`
 
@@ -181,6 +191,9 @@ These keys are accepted by every chart except the table and the multi chart. A c
 |---|---|---|---|
 | `category` | `"average"` / `"min"` / `"max"` / `"value"` |  | Where the line is drawn: at the average, the minimum or the maximum of the series, or at `value`. |
 | `value` | number |  | The value of the line when `category` is `value`. |
+| `color` | color |  | Color of the line, its dot and its arrow. Default: the color of the series. |
+| `stroke_width` | number | `1` | Width of the line. |
+| `stroke_dash_array` | string | `"4,2"` | Dashes of the line, as the `stroke-dasharray` of SVG takes them; `""` draws a solid line. |
 
 #### `series_list[].mark_points[]`
 
@@ -198,6 +211,8 @@ These keys are accepted by every chart except the table and the multi chart. A c
 |---|---|---|---|
 | `from` | number / `"average"` / `"min"` / `"max"` |  | One edge of the band. |
 | `to` | number / `"average"` / `"min"` / `"max"` |  | The other edge of the band. |
+| `color` | color |  | Color of the band. Default: the color of the series. |
+| `opacity` | number | `0.16` | How opaque the band is, from 0 to 1. A `color` with an alpha of its own (`"#ff000080"`) keeps it when no opacity is given. |
 
 #### `series_list[].symbol` and `series_symbol`
 
@@ -220,6 +235,18 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `lower` | number[] |  | Lower bound of each point; `null` leaves a gap in the band. |
 | `upper` | number[] |  | Upper bound of each point; `null` leaves a gap in the band. |
 
+#### `series_list[].error_bar`
+
+<!-- keys: base.series_list.error_bar -->
+
+The same two lists as a band: a point has an error bar where both of its bounds are given.
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `lower` | number[] |  | Lower end of the error bar of each point; `null` leaves the point without one. |
+| `upper` | number[] |  | Upper end of the error bar of each point; `null` leaves the point without one. |
+| `stroke_width` | number | `1.5` | Width of the error bars. |
+
 ### `y_axis_configs[]`
 
 <!-- keys: base.y_axis_configs -->
@@ -230,6 +257,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `axis_font_color` | color | theme | Font color of the axis labels. |
 | `axis_font_weight` | string |  | Font weight of the axis labels, e.g. `"bold"`. |
 | `axis_stroke_color` | color | `transparent` | Color of the axis line; transparent by default. |
+| `axis_stroke_width` | number | `1` | Width of the axis line and ticks. |
 | `axis_width` | number |  | Width reserved for the axis; by default as wide as its labels need. |
 | `axis_split_number` | integer 0–1000 | `6` | Number of intervals the value range is split into. |
 | `axis_name_gap` | number | `8` | Gap between the axis line and its labels. |
@@ -239,6 +267,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `axis_max` | number |  | Fixed upper bound of the axis; by default derived from the data. |
 | `axis_scale` | scale | `"linear"` | Scale of the axis: linear or logarithmic. |
 | `axis_title` | string |  | Title of the axis, written along it. |
+| `axis_inverse` | boolean | `false` | Turns the axis upside down: the smallest value at the top, the largest at the bottom (a ranking, where 1 is the best place). |
 
 ### `animation`
 
@@ -259,6 +288,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `radius` | number |  | Corner radius of the bars. |
+| `series_label_position` | `"top"` / `"inside"` | `"top"` | Where the value labels of the bars go: above their end, or in the middle of the bar, which suits stacked bars (and is the default with `stack_percent`). |
 
 <!-- example: bar -->
 
@@ -298,7 +328,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 
 ## Line
 
-`LineChart::from_json` — Lines over the categories of `x_axis_data`, or over a continuous x axis when `x_axis_values` are given. It has no keys of its own: smooth curves, area fill, markers, mark lines and bands are all [common options](#common-options).
+`LineChart::from_json` — Lines over the categories of `x_axis_data`, or over a continuous x axis when `x_axis_values` are given. It has no keys of its own: smooth curves, steps, area fill, markers, mark lines and bands are all [common options](#common-options).
 
 <!-- example: line -->
 
@@ -321,7 +351,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 
 ## Pie
 
-`PieChart::from_json` — A pie, a donut or a nightingale rose. Every series is one slice: its value is the sum of its `data`.
+`PieChart::from_json` — A pie, a donut or a nightingale rose. Every series is one slice: its value is the sum of its `data`. Series with different `ring` numbers make nested pies: every ring shares the turn among its own slices, the rings split the room between `inner_radius` and `radius`, and the slices of the inner rings are named on them.
 
 <!-- keys: pie -->
 
@@ -332,8 +362,10 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `rose_type` | boolean | `true` | Draws a nightingale rose: every slice has the same angle and its radius follows its value. `false` draws a plain pie. |
 | `border_radius` | number |  | Corner radius of the slices. |
 | `start_angle` | number | `0` | Angle the first slice starts at, in degrees clockwise from 12 o’clock. |
+| `end_angle` | number |  | Angle the last slice ends at: the slices share the part of the circle between the two angles (`-90` to `90` is the upper half, a half doughnut). Default: a full turn after `start_angle`. |
 | `series_label_position` | `"inside"` / `"outside"` | `"outside"` | Where the labels go: inside the slices, or outside with a leader line (the default). |
 | `min_show_label_angle` | number | `0` | Slices spanning fewer degrees than this get no label. |
+| `ring_gap` | number | `6` | Gap between two rings of nested pies (series with a `ring`), in pixels. |
 
 <!-- example: pie -->
 
@@ -400,12 +432,15 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `bubble_max_size` | number | `30` | Radius of the largest bubble. |
 | `series_symbols` | array |  | Marker of each series: its shape as a string (`"circle"`, `"triangle"`, `"rect"`, `"diamond"`), or an object with that `type` and a fill `color`. The size is `series_symbol_sizes`. By default the series cycle through the four shapes, in the color of the series. |
 | `x_axis_config` | object |  | Configuration of the x axis, which is a value axis here. By default the same as the first of `y_axis_configs`. |
+| `regression` | `"linear"` / `"exponential"` / `"logarithmic"` / `"polynomial"` |  | Draws the curve of this kind that fits the points of each series best (by least squares), in the color of the series. An exponential curve is fitted to the points above 0, a logarithmic one to the points right of 0. |
+| `regression_order` | integer 0–1000 | `2` | Order of a `polynomial` regression, from 1 to 6. |
+| `regression_label_show` | boolean | `false` | Writes the formula of each fitted curve at its end, e.g. `y = 1.5x + 2`. |
 
 ### `x_axis_config`
 
 <!-- keys: scatter.x_axis_config = base.y_axis_configs -->
 
-The same keys as [`y_axis_configs[]`](#y_axis_configs).
+The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the values of the axis is used — `axis_min`, `axis_max`, `axis_split_number`, `axis_formatter`; the font, the color and the line width of the x axis are those of the `x_axis_*` options.
 
 <!-- example: scatter -->
 
@@ -431,6 +466,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `candlestick_up_border_color` | color | `#8A0000` | Border color of those candles. |
 | `candlestick_down_color` | color | `#00DA3C` | Fill color of the candles that close lower than they open. |
 | `candlestick_down_border_color` | color | `#008F28` | Border color of those candles. |
+| `candlestick_style` | `"candle"` / `"ohlc"` | `"candle"` | Draws candles, or OHLC bars: a line from the lowest to the highest price with a tick to its left at the open and one to its right at the close. |
 
 <!-- example: candlestick -->
 
@@ -456,7 +492,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `height` | number > 0 |  | Ignored: a table is as high as its rows. |
 | `x` | number | `0` | Horizontal offset of the chart inside the SVG. |
 | `y` | number | `0` | Vertical offset of the chart inside the SVG. |
-| `font_family` | string | `"Roboto"` | Font family of every text. The font has to be loaded (see “Load more fonts” in the README) for text to be measured correctly. |
+| `font_family` | string | `"Roboto"` | Font family of every text. The font has to be loaded (see [Fonts](./guide.md#fonts) in the guide) for text to be measured correctly. |
 | `background_color` | color | theme | Background color behind the title; the rows have `header_background_color` and `body_background_colors`. |
 | `title_text` | string |  | Title text; no title is drawn when empty. |
 | `title_font_size` | number | `18` | Title font size. |
@@ -476,6 +512,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `spans` | number[] |  | Width of each column: values below 1 are shares of the table width, larger ones pixels; the other columns share the rest. |
 | `text_aligns` | string[] |  | Alignment of the text of each column: `"left"`, `"center"` or `"right"`. |
 | `border_color` | color | theme | Color of the lines between the rows. |
+| `border_width` | number | `1` | Width of the lines between the rows, and of the outer border. |
 | `header_row_padding` | margin | `{left: 10, top: 8, right: 10, bottom: 8}` | Padding of the header row. |
 | `header_row_height` | number | `30` | Smallest height of the header row. |
 | `header_font_size` | number | `14` | Font size of the header. |
@@ -542,8 +579,12 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `max` | number | `0` | Value shown in `max_color`; `0` takes the largest value of the data. |
 | `min_color` | color | `#F0D99C` | Color of the smallest value. |
 | `max_color` | color | `#BF444C` | Color of the largest value. |
-| `min_font_color` | color | `#464646` | Font color of the labels on cells with low values. |
-| `max_font_color` | color | `#EEEEEE` | Font color of the labels on cells with high values. |
+| `min_font_color` | color | `#464646` | Font color of the labels on cells with low values; with `colors`, `steps` or `thresholds`, on light cells. |
+| `max_font_color` | color | `#EEEEEE` | Font color of the labels on cells with high values; with `colors`, `steps` or `thresholds`, on dark cells. |
+| `colors` | color[] |  | The colors of the scale, from the smallest value to the largest. Two or more take the place of `min_color` and `max_color`: the scale goes through all of them. |
+| `steps` | integer 0–1000 | `0` | Number of classes of the same width the values are sorted into, each drawn in one color, instead of a continuous scale; `0` and `1` keep it continuous. With as many `colors` as steps, every class has one of them. |
+| `thresholds` | number[] |  | The values where one class ends and the next begins; takes the place of `steps`. A value below the first one is in the first class. |
+| `symbol` | `"rect"` / `"circle"` | `"rect"` | Fills the cells (`rect`), or draws a circle in each cell that has a value, its area following the value — a punch card. The circles of a row lie on a line; they carry no label. |
 | `data` | array |  | The cells as `[index, value]`, where `index` = y index × number of x categories + x index. |
 
 <!-- example: heatmap -->
@@ -597,6 +638,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 |---|---|---|---|
 | `label_show` | boolean | `true` | Shows the value of every bar as a label. |
 | `connector_line_show` | boolean | `true` | Draws a dashed line from each bar to the next. |
+| `connector_line_dash_array` | string | `"4,4"` | Dashes of the connector lines, as the `stroke-dasharray` of SVG takes them; `""` draws solid lines. |
 | `bar_width_ratio` | number | `0.6` | Share of a category’s width taken by its bar, from 0 to 1. |
 | `increase_color` | color | theme | Color of the bars that add to the total. |
 | `decrease_color` | color | `#EE6666` | Color of the bars that take from the total. |
@@ -626,6 +668,9 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `max` | number | `0` | Value shown in `max_color`; `0` takes the largest value of the data. |
 | `min_color` | color | `#EBEDF0` | Color of the days with the smallest value. |
 | `max_color` | color | `#216E39` | Color of the days with the largest value. |
+| `colors` | color[] |  | The colors of the scale, from the smallest value to the largest. Two or more take the place of `min_color` and `max_color`: the scale goes through all of them. |
+| `steps` | integer 0–1000 | `0` | Number of classes of the same width the values are sorted into, each drawn in one color, instead of a continuous scale; `0` and `1` keep it continuous. With as many `colors` as steps, every class has one of them. |
+| `thresholds` | number[] |  | The values where one class ends and the next begins; takes the place of `steps`. A value below the first one is in the first class. |
 | `empty_color` | color | theme | Color of the days without a value. |
 | `cell_size` | number | `13` | Side of a day square in pixels. |
 | `cell_gap` | number | `3` | Gap between the squares in pixels. |
@@ -646,7 +691,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 
 ## Gauge
 
-`GaugeChart::from_json` — A dial. Every series is one value on the scale: the first of its `data`.
+`GaugeChart::from_json` — A dial. Every series is one value on the scale (the first of its `data`): a pointer each, or a ring each with `multi_ring`.
 
 <!-- keys: gauge -->
 
@@ -654,7 +699,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 |---|---|---|---|
 | `min` | number | `0` | Value at the start of the scale. |
 | `max` | number | `100` | Value at the end of the scale. |
-| `start_angle` | number | `225` | Angle the scale starts at, in degrees clockwise from 12 o’clock. |
+| `start_angle` | number | `225` | Angle the scale starts at, in degrees clockwise from 12 o’clock. `0` selects the default: write `360` to start at 12 o’clock. |
 | `sweep_angle` | number | `270` | Angle the scale spans, in degrees clockwise. |
 | `radius` | number | `0` | Outer radius in pixels; `0` fits the plot. |
 | `arc_width` | number | `15` | Thickness of the arc in pixels. |
@@ -664,6 +709,9 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `show_axis_label` | boolean | `true` | Writes the minimum and maximum at the ends of the arc. |
 | `split_number` | integer 0–1000 | `5` | Number of intervals between the major ticks. |
 | `value_formatter` | string | `"{c}"` | Format of the value shown in the center: `{c}` is the value. |
+| `thresholds` | number[] |  | The values where one segment of the scale ends and the next begins. With thresholds the arc shows the segments, each in a color of its own, instead of the progress, and a pointer takes the color of the segment it points at. |
+| `colors` | color[] |  | The colors of the segments, from the lowest to the highest. Default: the colors of the series. |
+| `multi_ring` | boolean | `false` | Draws every series as a ring of progress of its own, one inside the other, with the values listed in the middle, instead of as pointers on one dial. |
 
 <!-- example: gauge -->
 
@@ -814,6 +862,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | `link_opacity` | number | `0.45` | Opacity of the flow ribbons, from 0 to 1. |
 | `node_align` | `"left"` / `"right"` / `"justify"` | `"left"` | Which column a node goes in: as far left as its sources allow (`left`, the default), as far right as its targets allow (`right`), or `left` with the end nodes in the last column (`justify`). |
 | `link_gradient` | boolean | `false` | Fills every link with a gradient from the color of its source to the color of its target, instead of the color of its source. |
+| `orient` | `"horizontal"` / `"vertical"` | `"horizontal"` | Direction of the flows: from left to right, or from top to bottom (the columns of nodes become rows). |
 
 ### `nodes[]`
 
@@ -857,8 +906,10 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `series_data` | object[] |  | The roots of the hierarchy; several roots are laid out side by side. |
-| `orient` | `"LR"` / `"TB"` | `"LR"` | Direction of the tree: root on the left (`LR`, the default) or at the top (`TB`). |
+| `orient` | `"LR"` / `"RL"` / `"TB"` / `"BT"` | `"LR"` | Where the root is, and which way the tree grows: root on the left (`LR`), on the right (`RL`), at the top (`TB`) or at the bottom (`BT`). |
 | `symbol_size` | number | `6` | Radius of the node circles in pixels. |
+| `layout` | `"orthogonal"` / `"radial"` | `"orthogonal"` | `orthogonal` lays the levels out side by side, by `orient`; `radial` puts the root in the middle and every level on a circle around it. |
+| `edge_shape` | `"curve"` / `"polyline"` | `"curve"` | Shape of the links: curves, or lines with square corners (straight lines in a radial tree). |
 
 ### `series_data[]`
 
@@ -1094,6 +1145,117 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 }
 ```
 
+## Gantt
+
+`GanttChart::from_json` — Tasks as bars along a time axis: a row for each task, or several tasks on a row. The axis is a time axis (numbers are unix seconds) unless `x_axis_type` is `value`; `x_axis_min` and `x_axis_max` fix its range, `x_axis_formatter` and `x_axis_time_offset` its labels. It takes no `series_list`: the legend is the categories of the tasks.
+
+<!-- keys: gantt -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `tasks` | object[] |  | The tasks; the rows are taken from them, top to bottom in the order they are first met. |
+| `bar_height` | number |  | Height of the bars in pixels; by default 60% of the height of a row. |
+| `radius` | number | `3` | Corner radius of the bars. |
+| `label_show` | boolean | `true` | Writes the name of a task on its bar, or beside it when it does not fit there. A task on a row of its own is not named again: the row tells its name. |
+| `now` | x value |  | A moment marked by a dashed line across the chart, such as today. |
+
+### `tasks[]`
+
+<!-- keys: gantt.tasks -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `name` | string |  | Name of the task. |
+| `start` | x value |  | When the task starts; a task without a start is left out. |
+| `end` | x value |  | When the task ends. Without an end, or with the end at the start, the task is a milestone, drawn as a diamond. |
+| `row` | string |  | The row the task is drawn on; tasks with the same row share it. By default a row of its own, named after the task. |
+| `category` | string |  | Category of the task: the tasks of a category share a color, and the categories are the legend. |
+| `progress` | number |  | How much of the task is done, from 0 to 1: that part of the bar is in the full color, the rest lighter. |
+| `color` | color |  | Color of the task; by default the color of its category. |
+
+<!-- example: gantt -->
+
+```json
+{
+  "now": "2024-03-19",
+  "tasks": [
+    {
+      "name": "Research",
+      "category": "Plan",
+      "start": "2024-03-04",
+      "end": "2024-03-08",
+      "progress": 1
+    },
+    {
+      "name": "Design",
+      "category": "Build",
+      "start": "2024-03-07",
+      "end": "2024-03-22",
+      "progress": 0.6
+    },
+    {"name": "Sign-off", "category": "Build", "start": "2024-03-22"},
+    {"name": "Launch", "category": "Plan", "start": "2024-03-25", "end": "2024-03-29"}
+  ]
+}
+```
+
+## Map
+
+`MapChart::from_json` — A map of regions colored by their values. The regions come with the options, as GeoJSON: the chart has no map data of its own. It takes no `series_list`.
+
+<!-- keys: map -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `geo_json` | object |  | The regions: a GeoJSON `FeatureCollection` (or a single `Feature`) of `Polygon` and `MultiPolygon` geometries, with longitudes and latitudes in degrees. Other geometries are left out. |
+| `name_property` | string | `"name"` | The property of a GeoJSON feature that is the name of its region; without it, the `id` of the feature. |
+| `data` | array |  | The values: `["name of the region", value]` for each region that has one. |
+| `projection` | `"mercator"` / `"equirectangular"` | `"mercator"` | How longitudes and latitudes are laid on the plane: Mercator keeps the shapes (and cuts the map off at 85° north and south), equirectangular takes them as they are. |
+| `min` | number | `0` | Value at the start of the scale. With `min` and `max` both `0` the scale goes from the smallest value to the largest. |
+| `max` | number | `0` | Value at the end of the scale. |
+| `min_color` | color | theme | Color of the smallest value: by default a light tint of the first color of the theme. |
+| `max_color` | color | theme | Color of the largest value: by default the first color of the theme. |
+| `colors` | color[] |  | The colors of the scale, from the smallest value to the largest. Two or more take the place of `min_color` and `max_color`: the scale goes through all of them. |
+| `steps` | integer 0–1000 | `0` | Number of classes of the same width the values are sorted into, each drawn in one color, instead of a continuous scale; `0` and `1` keep it continuous. |
+| `thresholds` | number[] |  | The values where one class ends and the next begins; takes the place of `steps`. A value below the first one is in the first class. |
+| `empty_color` | color | theme | Color of the regions without a value. |
+| `border_color` | color | theme | Color of the borders of the regions: by default the background color. |
+| `border_width` | number | `1` | Width of the borders of the regions; `0` draws none. |
+| `label_show` | boolean | `false` | Writes the name of every region on it; a name that would run into another one is left out. |
+| `visual_map_show` | boolean | `true` | Shows the scale of the colors beside the map: a bar from the smallest value to the largest, or a swatch for every class. |
+
+<!-- example: map -->
+
+```json
+{
+  "label_show": true,
+  "thresholds": [100, 300],
+  "colors": ["#deebf7", "#9ecae1", "#3182bd"],
+  "data": [["West", 80], ["East", 420]],
+  "geo_json": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {"name": "West"},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[100, 20], [106, 20], [107, 26], [101, 27], [100, 20]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {"name": "East"},
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[106, 20], [113, 21], [112, 27], [107, 26], [106, 20]]]
+        }
+      }
+    ]
+  }
+}
+```
+
 ## Multi chart
 
 `MultiChart::from_json` — Several charts in one SVG, one below the other or at positions of their own. It does not take the common options.
@@ -1115,7 +1277,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs).
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `type` | string |  | Type of the child: `bar` (the default), `line`, `horizontal_bar`, `pie`, `radar`, `table`, `scatter`, `candlestick`, `heatmap`, `funnel`, `waterfall`, `calendar`, `gauge`, `treemap`, `box_plot`, `sunburst`, `sankey`, `tree`, `graph`, `parallel`, `theme_river`, `histogram`, `polar_bar` or `chord`. |
+| `type` | string |  | Type of the child: `bar` (the default), `line`, `horizontal_bar`, `pie`, `radar`, `table`, `scatter`, `candlestick`, `heatmap`, `funnel`, `waterfall`, `calendar`, `gauge`, `treemap`, `box_plot`, `sunburst`, `sankey`, `tree`, `graph`, `parallel`, `theme_river`, `histogram`, `polar_bar`, `chord`, `gantt` or `map`. |
 | `x` | number |  | Horizontal position of the child; with `x` or `y` set, the child is placed there instead of below the previous one. |
 | `y` | number |  | Vertical position of the child. |
 
