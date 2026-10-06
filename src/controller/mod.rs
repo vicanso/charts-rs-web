@@ -122,10 +122,21 @@ struct BasicInfoResult {
 }
 
 async fn get_basic_info() -> JsonResult<BasicInfoResult> {
-    let families = charts_rs::get_font_families()?;
+    // charts-rs按名称排序返回，将默认字体调整至最前
+    let mut families = charts_rs::get_font_families()?;
+    if let Some(index) = families
+        .iter()
+        .position(|item| item == charts_rs::DEFAULT_FONT_FAMILY)
+    {
+        let family = families.remove(index);
+        families.insert(0, family);
+    }
+    // 主题的顺序不固定，按名称排序
+    let mut themes = charts_rs::list_theme_name();
+    themes.sort_unstable();
     Ok(Json(BasicInfoResult {
         families,
-        themes: charts_rs::list_theme_name(),
+        themes,
         version: charts_rs::version().to_string(),
     }))
 }
