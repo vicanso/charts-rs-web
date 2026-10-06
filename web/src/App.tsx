@@ -4146,8 +4146,21 @@ class App extends Component<any, AppState> {
       return;
     }
     options.theme = this.state.theme;
-    if (this.state.fontFamily) {
-      options.font_family = this.state.fontFamily;
+    const { fontFamily } = this.state;
+    if (fontFamily) {
+      if (Array.isArray(options.child_charts)) {
+        // A multi chart has no font of its own (the key is rejected): the
+        // font belongs to its children.
+        delete options.font_family;
+        options.child_charts = options.child_charts.map(
+          (child: Record<string, unknown>) => ({
+            ...child,
+            font_family: fontFamily,
+          }),
+        );
+      } else {
+        options.font_family = fontFamily;
+      }
     }
     options.compact = this.state.compact;
     const { simply } = this.state;
