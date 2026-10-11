@@ -29,10 +29,8 @@ color classes and punch card: heatmap (thresholds, symbol); \
 segmented dial and ring progress: gauge (thresholds, multi_ring); \
 radial tree: tree (layout); \
 vertical sankey: sankey (orient); \
-choropleth map: map, which takes the regions as GeoJSON in geo_json.";
-
-// 标题与图例默认均为顶部居中，同时使用时会重叠，因此提示模型调整
-const LAYOUT_TIPS: &str = "\n## Tips\n\n- The title and the legend are both centered at the top by default, so they overlap when a chart has a `title_text` and a legend. Set `legend_align` to `\"right\"` or `\"left\"`, or `legend_position` to `\"bottom\"`.\n";
+choropleth map: map, which takes the regions as GeoJSON in geo_json; \
+a source or copyright line and a watermark: texts, on any chart.";
 
 // 图表类型，与HTTP接口的`type`一致
 // 注意：JsonSchema类型的文档注释会成为工具参数的描述返回给模型，因此此处不使用文档注释
@@ -196,9 +194,6 @@ fn chart_options_doc(chart_type: ChartType) -> String {
     doc.push_str(&format!("- `theme`: {}\n", themes.join(", ")));
     if let Ok(families) = charts_rs::get_font_families() {
         doc.push_str(&format!("- `font_family`: {}\n", families.join(", ")));
-    }
-    if chart_type.use_common_options() {
-        doc.push_str(LAYOUT_TIPS);
     }
     doc
 }
@@ -410,6 +405,7 @@ mod tests {
             "layout",
             "orient",
             "geo_json",
+            "texts",
         ];
         for key in keys {
             assert!(

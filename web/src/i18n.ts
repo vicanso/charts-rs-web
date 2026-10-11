@@ -192,6 +192,7 @@ export const chartTextEn: Record<string, { label: string; hint: string }> = {
   barStacked: { label: "Stacked bar", hint: "Totals by parts" },
   barStackPercent: { label: "100% stacked bar", hint: "Shares of a whole" },
   barErrorBar: { label: "Bar with error bars", hint: "Ranges of error" },
+  barTexts: { label: "Texts over a chart", hint: "Source line and watermark" },
   horizontalBar: { label: "Horizontal bar", hint: "Rankings" },
   barLineMixin: { label: "Bar and line", hint: "Two axes" },
   waterfallChart: { label: "Waterfall", hint: "Gains and losses" },

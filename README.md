@@ -68,6 +68,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 - `legend_margin`: 图示的margin，默认为`0`
 - `legend_category`: 图示的类型，默认为`normal`，可选值为：`normal`以及`rect`
 - `legend_show`: 图示是否显示，默认为`true`
+- `texts`: 叠加在图表上的文字（数据来源、版权信息、水印等），类型为数组，通过`left`、`top`、`right`、`bottom`指定与边缘的距离，`reserve`为`true`时为其预留空间而不是覆盖在图表上
 
 ### 图表类型
 

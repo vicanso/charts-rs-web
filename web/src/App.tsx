@@ -401,6 +401,7 @@ const chartCategories: ChartCategory[] = [
       { value: "barStacked", label: "堆叠柱状图", short: "Stack", hint: "总量对比", glyph: "stack" },
       { value: "barStackPercent", label: "百分比堆叠柱状图", short: "Pct", hint: "占比构成", glyph: "stack" },
       { value: "barErrorBar", label: "误差线柱状图", short: "Err", hint: "误差范围", glyph: "bar" },
+      { value: "barTexts", label: "文字标注", short: "Texts", hint: "来源与水印", glyph: "bar" },
       { value: "horizontalBar", label: "水平柱状图", short: "HBar", hint: "排行类数据", glyph: "hbar" },
       { value: "barLineMixin", label: "柱线混合图", short: "Mix", hint: "双轴混合", glyph: "mix" },
       { value: "waterfallChart", label: "瀑布图", short: "Fall", hint: "增减拆解", glyph: "waterfall" },
@@ -1187,6 +1188,67 @@ const chartDefaultOptions: Record<string, unknown> = {
       "theme",
     ],
   }),
+  barTexts: Object.assign({}, defaultOption, {
+    type: "bar",
+    title_text: "Bar Chart with Texts",
+    title_align: "left",
+    sub_title_text: "",
+    legend_align: "right",
+    margin: {
+      left: 10,
+      top: 8,
+      right: 10,
+      bottom: 8,
+    },
+    x_axis_data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    x_axis_hidden: false,
+    y_axis_hidden: false,
+    series_list: [
+      {
+        name: "Email",
+        data: [120, 132, 101, 134, 90, 230, 210],
+      },
+      {
+        name: "Search",
+        data: [220, 182, 191, 234, 290, 330, 310],
+      },
+    ],
+    texts: [
+      {
+        text: "Source: web analytics",
+        left: 10,
+        bottom: 6,
+        reserve: true,
+      },
+      {
+        text: "© 2026 Example Inc.",
+        right: 10,
+        bottom: 6,
+        reserve: true,
+      },
+      {
+        text: "DRAFT",
+        font_size: 72,
+        font_color: "#80808038",
+        font_weight: "bold",
+        rotate: -25,
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "margin",
+      "font_family",
+      "legend_align",
+      "type",
+      "title_text",
+      "title_align",
+      "x_axis_data",
+      "series_list",
+      "texts",
+      "theme",
+    ],
+  }),
   lineBasic: Object.assign({}, defaultOption, {
     type: "line",
     title_text: "Line Chart",
@@ -1951,9 +2013,6 @@ const chartDefaultOptions: Record<string, unknown> = {
     type: "radar",
     title_text: "Radar Chart",
     sub_title_text: "",
-    title_margin: {
-      top: 20,
-    },
     series_list: [
       {
         name: "Allocated Budget",
@@ -1996,7 +2055,6 @@ const chartDefaultOptions: Record<string, unknown> = {
       "width",
       "height",
       "font_family",
-      "title_margin",
       "type",
       "title_text",
       "x_axis_data",
