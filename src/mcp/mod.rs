@@ -20,7 +20,7 @@ static CHART_OPTIONS_DOC: &str = include_str!("chart_options.md");
 // 因此在工具描述中给出变体与基础类型的对应关系，其中的参数名需与文档保持一致（有测试校验）
 const CHART_OPTIONS_DESCRIPTION: &str = "Describe the JSON options of a chart type: every accepted key with its type and default, plus an example. Call it before render_chart. \
 Many charts are options of a base type rather than a type of their own: \
-bubble chart and regression line: scatter (bubble, regression); \
+bubble chart, regression line, density contours and marginal histograms: scatter (bubble, regression, contour, marginal); \
 doughnut, half doughnut and nested pies: pie (inner_radius, end_angle, ring); \
 area, step line, confidence band and bump (ranking) chart: line (series_fill, step, band, axis_inverse); \
 stacked and 100% stacked bars, bars with a line, error bars: bar (stack, stack_percent, category, error_bar); \
@@ -29,8 +29,10 @@ color classes and punch card: heatmap (thresholds, symbol); \
 segmented dial and ring progress: gauge (thresholds, multi_ring); \
 radial tree: tree (layout); \
 vertical sankey: sankey (orient); \
+circular radar: radar (shape); \
 choropleth map: map, which takes the regions as GeoJSON in geo_json; \
-a source or copyright line and a watermark: texts, on any chart.";
+a source or copyright line and a watermark: texts, on any chart; \
+a marker on any point of a line: mark_points with category index.";
 
 // 图表类型，与HTTP接口的`type`一致
 // 注意：JsonSchema类型的文档注释会成为工具参数的描述返回给模型，因此此处不使用文档注释
@@ -406,6 +408,11 @@ mod tests {
             "orient",
             "geo_json",
             "texts",
+            "contour",
+            "marginal",
+            "shape",
+            "mark_points",
+            "index",
         ];
         for key in keys {
             assert!(

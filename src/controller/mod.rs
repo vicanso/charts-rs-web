@@ -489,4 +489,21 @@ mod tests {
         assert_eq!(high, best);
         assert_eq!(defaulted, mid);
     }
+
+    #[test]
+    fn render_chart_accepts_charts_rs_2_2_options() {
+        let samples: &[&[u8]] = &[
+            br#"{"type":"radar","width":80,"height":80,"shape":"circle","indicators":[{"name":"A","min":1,"max":10},{"name":"B","max":10},{"name":"C","max":10}],"series_list":[{"name":"S","data":[5,6,7]}]}"#,
+            br#"{"type":"scatter","width":120,"height":80,"contour":{},"marginal":{},"series_list":[{"name":"A","data":[1,2,3,4,5,6]}]}"#,
+            br#"{"type":"line","width":80,"height":48,"x_axis_data":["a","b","c"],"series_list":[{"name":"A","data":[1,3,2],"mark_points":[{"category":"index","index":1}]}]}"#,
+        ];
+        for json in samples {
+            let svg = render_chart(json, FormatType::Svg).expect("svg");
+            assert!(
+                svg.windows(4).any(|w| w == b"<svg"),
+                "{}",
+                String::from_utf8_lossy(svg.as_ref())
+            );
+        }
+    }
 }

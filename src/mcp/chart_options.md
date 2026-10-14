@@ -170,7 +170,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `category` | `"line"` / `"bar"` |  | In a bar chart: draws this series as a line (`line`) instead of bars. |
 | `start_index` | integer ≥ 0 | `0` | Index of the category the first value belongs to. |
 | `mark_lines` | object[] |  | Lines across the plot at a statistic of the series or at a fixed value. |
-| `mark_points` | object[] |  | Markers on the smallest or largest point of the series. |
+| `mark_points` | object[] |  | Markers on points of the series, each with the value of its point in it: on the smallest, on the largest, or on any one by its index. A series that is drawn as a line has them. |
 | `mark_areas` | object[] |  | Shaded bands across the plot between two values. |
 | `colors` | color[] |  | A color for each data point (bar, horizontal bar and polar bar charts); `null` keeps the color of the series. |
 | `stroke_dash_array` | string |  | Dash pattern of a line series, e.g. `"4 2"`. |
@@ -202,7 +202,19 @@ These keys are accepted by every chart except the table and the multi chart. A c
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `category` | `"min"` / `"max"` |  | The point that is marked. |
+| `category` | `"min"` / `"max"` / `"index"` |  | The point that is marked: the smallest value of the series, the largest, or the one whose `index` is given. |
+| `index` | integer |  | With the `"index"` category, which point: its place in the `data` of the series, the first one being 0. A point without a value has no marker. |
+
+A marker is above its point and as large as the value in it; the plot starts lower where one would reach above it. Two peaks of a day are the largest value and one more point:
+
+```json
+{
+  "mark_points": [
+    { "category": "max" },
+    { "category": "index", "index": 28 }
+  ]
+}
+```
 
 #### `series_list[].mark_areas[]`
 
@@ -415,7 +427,7 @@ A text is placed by its distances from the edges of the chart, in pixels. With a
 
 ## Radar
 
-`RadarChart::from_json` — Every series is a polygon over the `indicators`, with one value for each of them.
+`RadarChart::from_json` — Every series is a polygon over the `indicators`, with one value for each of them. The polygons are filled unless `series_fill` is `false`; a series can override that with its own `fill`. `"shape": "circle"` draws the rings as circles. The spokes are lines either way.
 
 <!-- keys: radar -->
 
@@ -423,6 +435,7 @@ A text is placed by its distances from the edges of the chart, in pixels. With a
 |---|---|---|---|
 | `indicators` | object[] |  | The axes of the radar; every series has one value for each. |
 | `split_number` | integer 0–1000 | `5` | Number of rings of the web; `0` means 5. |
+| `shape` | `"polygon"` / `"circle"` | `"polygon"` | `polygon` draws a straight-sided web. `circle` draws concentric circles. The spokes are lines either way. |
 
 ### `indicators[]`
 
@@ -431,7 +444,8 @@ A text is placed by its distances from the edges of the chart, in pixels. With a
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `name` | string |  | Name of the indicator. |
-| `max` | number |  | Value at the outer end of the axis; raised to the largest value of the data when that is larger. |
+| `min` | number | `0` | Value at the center of this axis. A value below it is drawn at the center. |
+| `max` | number |  | Value at the outer ring. Raised to the largest value of the data when that is larger. |
 
 <!-- example: radar -->
 
@@ -466,6 +480,27 @@ A text is placed by its distances from the edges of the chart, in pixels. With a
 | `regression` | `"linear"` / `"exponential"` / `"logarithmic"` / `"polynomial"` |  | Draws the curve of this kind that fits the points of each series best (by least squares), in the color of the series. An exponential curve is fitted to the points above 0, a logarithmic one to the points right of 0. |
 | `regression_order` | integer 0–1000 | `2` | Order of a `polynomial` regression, from 1 to 6. |
 | `regression_label_show` | boolean | `false` | Writes the formula of each fitted curve at its end, e.g. `y = 1.5x + 2`. |
+| `marginal` | object |  | Histograms of the points of this chart: the distribution of x above the plot and the distribution of y to its right. The bins span the axes, so a bar sits over the points it counts. `{}` turns them on. |
+| `contour` | object |  | Unfilled density contours of the points. Each series is estimated with a Gaussian kernel, and the lines are drawn under the points in the color of the series. `{}` turns them on. |
+
+### `marginal`
+
+<!-- keys: scatter.marginal -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `size` | number | `64` | Height of the top histogram and width of the right one, in pixels. The plot keeps at least 40 pixels; a chart too small for that draws neither. |
+| `bin_count` | integer 0–1000 | `0` | Bins along each axis. `0` derives the number from the points. Never more than 40. |
+| `bar_gap` | number | `1` | Gap between adjacent bars, in pixels. |
+
+### `contour`
+
+<!-- keys: scatter.contour -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `levels` | integer 0–1000 | `4` | How many lines to draw, at `k / (levels + 1)` of the highest density. `4` is 20%, 40%, 60% and 80%. `0` is those four. Never more than 8. |
+| `grid_size` | integer 0–1000 | `64` | Cells along each axis of the grid the density is estimated on. `0` is 64. Clamped to 16..=128. |
 
 ### `x_axis_config`
 
@@ -851,7 +886,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `name` | string |  | Name of the node, shown as its label. |
+| `name` | string |  | Name of the node, shown as its label. The label is written along the arc of the node where the arc is long enough for it. Where it is too short, the label is turned to run along the radius instead, if the ring is thick enough for it and the node as wide as a line of text; a label that fits neither way is left out. |
 | `value` | number |  | Value of a leaf; a node with children is as large as their sum. |
 | `color` | color |  | Color of the node; by default taken from the palette. |
 | `children` | object[] |  | The child nodes, each with the same keys. |

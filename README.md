@@ -78,10 +78,10 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 | --- | --- |
 | `bar` | 柱状图（默认），可堆叠（`stack_percent`为百分比堆叠）、与折线混合或添加误差线（`error_bar`） |
 | `horizontal_bar` | 水平柱状图 |
-| `line` | 折线图，支持平滑、阶梯线（`step`）、填充、区间带（`band`）以及数值/时间X轴（`x_axis_values`） |
+| `line` | 折线图，支持平滑、阶梯线（`step`）、填充、区间带（`band`）以及数值/时间X轴（`x_axis_values`）；`mark_points` 可按 `index` 标记任意点 |
 | `pie` | 饼图、南丁格尔玫瑰图，支持半环（`end_angle`）与嵌套多环（`ring`） |
-| `radar` | 雷达图 |
-| `scatter` | 散点图，`bubble`为`true`时为气泡图，`regression`可添加回归线 |
+| `radar` | 雷达图，`shape`为`circle`时网格为同心圆，`indicators.min`为各轴圆心值 |
+| `scatter` | 散点图，`bubble`为`true`时为气泡图，`regression`可添加回归线，`contour`为密度等高线，`marginal`为边缘直方图 |
 | `candlestick` | 蜡烛图，`candlestick_style`为`ohlc`时为OHLC图 |
 | `table` | 表格 |
 | `heatmap` | 热力图，支持多色与分段配色，`symbol`为`circle`时为打卡图 |
@@ -159,6 +159,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 - `series_list.y_axis_index`: 数据对应的Y轴，如果该数据非使用第一个Y轴时可指定（同时Y轴需要初始化为多个）
 - `series_list.label_show`: 数据的label是否展示，默认为`false`
 - `series_list.category`: 数据的类型，用于在`bar`图表中指定某些数据以`line`的形式混合展示，可选值为`bar`与`line`
+- `series_list.mark_points`: 标记系列中的点，`category`为`min`、`max`或`index`（配合`index`指定下标）
 
 ### 饼图相关属性
 
