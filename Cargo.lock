@@ -427,17 +427,16 @@ dependencies = [
  "base64",
  "charts-rs",
  "chrono",
+ "color_quant 2.0.0",
  "config",
  "glob",
  "hex",
  "http-body-util",
  "image",
- "imagequant",
  "lodepng",
  "mime",
  "num_cpus",
  "once_cell",
- "rgb",
  "rmcp",
  "rust-embed",
  "schemars",
@@ -483,6 +482,12 @@ name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
+
+[[package]]
+name = "color_quant"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00c1c79b421ca69d94677a49b2ccf389dab3409952aed790594de8fa03b07989"
 
 [[package]]
 name = "compression-codecs"
@@ -1057,7 +1062,7 @@ version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee8cfcc411d9adbbaba82fb72661cc1bcca13e8bba98b364e62b2dba8f960159"
 dependencies = [
- "color_quant",
+ "color_quant 1.1.0",
  "weezl",
 ]
 
@@ -1370,7 +1375,7 @@ checksum = "85ab80394333c02fe689eaf900ab500fbd0c2213da414687ebf995a65d5a6104"
 dependencies = [
  "bytemuck",
  "byteorder-lite",
- "color_quant",
+ "color_quant 1.1.0",
  "exr",
  "gif",
  "image-webp",
@@ -1394,17 +1399,6 @@ checksum = "525e9ff3e1a4be2fbea1fdf0e98686a6d98b4d8f937e1bf7402245af1909e8c3"
 dependencies = [
  "byteorder-lite",
  "quick-error",
-]
-
-[[package]]
-name = "imagequant"
-version = "4.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "caf5d73b959dfbe5d6b5cd3ca8de5265c7bc58297f20560a60a1d2ba6a19991f"
-dependencies = [
- "arrayvec",
- "once_cell",
- "rgb",
 ]
 
 [[package]]

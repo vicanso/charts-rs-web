@@ -39,7 +39,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 ### 公共参数
 
 - `type`: 图表类型，默认为`bar`，可选的值见[图表类型](#图表类型)
-- `quality`: 输出的PNG图片质量，默认为`80`，若指定为`0`则表示不压缩。图片质量为`80`时，图片大小`7kb`，总体耗时`52ms`。不压缩时，图片大小`46kb`，总体耗时`26ms`
+- `quality`: 输出的 PNG 质量，默认为`80`，范围`0`–`100`。`0`表示不减色，沿用渲染器的快速压缩。`1`–`100`用 NeuQuant 减色后再做 deflate：数值越大，调色板颜色越多（64–256），deflate 等级也越高（1–9）。默认`80`约为 217 色、deflate 7
 - `compact`: 是否压缩 SVG，默认为`true`。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
 - `theme`: 图表主题，支持`light`，`dark`，`ant`，`vintage`，`shine`，`walden`，`westeros`，`chalk`，`grafana`以及`shadcn`共10种主题色
 - `width`: 图表宽度，默认为600

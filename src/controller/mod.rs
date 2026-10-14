@@ -6,7 +6,6 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use http_body_util::BodyExt;
 use image::{ImageFormat, load};
-use rgb::RGBA8;
 use serde::Deserialize;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
@@ -28,11 +27,6 @@ pub enum ImageError {
     Image {
         category: String,
         source: image::ImageError,
-    },
-    #[snafu(display("Handle image {category}: {source}"))]
-    ImageQuant {
-        category: String,
-        source: imagequant::Error,
     },
     #[snafu(display("Handle image {category}: {source}"))]
     LodePNG {
@@ -186,6 +180,50 @@ async fn render_from_bdoy(req: Request<Body>, format: FormatType) -> HttpResult<
     render(buf.as_ref(), format).await
 }
 
+/// `quality` 1–100 → (NeuQuant samplefac, 调色板颜色数, deflate level)。
+/// 100 为 sample 1、256 色、deflate 9；80 为 sample 6、217 色、deflate 7；1 为 sample 30、64 色、deflate 1。
+fn png_encode_settings(quality: u8) -> (i32, usize, u8) {
+    let q = quality.clamp(1, 100);
+    let sample_fac = 1 + (100 - i32::from(q)) * 29 / 99;
+    let colors = 64 + (256 - 64) * (usize::from(q) - 1) / 99;
+    let level = 1 + (u16::from(q) - 1) * 8 / 99;
+    (sample_fac, colors, level as u8)
+}
+
+fn quantize_png(png: &[u8], quality: u8) -> Result<Vec<u8>, ImageError> {
+    let (sample_fac, colors, level) = png_encode_settings(quality);
+    let dynamic_image = load(Cursor::new(png), ImageFormat::Png).context(ImageSnafu {
+        category: "load_image",
+    })?;
+    let rgba = dynamic_image.to_rgba8();
+    let width = rgba.width() as usize;
+    let height = rgba.height() as usize;
+    if width == 0 || height == 0 {
+        return Ok(png.to_vec());
+    }
+    let pixels = rgba.as_raw();
+    let nq = color_quant::NeuQuant::new(sample_fac, colors, pixels);
+    let indexed: Vec<u8> = pixels
+        .chunks_exact(4)
+        .map(|pix| nq.index_of(pix).min(colors - 1) as u8)
+        .collect();
+    let map = nq.color_map_rgba();
+    let palette: Vec<lodepng::RGBA> = map
+        .chunks_exact(4)
+        .take(colors)
+        .map(|c| lodepng::RGBA::new(c[0], c[1], c[2], c[3]))
+        .collect();
+    let mut enc = lodepng::Encoder::new();
+    enc.set_auto_convert(false);
+    enc.settings_mut().set_level(level);
+    enc.set_palette(&palette).context(LodePNGSnafu {
+        category: "png_encoder",
+    })?;
+    enc.encode(&indexed, width, height).context(LodePNGSnafu {
+        category: "png_encode",
+    })
+}
+
 async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
     let data = render_chart(params, format)?;
     let content_type = HeaderValue::from_static(format.mime());
@@ -202,11 +240,8 @@ pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
         ""
     };
     let mut quality: u8 = 80;
-    if let Some(value) = value.get("quality") {
-        let v = value.as_u64().unwrap_or_default();
-        if v < 100 {
-            quality = v as u8;
-        }
+    if let Some(value) = value.get("quality").and_then(|item| item.as_u64()) {
+        quality = value.min(100) as u8;
     }
 
     let svg = match chart_type {
@@ -340,55 +375,7 @@ pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
             if quality == 0 {
                 Bytes::from(data)
             } else {
-                let mut liq = imagequant::new();
-                liq.set_quality(0, quality).context(ImageQuantSnafu {
-                    category: "png_set_quality",
-                })?;
-
-                let c = Cursor::new(&data);
-                let dynamic_image = load(c, ImageFormat::Png).context(ImageSnafu {
-                    category: "load_image",
-                })?;
-                let width = dynamic_image.width() as usize;
-                let height = dynamic_image.height() as usize;
-                let mut buffer = Vec::with_capacity(width * height);
-
-                for ele in dynamic_image.to_rgba8().chunks(4) {
-                    buffer.push(RGBA8 {
-                        r: ele[0],
-                        g: ele[1],
-                        b: ele[2],
-                        a: ele[3],
-                    })
-                }
-
-                let mut img =
-                    liq.new_image(buffer, width, height, 0.0)
-                        .context(ImageQuantSnafu {
-                            category: "png_new_image",
-                        })?;
-
-                let mut res = liq.quantize(&mut img).context(ImageQuantSnafu {
-                    category: "png_quantize",
-                })?;
-
-                res.set_dithering_level(1.0).context(ImageQuantSnafu {
-                    category: "png_set_level",
-                })?;
-
-                let (palette, pixels) = res.remapped(&mut img).context(ImageQuantSnafu {
-                    category: "png_remapped",
-                })?;
-                let mut enc = lodepng::Encoder::new();
-                enc.set_palette(&palette).context(LodePNGSnafu {
-                    category: "png_encoder",
-                })?;
-
-                let buf = enc.encode(&pixels, width, height).context(LodePNGSnafu {
-                    category: "png_encode",
-                })?;
-
-                Bytes::from(buf)
+                Bytes::from(quantize_png(&data, quality)?)
             }
         }
     };
@@ -413,4 +400,93 @@ async fn chart_avif(req: Request<Body>) -> HttpResult<Response> {
 
 async fn chart_jpeg(req: Request<Body>) -> HttpResult<Response> {
     render_from_bdoy(req, FormatType::Jpeg).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::RgbaImage;
+
+    fn gradient_png() -> Vec<u8> {
+        let image = RgbaImage::from_fn(48, 32, |x, y| {
+            image::Rgba([(x * 5) as u8, (y * 7) as u8, 90, 255])
+        });
+        let mut buf = Cursor::new(Vec::new());
+        image
+            .write_to(&mut buf, ImageFormat::Png)
+            .expect("encode gradient");
+        buf.into_inner()
+    }
+
+    fn assert_png(data: &[u8], width: u32, height: u32) {
+        assert_eq!(&data[..8], &[137, 80, 78, 71, 13, 10, 26, 10]);
+        let image = load(Cursor::new(data), ImageFormat::Png).expect("decode png");
+        assert_eq!((image.width(), image.height()), (width, height));
+    }
+
+    fn unique_colors(data: &[u8]) -> usize {
+        let image = load(Cursor::new(data), ImageFormat::Png)
+            .expect("decode png")
+            .into_rgba8();
+        let mut colors = std::collections::HashSet::new();
+        for pixel in image.pixels() {
+            colors.insert([pixel[0], pixel[1], pixel[2], pixel[3]]);
+        }
+        colors.len()
+    }
+
+    #[test]
+    fn png_encode_settings_follows_quality() {
+        assert_eq!(png_encode_settings(1), (30, 64, 1));
+        assert_eq!(png_encode_settings(80), (6, 217, 7));
+        assert_eq!(png_encode_settings(100), (1, 256, 9));
+        assert_eq!(png_encode_settings(0), png_encode_settings(1));
+        assert_eq!(png_encode_settings(255), png_encode_settings(100));
+    }
+
+    #[test]
+    fn quantize_png_is_valid_and_smaller() {
+        let raw = gradient_png();
+        let low = quantize_png(&raw, 40).expect("q40");
+        let mid = quantize_png(&raw, 80).expect("q80");
+        let high = quantize_png(&raw, 100).expect("q100");
+        for data in [&low, &mid, &high] {
+            assert_png(data, 48, 32);
+        }
+        let (low_n, mid_n, high_n) = (
+            unique_colors(&low),
+            unique_colors(&mid),
+            unique_colors(&high),
+        );
+        let (_, low_cap, _) = png_encode_settings(40);
+        let (_, mid_cap, _) = png_encode_settings(80);
+        let (_, high_cap, _) = png_encode_settings(100);
+        assert!(low_n <= low_cap && mid_n <= mid_cap && high_n <= high_cap);
+        assert!(low_n < high_n);
+        assert_ne!(low, mid);
+        assert_ne!(mid, high);
+    }
+
+    #[test]
+    fn render_chart_png_quality_changes_output() {
+        let chart = |quality: &str| {
+            format!(
+                r#"{{"type":"bar","width":80,"height":48,"quality":{quality},"x_axis_data":["a","b"],"series_list":[{{"name":"A","data":[1,3]}}]}}"#
+            )
+        };
+        let raw = render_chart(chart("0").as_bytes(), FormatType::Png).expect("q0");
+        let mid = render_chart(chart("80").as_bytes(), FormatType::Png).expect("q80");
+        let high = render_chart(chart("150").as_bytes(), FormatType::Png).expect("q150");
+        let best = render_chart(chart("100").as_bytes(), FormatType::Png).expect("q100");
+        let defaulted = render_chart(
+            br#"{"type":"bar","width":80,"height":48,"quality":80.5,"x_axis_data":["a","b"],"series_list":[{"name":"A","data":[1,3]}]}"#,
+            FormatType::Png,
+        )
+        .expect("float");
+        assert_png(&raw, 80, 48);
+        assert_png(&mid, 80, 48);
+        assert!(raw.len() > mid.len());
+        assert_eq!(high, best);
+        assert_eq!(defaulted, mid);
+    }
 }
