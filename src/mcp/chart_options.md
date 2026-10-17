@@ -14,7 +14,7 @@ Every chart can be created from a JSON document with its `from_json`, e.g. `BarC
 
 - [Value types](#value-types)
 - [Common options](#common-options)
-- Charts: [Bar](#bar), [Horizontal bar](#horizontal-bar), [Line](#line), [Pie](#pie), [Radar](#radar), [Scatter](#scatter), [Candlestick](#candlestick), [Table](#table), [Heatmap](#heatmap), [Funnel](#funnel), [Waterfall](#waterfall), [Calendar](#calendar), [Gauge](#gauge), [Treemap](#treemap), [Box plot](#box-plot), [Sunburst](#sunburst), [Sankey](#sankey), [Tree](#tree), [Graph](#graph), [Parallel](#parallel), [Theme river](#theme-river), [Histogram](#histogram), [Polar bar](#polar-bar), [Chord](#chord), [Gantt](#gantt), [Map](#map), [Multi chart](#multi-chart)
+- Charts: [Bar](#bar), [Horizontal bar](#horizontal-bar), [Line](#line), [Pie](#pie), [Radar](#radar), [Scatter](#scatter), [Candlestick](#candlestick), [Table](#table), [Heatmap](#heatmap), [Funnel](#funnel), [Waterfall](#waterfall), [Calendar](#calendar), [Gauge](#gauge), [Bullet](#bullet), [Treemap](#treemap), [Box plot](#box-plot), [Sunburst](#sunburst), [Sankey](#sankey), [Tree](#tree), [Graph](#graph), [Parallel](#parallel), [Theme river](#theme-river), [Histogram](#histogram), [Polar bar](#polar-bar), [Chord](#chord), [Gantt](#gantt), [Lines](#lines), [Map](#map), [Multi chart](#multi-chart)
 - [Keys for tools](#keys-for-tools)
 
 ## Value types
@@ -126,6 +126,8 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `grid_stroke_color` | color | theme | Color of the grid lines. |
 | `grid_stroke_width` | number | `1` | Width of the grid lines. |
 | `grid_stroke_dash_array` | string |  | Dashes of the grid lines, as the `stroke-dasharray` of SVG takes them (e.g. `"4,2"`). Solid lines by default. Applies to the grid of the charts with an x and a y axis, to those of the gantt, radar and polar bar charts, to the lines of a punch card and to the axes of a parallel chart. |
+| `grid_left` | number |  | How far from the left edge of the chart the plot starts, at the least: further in than the y axis puts it, so that the plots of charts one above the other line up (see `align_plots` of a multi chart). Where the axis needs more the plot starts where the axis puts it. In bar, line, candlestick, histogram, scatter, box plot and waterfall charts; the histogram to the right of the plot of a scatter chart stays against the plot. |
+| `grid_right` | number |  | How far from the right edge of the chart the plot ends, at the least, as `grid_left` does on the other side. |
 
 ### Series
 
@@ -134,7 +136,7 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `series_list` | object[] |  | The data series of the chart. |
 | `series_colors` | color[] | theme | The color palette: a series takes the color at its position, starting over when the palette runs out. |
 | `series_stroke_width` | number | `2` | Stroke width of the series lines. |
-| `series_symbol` | object |  | Marker drawn on the data points of every line; `null` draws none. Default: a circle as large as `series_stroke_width`, filled with the background color. |
+| `series_symbol` | object |  | Marker drawn on the data points of every line, and on the vertices of a radar polygon; `null` draws none. On a line the default is a circle as large as `series_stroke_width`, filled with the background color. A radar chart that leaves this and every series `symbol` unset keeps a circle of radius 2 on each vertex. |
 | `series_smooth` | boolean | `false` | Draws line series as smooth curves. |
 | `series_fill` | boolean | `false` | Fills the area under line series. |
 | `series_fill_opacity` | number |  | How opaque the fill of an area is, from 0 to 1. Default: `0.39` under a line, `0.2` in a radar chart. |
@@ -173,11 +175,11 @@ These keys are accepted by every chart except the table and the multi chart. A c
 | `mark_points` | object[] |  | Markers on points of the series, each with the value of its point in it: on the smallest, on the largest, or on any one by its index. A series that is drawn as a line has them. |
 | `mark_areas` | object[] |  | Shaded bands across the plot between two values. |
 | `colors` | color[] |  | A color for each data point (bar, horizontal bar and polar bar charts); `null` keeps the color of the series. |
-| `stroke_dash_array` | string |  | Dash pattern of a line series, e.g. `"4 2"`. |
+| `stroke_dash_array` | string |  | Dash pattern of a line series, and of a radar polygon, e.g. `"4 2"`. |
 | `stack` | string |  | Name of a stack: series with the same name (and y axis) are piled on top of each other. |
 | `smooth` | boolean |  | Overrides `series_smooth` for this series. |
 | `fill` | boolean |  | Overrides `series_fill` for this series. |
-| `symbol` | object |  | Overrides `series_symbol` for this series; `null` draws no marker. |
+| `symbol` | object |  | Overrides `series_symbol` for this series; `null` draws no marker. Used by line series and radar polygons. |
 | `x_values` | x value[] |  | The x value of each data point, for a series that is not sampled at the chart’s `x_axis_values`. |
 | `band` | object |  | A filled band around the line: a lower and an upper bound for each data point. |
 | `step` | `"start"` / `"middle"` / `"end"` |  | Draws the line as steps: level between two points, changing to the next value at the point itself (`start`), half way to the next one (`middle`) or at the next point (`end`). Wins over `smooth`. |
@@ -234,7 +236,7 @@ A marker is above its point and as large as the value in it; the plot starts low
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `type` | `"circle"` / `"rect"` / `"square"` / `"triangle"` / `"diamond"` |  | Shape of the marker (`square` is the same as `rect`). |
+| `type` | `"circle"` / `"rect"` / `"square"` / `"triangle"` / `"diamond"` / `"none"` |  | Shape of the marker (`square` is the same as `rect`); `"none"` draws no marker, as `null` does. |
 | `size` | number |  | Size of the marker: its radius, or half its side. |
 | `radius` | number |  | The same as `size`, which wins when both are set. |
 | `color` | color |  | Fill color of the marker; without one the marker is hollow. |
@@ -574,9 +576,11 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
 | `sub_title_margin` | margin |  | Margin around the sub-title. |
 | `sub_title_align` | `"left"` / `"center"` / `"right"` | `"center"` | Horizontal alignment of the sub-title. |
 | `sub_title_height` | number | `20` | Height reserved for the sub-title row. |
-| `data` | array |  | The rows of the table, each an array of strings; the first row is the header. |
+| `data` | array |  | The rows of the table, each an array of cells; the first row is the header. A cell is a string, a number (written as it is) or `null` (empty); an array of numbers is a sparkline, drawn in place of text: a small line of the values, from the lowest at the bottom of the cell to the highest at the top, with a dot on the last of them. A `null` in it leaves a gap. |
 | `spans` | number[] |  | Width of each column: values below 1 are shares of the table width, larger ones pixels; the other columns share the rest. |
 | `text_aligns` | string[] |  | Alignment of the text of each column: `"left"`, `"center"` or `"right"`. |
+| `sparkline_type` | `"line"` / `"bar"` | `"line"` | What the sparklines are drawn as: a line, or a bar for each value, from 0. |
+| `sparkline_color` | color |  | Color of the sparklines; by default the first color of the palette of the theme. |
 | `border_color` | color | theme | Color of the lines between the rows. |
 | `border_width` | number | `1` | Width of the lines between the rows, and of the outer border. |
 | `header_row_padding` | margin | `{left: 10, top: 8, right: 10, bottom: 8}` | Padding of the header row. |
@@ -789,6 +793,47 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
   "value_formatter": "{c}%",
   "series_list": [
     {"name": "CPU", "data": [72]}
+  ]
+}
+```
+
+## Bullet
+
+`BulletChart::from_json` — Measures against their targets, a row each: a bar for the value, a line across it for the target, and bands behind them for what is poor, fair and good, every row on a scale of its own. Several fit where one gauge would. It takes no `series_list`.
+
+<!-- keys: bullet -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `bullets` | object[] |  | The measures, one row each, from the top down. See [`bullets[]`](#bullets). |
+| `range_colors` | color[] |  | Colors of the bands, from the first one on. Without them the bands are shades of the text color, the first one the darkest. A measure for which less is better, a waiting time, wants them the other way round. |
+| `target_color` | color |  | Color of the target lines; by default that of the title. |
+| `label_show` | boolean | `false` | Writes the value of each row to the right of it, in the format of `series_label_formatter`: `{c}` is the value and `{b}` the name. |
+
+The names are written in the font of the x axis, and the scale below each row in the font, the color and the format (`axis_formatter`) of the first of `y_axis_configs`, as the value axis of a horizontal bar chart is; `x_axis_hidden` leaves the scales out. The ticks of a scale are round numbers that the chart picks: `axis_split_number` is not used. With `tooltip_show` a bar tells its name and value on hover.
+
+### `bullets[]`
+
+<!-- keys: bullet.bullets -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `name` | string |  | Name of the measure, written to the left of its row; cut with an ellipsis where it is wider than a third of the chart. |
+| `value` | number |  | The value, drawn as a bar from 0, or from the start of the scale where 0 is not on it. Without one the row has no bar. |
+| `target` | number |  | The value aimed at, drawn as a line across the bar. |
+| `ranges` | number[] |  | Where the bands behind the bar end: the first reaches from the start of the scale to the first of them, the next from there to the second, and so on. Without them there is one band, all along. |
+| `min` | number |  | The start of the scale. Default: 0, or a round number below the smallest value where that is below 0. |
+| `max` | number |  | The end of the scale. Default: the first round number from the largest of the value, the target and the ranges on. |
+| `color` | color |  | Color of the bar; by default the first color of the palette. |
+
+<!-- example: bullet -->
+
+```json
+{
+  "label_show": true,
+  "bullets": [
+    {"name": "Done in time (%)", "value": 92, "target": 95, "ranges": [80, 90, 100], "max": 100},
+    {"name": "Wait (min)", "value": 12, "target": 10, "ranges": [10, 20, 30]}
   ]
 }
 ```
@@ -1266,6 +1311,36 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
 }
 ```
 
+## Lines
+
+`LinesChart::from_json` — Flows from one point to another, straight or bent into an arc. The width of a line is its value. Without `geo_json` the points are on a plane, y growing upwards. With it they are longitudes and latitudes, and the regions are drawn under the lines. It takes no `series_list`.
+
+<!-- keys: lines -->
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `lines` | array |  | The flows. Each is `{ "from": [x, y], "to": [x, y], "value": number, "name": "" }`, or `{ "coords": [[x, y], [x, y]], "value": number }`. On a map, `x` is longitude and `y` is latitude. |
+| `curveness` | number | `0` | How far a line bends, as a fraction of its length, to the left of the direction it travels. `0` is straight. Clamped to -1…1. |
+| `min_width` | number | `1` | Width of the smallest value. `0` means 1. |
+| `max_width` | number | `6` | Width of the largest value. `0` means 6. |
+| `arrow` | boolean | `true` | Draws an arrow at the end of each line. |
+| `geo_json` | object |  | The regions under the lines: a GeoJSON `FeatureCollection` (or a single `Feature`) of `Polygon` and `MultiPolygon` geometries. Without it the chart is a plane. |
+| `name_property` | string | `"name"` | The property of a GeoJSON feature that is the name of its region. |
+| `projection` | `"mercator"` / `"equirectangular"` | `"mercator"` | How longitudes and latitudes are laid on the plane, the same way as a map. Ignored when there is no `geo_json`. |
+
+<!-- example: lines -->
+
+```json
+{
+  "curveness": 0.3,
+  "lines": [
+    {"name": "North", "value": 80, "from": [0, 0], "to": [40, 30]},
+    {"name": "East", "value": 20, "from": [0, 0], "to": [50, -10]},
+    {"name": "South", "value": 50, "from": [10, 20], "to": [30, -20]}
+  ]
+}
+```
+
 ## Map
 
 `MapChart::from_json` — A map of regions colored by their values. The regions come with the options, as GeoJSON: the chart has no map data of its own. It takes no `series_list`.
@@ -1338,6 +1413,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
 | `child_charts` | array |  | The charts, drawn one below the other: each one the options of its chart type, plus the keys below. |
 | `compact` | boolean | `false` | Emits compact SVG for the composition and every child. |
 | `texts` | object[] |  | Texts written over the whole composition: a copyright line, a watermark. See [`texts[]`](#texts). A child has `texts` of its own, over itself. The room a text reserves is around the `margin`: the children start inside of it, but for those placed by `x` and `y`, which stay where they are put. |
+| `align_plots` | boolean | `false` | Lines up the plots of the children one above the other: they start where the one that starts furthest from the left starts and end where the one that ends furthest from the right ends, whatever their axes take — a candlestick chart and the bars of its volume below it share their x positions. It sets `grid_left` and `grid_right` of the bar, line, candlestick, histogram, scatter, box plot and waterfall children that are not placed by `x` and `y`. |
 
 ### `child_charts[]`
 
@@ -1345,7 +1421,7 @@ The same keys as [`y_axis_configs[]`](#y_axis_configs). What they say of the val
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `type` | string |  | Type of the child: `bar` (the default), `line`, `horizontal_bar`, `pie`, `radar`, `table`, `scatter`, `candlestick`, `heatmap`, `funnel`, `waterfall`, `calendar`, `gauge`, `treemap`, `box_plot`, `sunburst`, `sankey`, `tree`, `graph`, `parallel`, `theme_river`, `histogram`, `polar_bar`, `chord`, `gantt` or `map`. |
+| `type` | string |  | Type of the child: `bar` (the default), `line`, `horizontal_bar`, `pie`, `radar`, `table`, `scatter`, `candlestick`, `heatmap`, `funnel`, `waterfall`, `calendar`, `gauge`, `treemap`, `box_plot`, `sunburst`, `sankey`, `tree`, `graph`, `parallel`, `theme_river`, `histogram`, `polar_bar`, `chord`, `gantt`, `map`, `lines` or `bullet`. |
 | `x` | number |  | Horizontal position of the child; with `x` or `y` set, the child is placed there instead of below the previous one. |
 | `y` | number |  | Vertical position of the child. |
 

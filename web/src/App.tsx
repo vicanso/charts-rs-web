@@ -121,6 +121,8 @@ type GlyphKind =
   | "halfpie"
   | "gantt"
   | "map"
+  | "bullet"
+  | "flows"
   | "table"
   | "multi";
 
@@ -371,6 +373,22 @@ function ChartGlyph({ kind }: { kind: GlyphKind }) {
           <path d="M7 3.5v10M11 5v10" strokeOpacity="0.55" />
         </svg>
       );
+    case "bullet":
+      return (
+        <svg {...common}>
+          <path d="M3 5.5h12M3 12.5h12" strokeOpacity="0.35" />
+          <path d="M3 5.5h8M3 12.5h10" strokeWidth="2.5" />
+          <path d="M13 3.5v4M11.5 10.5v4" />
+        </svg>
+      );
+    case "flows":
+      return (
+        <svg {...common}>
+          <path d="M3 13C5 6 10 4 15 5M3 13c4-1 7-3 9-7" />
+          <path d="M13 3.5 15 5l-2 1.5" />
+          <circle cx="3" cy="13" r="1.2" fill="currentColor" stroke="none" />
+        </svg>
+      );
     case "table":
       return (
         <svg {...common}>
@@ -403,6 +421,7 @@ const chartCategories: ChartCategory[] = [
       { value: "barErrorBar", label: "误差线柱状图", short: "Err", hint: "误差范围", glyph: "bar" },
       { value: "barTexts", label: "文字标注", short: "Texts", hint: "来源与水印", glyph: "bar" },
       { value: "horizontalBar", label: "水平柱状图", short: "HBar", hint: "排行类数据", glyph: "hbar" },
+      { value: "bulletChart", label: "子弹图", short: "Bullet", hint: "指标对目标", glyph: "bullet" },
       { value: "barLineMixin", label: "柱线混合图", short: "Mix", hint: "双轴混合", glyph: "mix" },
       { value: "waterfallChart", label: "瀑布图", short: "Fall", hint: "增减拆解", glyph: "waterfall" },
     ],
@@ -473,6 +492,7 @@ const chartCategories: ChartCategory[] = [
       { value: "treeChart", label: "树图", short: "Tree", hint: "层级结构", glyph: "tree" },
       { value: "treeRadial", label: "径向树图", short: "Radial", hint: "放射层级", glyph: "tree" },
       { value: "chordChart", label: "和弦图", short: "Chord", hint: "相互流向", glyph: "chord" },
+      { value: "linesChart", label: "流向图", short: "Flows", hint: "地图迁徙", glyph: "flows" },
       { value: "graphChart", label: "关系图", short: "Graph", hint: "节点网络", glyph: "graph" },
       { value: "ganttChart", label: "甘特图", short: "Gantt", hint: "项目排期", glyph: "gantt" },
     ],
@@ -482,7 +502,9 @@ const chartCategories: ChartCategory[] = [
     title: "categoryOther",
     items: [
       { value: "tableBasic", label: "表格", short: "Table", hint: "结构化数据", glyph: "table" },
+      { value: "tableSparkline", label: "表格迷你图", short: "Spark", hint: "单元格趋势", glyph: "table" },
       { value: "multiChart", label: "多图表拼合", short: "Multi", hint: "组合看板", glyph: "multi" },
+      { value: "multiAligned", label: "K 线多图对齐", short: "Align", hint: "绘图区对齐", glyph: "candle" },
     ],
   },
 ];
@@ -3721,6 +3743,419 @@ const chartDefaultOptions: Record<string, unknown> = {
       "data",
       "geo_json",
       "theme",
+    ],
+  },
+  bulletChart: {
+    type: "bullet",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Service level",
+    sub_title_text: "This month, against the targets",
+    label_show: true,
+    bullets: [
+      {
+        name: "Done in time (%)",
+        value: 92,
+        target: 95,
+        ranges: [80, 90, 100],
+        max: 100,
+      },
+      {
+        name: "Satisfaction",
+        value: 4.6,
+        target: 4.5,
+        ranges: [3.5, 4.2, 5],
+        max: 5,
+      },
+      {
+        name: "Wait (min)",
+        value: 12,
+        target: 10,
+        ranges: [10, 20, 30],
+      },
+      {
+        name: "Handled",
+        value: 1820,
+        target: 2000,
+        ranges: [1200, 1800, 2400],
+      },
+      {
+        name: "Online (%)",
+        value: 64,
+        target: 60,
+        ranges: [40, 60, 100],
+        max: 100,
+      },
+    ],
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "sub_title_text",
+      "label_show",
+      "bullets",
+      "theme",
+    ],
+  },
+  linesChart: {
+    type: "lines",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Migration between regions",
+    title_align: "left",
+    tooltip_show: true,
+    curveness: 0.22,
+    min_width: 1,
+    max_width: 5,
+    arrow: true,
+    projection: "mercator",
+    lines: [
+      {
+        name: "Alder → Glen",
+        value: 80,
+        from: [102.36, 29.55],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Birch → Glen",
+        value: 140,
+        from: [106.35, 29.29],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Cedar → Glen",
+        value: 220,
+        from: [110.17, 29.73],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Fir → Glen",
+        value: 160,
+        from: [110.18, 26.1],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Elm → Glen",
+        value: 90,
+        from: [106.02, 25.94],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Kelp → Glen",
+        value: 190,
+        from: [113.66, 21.92],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Juniper → Glen",
+        value: 70,
+        from: [109.76, 22.08],
+        to: [114.29, 26.1],
+      },
+      {
+        name: "Dune → Fir",
+        value: 45,
+        from: [101.98, 25.62],
+        to: [110.18, 26.1],
+      },
+      {
+        name: "Elm → Fir",
+        value: 60,
+        from: [106.02, 25.94],
+        to: [110.18, 26.1],
+      },
+      {
+        name: "Heath → Kelp",
+        value: 55,
+        from: [101.94, 21.98],
+        to: [113.66, 21.92],
+      },
+      {
+        name: "Ivy → Kelp",
+        value: 35,
+        from: [105.72, 22.49],
+        to: [113.66, 21.92],
+      },
+      {
+        name: "Juniper → Kelp",
+        value: 110,
+        from: [109.76, 22.08],
+        to: [113.66, 21.92],
+      },
+      {
+        name: "Alder → Dune",
+        value: 30,
+        from: [102.36, 29.55],
+        to: [101.98, 25.62],
+      },
+      {
+        name: "Birch → Elm",
+        value: 48,
+        from: [106.35, 29.29],
+        to: [106.02, 25.94],
+      },
+      {
+        name: "Cedar → Fir",
+        value: 75,
+        from: [110.17, 29.73],
+        to: [110.18, 26.1],
+      },
+      {
+        name: "Heath → Ivy",
+        value: 22,
+        from: [101.94, 21.98],
+        to: [105.72, 22.49],
+      },
+    ],
+    geo_json: mapGeoJson,
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "title_align",
+      "tooltip_show",
+      "curveness",
+      "min_width",
+      "max_width",
+      "lines",
+      "geo_json",
+      "theme",
+    ],
+  },
+  tableSparkline: {
+    type: "table",
+    width: 600,
+    height: 400,
+    font_family: "Roboto",
+    title_text: "Servers",
+    spans: [0.3, 0.18, 0.18],
+    text_aligns: ["left", "right", "right", "left"],
+    data: [
+      ["Server", "CPU", "Requests", "Last 24 hours"],
+      [
+        "api-1",
+        "72%",
+        18230,
+        [42, 45, 51, 48, 60, 66, 63, 71, 69, 74, 70, 72],
+      ],
+      [
+        "api-2",
+        "38%",
+        9120,
+        [30, 34, 31, 29, 35, 41, 38, 36, null, null, 37, 38],
+      ],
+      [
+        "worker-1",
+        "91%",
+        4410,
+        [55, 61, 70, 76, 80, 84, 88, 86, 90, 93, 89, 91],
+      ],
+      [
+        "db-1",
+        "24%",
+        26980,
+        [26, 25, 24, 27, 25, 23, 24, 26, 25, 24, 23, 24],
+      ],
+    ],
+    sparkline_type: "line",
+    simplyKeys: [
+      "width",
+      "height",
+      "font_family",
+      "type",
+      "title_text",
+      "spans",
+      "text_aligns",
+      "data",
+      "sparkline_type",
+      "theme",
+    ],
+  },
+  multiAligned: {
+    type: "multi_chart",
+    margin: 10,
+    gap: 4,
+    align_plots: true,
+    child_charts: [
+      {
+        type: "candlestick",
+        width: 640,
+        height: 290,
+        title_text: "Price",
+        title_align: "left",
+        series_colors: ["#8c8c8c", "#5470c6", "#fac858"],
+        legend_align: "right",
+        x_axis_hidden: true,
+        y_axis_configs: [
+          {
+            axis_min: 100,
+            axis_max: 130,
+            axis_split_number: 6,
+          },
+        ],
+        x_axis_data: [
+          "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08",
+          "10-09", "10-10", "10-11", "10-12", "10-13", "10-14", "10-15", "10-16",
+          "10-17", "10-18", "10-19", "10-20", "10-21", "10-22", "10-23", "10-24",
+          "10-25", "10-26", "10-27", "10-28", "10-29", "10-30",
+        ],
+        series_list: [
+          {
+            name: "Day",
+            data: [
+              102.03, 103.82, 101.48, 104.54, 103.7, 104.75, 103.29, 105.5,
+              104.47, 104.75, 102.93, 105.59, 104.82, 106.2, 104.27, 106.47,
+              106.76, 105.74, 105.54, 107.32, 105.74, 105.63, 105.14, 106.15,
+              105.12, 106.04, 104.72, 106.98, 106.51, 106.2, 105.2, 106.73,
+              106.11, 105.43, 104.86, 106.67, 105.12, 105.37, 104.38, 106.28,
+              105.15, 105.76, 102.87, 106.19, 105.25, 106.93, 104.59, 107.23,
+              107.38, 108.84, 106.56, 109.44, 108.97, 111.44, 108.7, 112.51,
+              111.82, 112.06, 111.32, 113.1, 111.58, 112.1, 111.23, 112.75,
+              112.36, 113.55, 112.1, 114.56, 113.96, 115.95, 113.42, 116.67,
+              115.35, 116.25, 115.08, 117.29, 116.16, 118.61, 115.95, 119.05,
+              119.1, 117.7, 117.2, 119.62, 117.47, 117.71, 116.63, 118.77,
+              118.18, 118.87, 117.15, 119.51, 118.76, 120.32, 118.32, 120.78,
+              120.76, 123.08, 120.46, 123.44, 122.88, 122.97, 122.22, 124.15,
+              123.34, 123.32, 122.17, 124.59, 122.98, 124.48, 122.18, 124.95,
+              124.84, 124.89, 124.45, 125.22, 125.45, 126.32, 124.41, 126.67,
+            ],
+          },
+          {
+            name: "MA5",
+            category: "line",
+            data: [
+              102.38, 102.96, 103.39, 104.2, 105.05, 105.41, 105.67, 105.96,
+              105.81, 105.74, 105.76, 105.94, 106.47, 107.67, 109.0, 110.27,
+              111.6, 113.02, 113.98, 115.29, 116.41, 117.24, 117.83, 118.64,
+              119.54, 120.59, 121.71, 122.84, 123.75, 124.4,
+            ],
+            symbol: null,
+          },
+          {
+            name: "MA10",
+            category: "line",
+            data: [
+              104.81, 104.23, 103.8, 103.71, 103.67, 103.9, 104.32, 104.67,
+              105.0, 105.39, 105.59, 105.81, 106.21, 106.74, 107.37, 108.02,
+              108.77, 109.74, 110.82, 112.15, 113.34, 114.42, 115.42, 116.31,
+              117.41, 118.5, 119.48, 120.33, 121.2, 121.97,
+            ],
+            symbol: null,
+          },
+        ],
+      },
+      {
+        title_font_size: 13,
+        title_height: 24,
+        title_align: "left",
+        legend_font_size: 12,
+        type: "bar",
+        width: 640,
+        height: 120,
+        title_text: "Volume",
+        legend_show: false,
+        x_axis_hidden: true,
+        y_axis_configs: [
+          {
+            axis_min: 0,
+            axis_max: 3000000,
+            axis_split_number: 3,
+          },
+        ],
+        x_axis_data: [
+          "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08",
+          "10-09", "10-10", "10-11", "10-12", "10-13", "10-14", "10-15", "10-16",
+          "10-17", "10-18", "10-19", "10-20", "10-21", "10-22", "10-23", "10-24",
+          "10-25", "10-26", "10-27", "10-28", "10-29", "10-30",
+        ],
+        series_list: [
+          {
+            name: "Volume",
+            data: [
+              2192122, 2167754, 1752262, 2011006, 1956911, 1644336, 1665693,
+              1577018, 1828393, 1388235, 1933148, 2489230, 2253097, 2457564,
+              1289143, 1687778, 2203036, 2330459, 1868551, 2891074, 1933585,
+              1660500, 1920448, 2424667, 2744609, 1581819, 1543671, 2077421,
+              1561826, 1775389,
+            ],
+            colors: [
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#00da3c", "#00da3c",
+              "#ec0000", "#00da3c", "#00da3c", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#00da3c", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#00da3c", "#ec0000", "#ec0000", "#ec0000",
+            ],
+          },
+        ],
+      },
+      {
+        title_font_size: 13,
+        title_height: 24,
+        title_align: "left",
+        legend_font_size: 12,
+        type: "bar",
+        width: 640,
+        height: 160,
+        title_text: "MACD",
+        legend_align: "right",
+        series_colors: ["#8c8c8c", "#5470c6", "#fac858"],
+        y_axis_configs: [
+          {
+            axis_min: -6,
+            axis_max: 6,
+            axis_split_number: 2,
+          },
+        ],
+        x_axis_data: [
+          "10-01", "10-02", "10-03", "10-04", "10-05", "10-06", "10-07", "10-08",
+          "10-09", "10-10", "10-11", "10-12", "10-13", "10-14", "10-15", "10-16",
+          "10-17", "10-18", "10-19", "10-20", "10-21", "10-22", "10-23", "10-24",
+          "10-25", "10-26", "10-27", "10-28", "10-29", "10-30",
+        ],
+        series_list: [
+          {
+            name: "MACD",
+            data: [
+              -2.42, -1.82, -1.34, -0.77, -0.42, -0.17, 0.07, 0.25, 0.27, 0.27,
+              0.33, 0.51, 0.85, 1.36, 1.7, 1.84, 2.01, 2.31, 2.41, 2.63, 2.5,
+              2.25, 2.1, 2.04, 2.21, 2.14, 1.98, 1.86, 1.69, 1.61,
+            ],
+            colors: [
+              "#00da3c", "#00da3c", "#00da3c", "#00da3c", "#00da3c", "#00da3c",
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000",
+              "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000", "#ec0000",
+            ],
+          },
+          {
+            name: "DIF",
+            category: "line",
+            data: [
+              -1.59, -1.52, -1.45, -1.26, -1.14, -1.03, -0.91, -0.79, -0.74,
+              -0.71, -0.64, -0.49, -0.21, 0.22, 0.6, 0.9, 1.24, 1.68, 2.03, 2.47,
+              2.71, 2.87, 3.06, 3.29, 3.65, 3.88, 4.04, 4.22, 4.34, 4.5,
+            ],
+            symbol: null,
+          },
+          {
+            name: "DEA",
+            category: "line",
+            data: [
+              -0.38, -0.61, -0.78, -0.88, -0.93, -0.95, -0.94, -0.91, -0.88,
+              -0.84, -0.8, -0.74, -0.63, -0.46, -0.25, -0.02, 0.23, 0.52, 0.82,
+              1.15, 1.46, 1.75, 2.01, 2.26, 2.54, 2.81, 3.06, 3.29, 3.5, 3.7,
+            ],
+            symbol: null,
+          },
+        ],
+      },
     ],
   },
   multiChart: {

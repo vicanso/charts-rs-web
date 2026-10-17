@@ -14,11 +14,11 @@ use std::io::Cursor;
 use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use charts_rs::{
-    BarChart, BoxPlotChart, CalendarChart, CandlestickChart, ChordChart, FunnelChart, GanttChart,
-    GaugeChart, GraphChart, HeatmapChart, HistogramChart, HorizontalBarChart, LineChart, MapChart,
-    MultiChart, ParallelChart, PieChart, PolarBarChart, RadarChart, SankeyChart, ScatterChart,
-    SunburstChart, TableChart, ThemeRiverChart, TreeChart, TreemapChart, WaterfallChart,
-    svg_to_avif, svg_to_jpeg, svg_to_png, svg_to_webp,
+    BarChart, BoxPlotChart, BulletChart, CalendarChart, CandlestickChart, ChordChart, FunnelChart,
+    GanttChart, GaugeChart, GraphChart, HeatmapChart, HistogramChart, HorizontalBarChart,
+    LineChart, LinesChart, MapChart, MultiChart, ParallelChart, PieChart, PolarBarChart,
+    RadarChart, SankeyChart, ScatterChart, SunburstChart, TableChart, ThemeRiverChart, TreeChart,
+    TreemapChart, WaterfallChart, svg_to_avif, svg_to_jpeg, svg_to_png, svg_to_webp,
 };
 
 #[derive(Debug, Snafu)]
@@ -348,6 +348,14 @@ pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
         }
         "map" => {
             let chart = MapChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "lines" => {
+            let chart = LinesChart::from_json(&json)?;
+            chart.svg()?
+        }
+        "bullet" => {
+            let chart = BulletChart::from_json(&json)?;
             chart.svg()?
         }
         _ => {

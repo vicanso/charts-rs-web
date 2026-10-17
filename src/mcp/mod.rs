@@ -31,6 +31,10 @@ radial tree: tree (layout); \
 vertical sankey: sankey (orient); \
 circular radar: radar (shape); \
 choropleth map: map, which takes the regions as GeoJSON in geo_json; \
+flows or migration between places, on a plane or over a map: lines (geo_json); \
+measures against their targets, several KPIs in rows: bullet; \
+sparklines in a table: table, a cell being an array of numbers (sparkline_type); \
+a candlestick chart above its volume, plots lined up: multi_chart (align_plots); \
 a source or copyright line and a watermark: texts, on any chart; \
 a marker on any point of a line: mark_points with category index.";
 
@@ -66,6 +70,8 @@ enum ChartType {
     Chord,
     Gantt,
     Map,
+    Lines,
+    Bullet,
     MultiChart,
 }
 
@@ -99,6 +105,8 @@ impl ChartType {
             ChartType::Chord => ("chord", "Chord"),
             ChartType::Gantt => ("gantt", "Gantt"),
             ChartType::Map => ("map", "Map"),
+            ChartType::Lines => ("lines", "Lines"),
+            ChartType::Bullet => ("bullet", "Bullet"),
             ChartType::MultiChart => ("multi_chart", "Multi chart"),
         }
     }
@@ -268,7 +276,7 @@ impl ChartServer {
 
 #[tool_handler(
     name = "charts-rs-web",
-    instructions = "Renders charts (bar, line, pie, scatter, heatmap, sankey, gantt, map and more) from JSON options. Call get_chart_options for the chart type first to learn the accepted keys and see an example, then call render_chart. Options are validated: an unknown key or a wrongly typed value is reported as an error naming the key, so fix the options and call again."
+    instructions = "Renders charts (bar, line, pie, scatter, heatmap, sankey, gantt, map, bullet and more) from JSON options. Call get_chart_options for the chart type first to learn the accepted keys and see an example, then call render_chart. Options are validated: an unknown key or a wrongly typed value is reported as an error naming the key, so fix the options and call again."
 )]
 impl ServerHandler for ChartServer {}
 
@@ -290,7 +298,7 @@ pub fn new_service() -> StreamableHttpService<ChartServer, NeverSessionManager> 
 mod tests {
     use super::*;
 
-    const CHART_TYPES: [ChartType; 27] = [
+    const CHART_TYPES: [ChartType; 29] = [
         ChartType::Bar,
         ChartType::HorizontalBar,
         ChartType::Line,
@@ -317,6 +325,8 @@ mod tests {
         ChartType::Chord,
         ChartType::Gantt,
         ChartType::Map,
+        ChartType::Lines,
+        ChartType::Bullet,
         ChartType::MultiChart,
     ];
 
@@ -407,6 +417,8 @@ mod tests {
             "layout",
             "orient",
             "geo_json",
+            "sparkline_type",
+            "align_plots",
             "texts",
             "contour",
             "marginal",

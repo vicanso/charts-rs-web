@@ -83,7 +83,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 | `radar` | 雷达图，`shape`为`circle`时网格为同心圆，`indicators.min`为各轴圆心值 |
 | `scatter` | 散点图，`bubble`为`true`时为气泡图，`regression`可添加回归线，`contour`为密度等高线，`marginal`为边缘直方图 |
 | `candlestick` | 蜡烛图，`candlestick_style`为`ohlc`时为OHLC图 |
-| `table` | 表格 |
+| `table` | 表格，单元格为数字数组时显示为迷你图（sparkline） |
 | `heatmap` | 热力图，支持多色与分段配色，`symbol`为`circle`时为打卡图 |
 | `funnel` | 漏斗图 |
 | `waterfall` | 瀑布图 |
@@ -102,6 +102,8 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 | `chord` | 和弦图 |
 | `gantt` | 甘特图 |
 | `map` | 地图（区域着色），地图数据以GeoJSON的形式通过`geo_json`传入 |
+| `lines` | 流向图，点与点之间的流向线，传入`geo_json`时绘制在地图上 |
+| `bullet` | 子弹图，每行一个指标与其目标值对比 |
 | `multi_chart` | 多图表拼合，见[多图的相关属性](#多图的相关属性) |
 
 ### 网格属性
@@ -185,7 +187,9 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 
 不相同的如下：
 
-- `data`: 表格数据，其为二维数组，而且不能为空。第一个数组对应表头数据
+- `data`: 表格数据，其为二维数组，而且不能为空。第一个数组对应表头数据。单元格可以是字符串、数字或`null`，为数字数组时显示为迷你图
+- `sparkline_type`: 迷你图的类型，可选值为`line`（默认）与`bar`
+- `sparkline_color`: 迷你图的颜色，默认为主题的第一个颜色
 - `spans`: 表格每列所占比例，例如[0.5, 0.2, 0.3]，默认为根据列的数量均分
 - `text_aligns`: 表格列的文本对齐方式，默认为`left`，可以按需设置，如["left", "center", "right"]
 - `border_color`: 表格边框颜色，不同的主题有不同的默认颜色
@@ -211,6 +215,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 - `margin`: 图表的margin，默认为`{"left":10,"top":10,"right":10,"bottom":10}`
 - `background_color`: 背景色，默认无
 - `child_charts`: 子图表列表
+- `align_plots`: 是否对齐上下排列的子图表的绘图区（如K线图与其下方的成交量），默认为`false`
 
 ## 启动
 
