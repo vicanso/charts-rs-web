@@ -11,15 +11,12 @@ use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use std::io::Cursor;
 
+use crate::config::must_new_render_limits;
 use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
-use charts_rs::{
-    BarChart, BoxPlotChart, BulletChart, CalendarChart, CandlestickChart, ChordChart, FunnelChart,
-    GanttChart, GaugeChart, GraphChart, HeatmapChart, HistogramChart, HorizontalBarChart,
-    LineChart, LinesChart, MapChart, MultiChart, ParallelChart, PieChart, PolarBarChart,
-    RadarChart, SankeyChart, ScatterChart, SunburstChart, TableChart, ThemeRiverChart, TreeChart,
-    TreemapChart, WaterfallChart, svg_to_avif, svg_to_jpeg, svg_to_png, svg_to_webp,
-};
+use crate::examples::{self, ExamplesCatalog};
+use crate::maps;
+use charts_rs::{RenderLimits, svg_to_avif, svg_to_jpeg, svg_to_png, svg_to_webp};
 
 #[derive(Debug, Snafu)]
 pub enum ImageError {
@@ -52,6 +49,7 @@ pub fn new_router() -> Router {
         .route("/ping", get(ping))
         .route("/api/charts", get(preview))
         .route("/api/basic-info", get(get_basic_info))
+        .route("/api/examples", get(get_examples))
         .route("/api/fonts/default", get(get_default_font))
         .route("/api/charts/svg", post(chart_svg))
         .route("/api/charts/png", post(chart_png))
@@ -81,7 +79,7 @@ async fn preview(params: Query<PrevieParams>) -> HttpResult<Response> {
         "jpeg" => FormatType::Jpeg,
         _ => FormatType::Svg,
     };
-    render(params.opts.as_bytes(), format).await
+    render(params.opts.as_bytes().to_vec(), format).await
 }
 
 /// 读取http body
@@ -112,10 +110,13 @@ async fn serve(uri: Uri) -> StaticFile {
 struct BasicInfoResult {
     pub families: Vec<String>,
     pub themes: Vec<String>,
+    pub maps: Vec<String>,
+    pub chart_types: Vec<&'static str>,
     pub version: String,
 }
 
 async fn get_basic_info() -> JsonResult<BasicInfoResult> {
+    maps::init_builtin_maps();
     // charts-rs按名称排序返回，将默认字体调整至最前
     let mut families = charts_rs::get_font_families()?;
     if let Some(index) = families
@@ -128,11 +129,20 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
     // 主题的顺序不固定，按名称排序
     let mut themes = charts_rs::list_theme_name();
     themes.sort_unstable();
+    let maps = charts_rs::list_geo_json();
+    let chart_types = charts_rs::list_chart_types().to_vec();
     Ok(Json(BasicInfoResult {
         families,
         themes,
+        maps,
+        chart_types,
         version: charts_rs::version().to_string(),
     }))
+}
+
+async fn get_examples() -> JsonResult<&'static ExamplesCatalog> {
+    maps::init_builtin_maps();
+    Ok(Json(examples::catalog()))
 }
 
 /// 返回图表默认使用的字体(Roboto)，
@@ -177,7 +187,7 @@ impl FormatType {
 async fn render_from_bdoy(req: Request<Body>, format: FormatType) -> HttpResult<Response> {
     // TODO 是否校验content-type
     let buf = read_http_body(req).await?;
-    render(buf.as_ref(), format).await
+    render(buf.to_vec(), format).await
 }
 
 /// `quality` 1–100 → (NeuQuant samplefac, 调色板颜色数, deflate level)。
@@ -204,12 +214,16 @@ fn quantize_png(png: &[u8], quality: u8) -> Result<Vec<u8>, ImageError> {
     let pixels = rgba.as_raw();
     let nq = color_quant::NeuQuant::new(sample_fac, colors, pixels);
     let indexed: Vec<u8> = pixels
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .map(|pix| nq.index_of(pix).min(colors - 1) as u8)
         .collect();
     let map = nq.color_map_rgba();
     let palette: Vec<lodepng::RGBA> = map
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .take(colors)
         .map(|c| lodepng::RGBA::new(c[0], c[1], c[2], c[3]))
         .collect();
@@ -224,162 +238,26 @@ fn quantize_png(png: &[u8], quality: u8) -> Result<Vec<u8>, ImageError> {
     })
 }
 
-async fn render(params: &[u8], format: FormatType) -> HttpResult<Response> {
-    let data = render_chart(params, format)?;
-    let content_type = HeaderValue::from_static(format.mime());
-    Ok(([(header::CONTENT_TYPE, content_type)], data).into_response())
+/// 将历史/缺省的图表类型别名规范化为 charts-rs 2.4.0 的规范类型名
+pub fn normalize_chart_type(raw: &str) -> &str {
+    let trimmed = raw.trim();
+    match trimmed {
+        "" => "bar",
+        "multi_chart" => "multi",
+        // guage为历史拼写，保留兼容
+        "guage" => "gauge",
+        other => other,
+    }
 }
 
-/// 根据json参数生成图表，返回对应格式的数据
-pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
-    let json = std::string::String::from_utf8_lossy(params);
-    let value: serde_json::Value = serde_json::from_str(&json)?;
-    let chart_type = if let Some(value) = value.get("type") {
-        value.as_str().unwrap_or_default()
-    } else {
-        ""
-    };
-    let mut quality: u8 = 80;
-    if let Some(value) = value.get("quality").and_then(|item| item.as_u64()) {
-        quality = value.min(100) as u8;
-    }
-
-    let svg = match chart_type {
-        "line" => {
-            let chart = LineChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "horizontal_bar" => {
-            let chart = HorizontalBarChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "pie" => {
-            let chart = PieChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "radar" => {
-            let chart = RadarChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "table" => {
-            let chart = TableChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "scatter" => {
-            let chart = ScatterChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "candlestick" => {
-            let chart = CandlestickChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "heatmap" => {
-            let chart = HeatmapChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "multi_chart" => {
-            let multi_chart = MultiChart::from_json(&json)?;
-            multi_chart.svg()?
-        }
-        "calendar" => {
-            let chart = CalendarChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "funnel" => {
-            let chart = FunnelChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "waterfall" => {
-            let chart = WaterfallChart::from_json(&json)?;
-            chart.svg()?
-        }
-        // guage为历史拼写，保留兼容
-        "gauge" | "guage" => {
-            let chart = GaugeChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "treemap" => {
-            let chart = TreemapChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "box_plot" => {
-            let chart = BoxPlotChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "sunburst" => {
-            let chart = SunburstChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "sankey" => {
-            let chart = SankeyChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "tree" => {
-            let chart = TreeChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "graph" => {
-            let chart = GraphChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "parallel" => {
-            let chart = ParallelChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "theme_river" => {
-            let chart = ThemeRiverChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "histogram" => {
-            let chart = HistogramChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "polar_bar" => {
-            let chart = PolarBarChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "chord" => {
-            let chart = ChordChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "gantt" => {
-            let chart = GanttChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "map" => {
-            let chart = MapChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "lines" => {
-            let chart = LinesChart::from_json(&json)?;
-            chart.svg()?
-        }
-        "bullet" => {
-            let chart = BulletChart::from_json(&json)?;
-            chart.svg()?
-        }
-        _ => {
-            let chart = BarChart::from_json(&json)?;
-            chart.svg()?
-        }
-    };
-
+pub fn encode_svg(svg: &str, format: FormatType, quality: u8) -> HttpResult<Bytes> {
     let data = match format {
-        FormatType::Svg => Bytes::from(svg),
-        FormatType::Webp => {
-            let data = svg_to_webp(&svg)?;
-            Bytes::from(data)
-        }
-        FormatType::Avif => {
-            let data = svg_to_avif(&svg)?;
-            Bytes::from(data)
-        }
-        FormatType::Jpeg => {
-            let data = svg_to_jpeg(&svg)?;
-            Bytes::from(data)
-        }
+        FormatType::Svg => Bytes::from(svg.to_owned()),
+        FormatType::Webp => Bytes::from(svg_to_webp(svg)?),
+        FormatType::Avif => Bytes::from(svg_to_avif(svg)?),
+        FormatType::Jpeg => Bytes::from(svg_to_jpeg(svg)?),
         FormatType::Png => {
-            let data = svg_to_png(&svg)?;
+            let data = svg_to_png(svg)?;
             if quality == 0 {
                 Bytes::from(data)
             } else {
@@ -388,6 +266,55 @@ pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
         }
     };
     Ok(data)
+}
+
+pub fn render_chart_value(
+    chart_type: &str,
+    value: &serde_json::Value,
+    format: FormatType,
+    quality: u8,
+    limits: &RenderLimits,
+) -> HttpResult<Bytes> {
+    maps::init_builtin_maps();
+    let canonical = normalize_chart_type(chart_type);
+    let svg = charts_rs::render_chart_from_value_with_limits(canonical, value, limits)?;
+    encode_svg(&svg, format, quality)
+}
+
+async fn render(params: Vec<u8>, format: FormatType) -> HttpResult<Response> {
+    let data = tokio::task::spawn_blocking(move || render_chart(&params, format))
+        .await
+        .map_err(|err| HttpError::new_with_category(&err.to_string(), "render_task"))??;
+    let content_type = HeaderValue::from_static(format.mime());
+    Ok(([(header::CONTENT_TYPE, content_type)], data).into_response())
+}
+
+/// 根据json参数生成图表，返回对应格式的数据
+pub fn render_chart(params: &[u8], format: FormatType) -> HttpResult<Bytes> {
+    let limits = must_new_render_limits();
+    if params.len() > limits.max_json_bytes {
+        return Err(HttpError {
+            message: format!(
+                "JSON payload ({} bytes) exceeds max_json_bytes ({})",
+                params.len(),
+                limits.max_json_bytes
+            ),
+            category: "charts".to_string(),
+            code: "limit_exceeded".to_string(),
+            ..Default::default()
+        });
+    }
+    let json = std::string::String::from_utf8_lossy(params);
+    let value: serde_json::Value = serde_json::from_str(&json)?;
+    let chart_type = value
+        .get("type")
+        .and_then(|item| item.as_str())
+        .unwrap_or_default();
+    let mut quality: u8 = 80;
+    if let Some(q) = value.get("quality").and_then(|item| item.as_u64()) {
+        quality = q.min(100) as u8;
+    }
+    render_chart_value(chart_type, &value, format, quality, &limits)
 }
 
 async fn chart_svg(req: Request<Body>) -> HttpResult<Response> {
@@ -513,5 +440,32 @@ mod tests {
                 String::from_utf8_lossy(svg.as_ref())
             );
         }
+    }
+
+    #[test]
+    fn render_chart_supports_mermaid_aliases_and_demo_map() {
+        let samples: &[&[u8]] = &[
+            br#"{"type":"mermaid","source":"flowchart LR\n  A[Client] --> B[(DB)]"}"#,
+            br#"{"type":"multi_chart","child_charts":[{"type":"bar","x_axis_data":["A"],"series_list":[{"name":"S","data":[1]}]}]}"#,
+            br#"{"type":"multi","child_charts":[{"type":"pie","series_list":[{"name":"A","data":[10]}]}]}"#,
+            br#"{"type":"guage","series_list":[{"name":"CPU","data":[72]}]}"#,
+            br#"{"type":"map","geo_json":"demo","data":[["Alder",10],["Birch",20]]}"#,
+        ];
+        for json in samples {
+            let svg = render_chart(json, FormatType::Svg).expect("svg");
+            assert!(svg.starts_with(b"<svg"));
+        }
+    }
+
+    #[test]
+    fn render_chart_enforces_render_limits() {
+        let oversized = serde_json::json!({
+            "type": "bar",
+            "width": 20000,
+            "x_axis_data": ["a"],
+            "series_list": [{"name": "A", "data": [1]}]
+        });
+        let err = render_chart(oversized.to_string().as_bytes(), FormatType::Svg).unwrap_err();
+        assert!(err.message.contains("max_canvas_side"));
     }
 }

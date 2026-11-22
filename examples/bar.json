@@ -1,0 +1,649 @@
+[
+  {
+    "id": "barBasic",
+    "chart_type": "bar",
+    "label_zh": "常规柱状图",
+    "label_en": "Bar",
+    "short": "Bar",
+    "hint_zh": "基础分组柱状",
+    "hint_en": "Grouped bars",
+    "glyph": "bar",
+    "options": {
+      "legend_align": "left",
+      "type": "bar",
+      "title_text": "Bar Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "radius": 0,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "barStacked",
+    "chart_type": "bar",
+    "label_zh": "堆叠柱状图",
+    "label_en": "Stacked bar",
+    "short": "Stack",
+    "hint_zh": "总量对比",
+    "hint_en": "Totals by parts",
+    "glyph": "stack",
+    "options": {
+      "legend_align": "left",
+      "type": "bar",
+      "title_text": "Bar Stacked Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "radius": 0,
+      "series_list": [
+        {
+          "name": "Email",
+          "stack": "total",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "stack": "total",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "barStackPercent",
+    "chart_type": "bar",
+    "label_zh": "百分比堆叠柱状图",
+    "label_en": "100% stacked bar",
+    "short": "Pct",
+    "hint_zh": "占比构成",
+    "hint_en": "Shares of a whole",
+    "glyph": "stack",
+    "options": {
+      "title_align": "left",
+      "sub_title_text": "Share of visits",
+      "sub_title_align": "left",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "type": "bar",
+      "title_text": "Bar Percent Stacked Chart",
+      "stack_percent": true,
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Direct",
+          "stack": "total",
+          "label_show": true,
+          "data": [
+            100,
+            302,
+            301,
+            334,
+            390,
+            330,
+            320
+          ]
+        },
+        {
+          "name": "Email",
+          "stack": "total",
+          "label_show": true,
+          "data": [
+            320,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Ads",
+          "stack": "total",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        },
+        {
+          "name": "Search",
+          "stack": "total",
+          "label_show": true,
+          "data": [
+            150,
+            212,
+            201,
+            154,
+            190,
+            330,
+            410
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "barErrorBar",
+    "chart_type": "bar",
+    "label_zh": "误差线柱状图",
+    "label_en": "Bar with error bars",
+    "short": "Err",
+    "hint_zh": "误差范围",
+    "hint_en": "Ranges of error",
+    "glyph": "bar",
+    "options": {
+      "title_align": "left",
+      "sub_title_text": "Yield by plot",
+      "sub_title_align": "left",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "type": "bar",
+      "title_text": "Bar Error Bar Chart",
+      "tooltip_show": true,
+      "x_axis_data": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Spring",
+          "data": [
+            42,
+            55,
+            48,
+            61,
+            39
+          ],
+          "error_bar": {
+            "lower": [
+              37,
+              49,
+              44,
+              52,
+              35
+            ],
+            "upper": [
+              47,
+              60,
+              55,
+              68,
+              44
+            ]
+          }
+        },
+        {
+          "name": "Autumn",
+          "data": [
+            35,
+            47,
+            52,
+            44,
+            30
+          ],
+          "error_bar": {
+            "lower": [
+              31,
+              40,
+              47,
+              39,
+              27
+            ],
+            "upper": [
+              40,
+              52,
+              58,
+              50,
+              36
+            ]
+          }
+        },
+        {
+          "name": "Rainfall",
+          "category": "line",
+          "data": [
+            20,
+            26,
+            31,
+            24,
+            18
+          ],
+          "error_bar": {
+            "lower": [
+              16,
+              22,
+              25,
+              null,
+              15
+            ],
+            "upper": [
+              24,
+              31,
+              36,
+              28,
+              22
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "barTexts",
+    "chart_type": "bar",
+    "label_zh": "文字标注",
+    "label_en": "Texts over a chart",
+    "short": "Texts",
+    "hint_zh": "来源与水印",
+    "hint_en": "Source line and watermark",
+    "glyph": "bar",
+    "options": {
+      "margin": {
+        "left": 10,
+        "top": 8,
+        "right": 10,
+        "bottom": 8
+      },
+      "title_align": "left",
+      "sub_title_text": "",
+      "legend_align": "right",
+      "type": "bar",
+      "title_text": "Bar Chart with Texts",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Search",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ],
+      "texts": [
+        {
+          "text": "Source: web analytics",
+          "left": 10,
+          "bottom": 6,
+          "reserve": true
+        },
+        {
+          "text": "© 2026 Example Inc.",
+          "right": 10,
+          "bottom": 6,
+          "reserve": true
+        },
+        {
+          "text": "DRAFT",
+          "font_size": 72,
+          "font_color": "#80808038",
+          "font_weight": "bold",
+          "rotate": -25
+        }
+      ]
+    }
+  },
+  {
+    "id": "horizontalBar",
+    "chart_type": "horizontal_bar",
+    "label_zh": "水平柱状图",
+    "label_en": "Horizontal bar",
+    "short": "HBar",
+    "hint_zh": "排行类数据",
+    "hint_en": "Rankings",
+    "glyph": "hbar",
+    "options": {
+      "legend_align": "left",
+      "type": "horizontal_bar",
+      "title_text": "World Population",
+      "x_axis_data": [
+        "Brazil",
+        "Indonesia",
+        "USA",
+        "India",
+        "China",
+        "World"
+      ],
+      "series_label_formatter": "{t}",
+      "series_label_position": null,
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "2011",
+          "label_show": true,
+          "data": [
+            18203,
+            23489,
+            29034,
+            104970,
+            131744,
+            630230
+          ]
+        },
+        {
+          "name": "2012",
+          "label_show": true,
+          "data": [
+            19325,
+            23438,
+            31000,
+            121594,
+            134141,
+            681807
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "bulletChart",
+    "chart_type": "bullet",
+    "label_zh": "子弹图",
+    "label_en": "Bullet",
+    "short": "Bullet",
+    "hint_zh": "指标对目标",
+    "hint_en": "Measures against targets",
+    "glyph": "bullet",
+    "options": {
+      "type": "bullet",
+      "title_text": "Service level",
+      "sub_title_text": "This month, against the targets",
+      "label_show": true,
+      "bullets": [
+        {
+          "name": "Done in time (%)",
+          "value": 92,
+          "target": 95,
+          "ranges": [
+            80,
+            90,
+            100
+          ],
+          "max": 100
+        },
+        {
+          "name": "Satisfaction",
+          "value": 4.6,
+          "target": 4.5,
+          "ranges": [
+            3.5,
+            4.2,
+            5
+          ],
+          "max": 5
+        },
+        {
+          "name": "Wait (min)",
+          "value": 12,
+          "target": 10,
+          "ranges": [
+            10,
+            20,
+            30
+          ]
+        },
+        {
+          "name": "Handled",
+          "value": 1820,
+          "target": 2000,
+          "ranges": [
+            1200,
+            1800,
+            2400
+          ]
+        },
+        {
+          "name": "Online (%)",
+          "value": 64,
+          "target": 60,
+          "ranges": [
+            40,
+            60,
+            100
+          ],
+          "max": 100
+        }
+      ]
+    }
+  },
+  {
+    "id": "barLineMixin",
+    "chart_type": "bar",
+    "label_zh": "柱线混合图",
+    "label_en": "Bar and line",
+    "short": "Mix",
+    "hint_zh": "双轴混合",
+    "hint_en": "Two axes",
+    "glyph": "mix",
+    "options": {
+      "sub_title_text": "",
+      "legend_margin": {
+        "top": 25,
+        "bottom": 3
+      },
+      "type": "bar",
+      "title_text": "Bar Line Mixin",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "series_smooth": true,
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "y_axis_configs": [
+        {
+          "axis_font_size": 14,
+          "axis_formatter": "{c} ml",
+          "axis_min": -5,
+          "axis_max": 25
+        },
+        {
+          "axis_stroke_color": "#EE6666",
+          "axis_font_color": "#EE6666",
+          "axis_formatter": "{c} °C"
+        }
+      ],
+      "series_list": [
+        {
+          "name": "Evaporation",
+          "data": [
+            2,
+            4.9,
+            7,
+            23.2,
+            25.6,
+            76.7,
+            135.6
+          ]
+        },
+        {
+          "name": "Precipitation",
+          "data": [
+            2.6,
+            5.9,
+            9,
+            26.4,
+            28.7,
+            70.7,
+            175.6
+          ]
+        },
+        {
+          "name": "Temperature",
+          "category": "line",
+          "y_axis_index": 1,
+          "label_show": true,
+          "data": [
+            2,
+            2.2,
+            3.3,
+            4.5,
+            6.3,
+            10.2,
+            20.3
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "waterfallChart",
+    "chart_type": "waterfall",
+    "label_zh": "瀑布图",
+    "label_en": "Waterfall",
+    "short": "Fall",
+    "hint_zh": "增减拆解",
+    "hint_en": "Gains and losses",
+    "glyph": "waterfall",
+    "options": {
+      "type": "waterfall",
+      "title_text": "Waterfall Chart",
+      "x_axis_data": [
+        "Initial",
+        "Revenue",
+        "Services",
+        "Purchases",
+        "Marketing",
+        "Profit"
+      ],
+      "data": [
+        [
+          900,
+          false
+        ],
+        [
+          345,
+          false
+        ],
+        [
+          393,
+          false
+        ],
+        [
+          -108,
+          false
+        ],
+        [
+          -154,
+          false
+        ],
+        [
+          0,
+          true
+        ]
+      ]
+    }
+  }
+]

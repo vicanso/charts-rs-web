@@ -18,6 +18,8 @@ mod config;
 mod controller;
 mod dist;
 mod error;
+mod examples;
+mod maps;
 mod mcp;
 mod middleware;
 mod util;
@@ -147,6 +149,13 @@ fn main() {
             load_fonts(item);
         }
     }
+    maps::init_builtin_maps();
+    if let Ok(map_path) = env::var("CHARTS_MAP_PATH") {
+        info!(map_path, "loading maps");
+        for item in map_path.split(',') {
+            maps::load_maps_from_dir(item);
+        }
+    }
     let prefix = "CHARTS_THEME_";
     for (name, value) in env::vars() {
         if !name.starts_with(prefix) {
@@ -167,10 +176,12 @@ fn main() {
     }
     let families = charts_rs::get_font_families().unwrap();
     let themes = charts_rs::list_theme_name();
+    let map_names: Vec<String> = maps::list_maps().into_iter().map(|m| m.name).collect();
     info!(
         families = families.join(","),
         themes = themes.join(","),
-        "get charts theme and family"
+        maps = map_names.join(","),
+        "get charts theme, family and maps"
     );
     let num_cpus = num_cpus::get();
     let cpus = std::env::var("CHARTS_THREADS")

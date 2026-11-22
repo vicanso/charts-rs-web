@@ -1,0 +1,203 @@
+[
+  {
+    "id": "mermaidFlowchart",
+    "chart_type": "mermaid",
+    "diagram_type": "flowchart",
+    "label_zh": "流程图 (v11 形状)",
+    "label_en": "Flowchart (v11)",
+    "short": "Flow",
+    "hint_zh": "流向与节点形状",
+    "hint_en": "Nodes, edges & v11 shapes",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "Document Processing Pipeline",
+      "source": "flowchart LR\n  Start@{ shape: sm-circ } --> Spec@{ shape: doc, label: \"Intake Spec\" }\n  Spec --> Batch@{ shape: docs, label: \"Doc Batch\" }\n  Batch --> Queue@{ shape: delay, label: \"Rate Limit\" }\n  Batch --> Extract@{ shape: tri, label: \"Extract\" }\n  Queue --> Join@{ shape: f-circ }\n  Extract --> Notify@{ shape: flag, label: \"Emit Alert\" }\n  Notify --> Join\n  Join --> Out[\"`**Verified** _Output_`\"]\n  Join -.-> Note@{ shape: text, label: \"Audit Ready\" }"
+    }
+  },
+  {
+    "id": "mermaidSequence",
+    "chart_type": "mermaid",
+    "diagram_type": "sequenceDiagram",
+    "label_zh": "时序图",
+    "label_en": "Sequence diagram",
+    "short": "Seq",
+    "hint_zh": "服务调用时序",
+    "hint_en": "Actor & message flow",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "source": "sequenceDiagram\n  autonumber\n  title Order Checkout\n  box rgba(59, 130, 246, 0.14) Edge\n    actor User\n    participant Web\n  end\n  participant API\n  participant DB\n  User->>+Web: Place order\n  Web->>+API: POST /orders\n  API->>+DB: INSERT order\n  alt Payment OK\n    DB-->>-API: order_id\n    Note over API: Emit OrderCreated\n    API-->>-Web: 201 Created\n  else Declined\n    API-->>Web: 402 Payment Required\n  end\n  Web-->>-User: Show receipt"
+    }
+  },
+  {
+    "id": "mermaidState",
+    "chart_type": "mermaid",
+    "diagram_type": "stateDiagram-v2",
+    "label_zh": "状态图",
+    "label_en": "State diagram",
+    "short": "State",
+    "hint_zh": "状态流转与并发",
+    "hint_en": "States & transitions",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "Order Lifecycle",
+      "source": "stateDiagram-v2\n  [*] --> Pending\n  Pending --> Validating : submit\n  state Validating <<choice>>\n  Validating --> Processing : valid\n  Validating --> Cancelled : invalid\n  state Processing {\n    [*] --> Authorizing\n    Authorizing --> Captured : paid\n    --\n    [*] --> Reserving\n    Reserving --> Allocated : in stock\n  }\n  Processing --> Shipped : ready\n  Shipped --> [*]\n  Cancelled --> [*]\n  note right of Pending : Awaits customer confirmation\n  classDef ok fill:#14532D,stroke:#22C55E,color:#DCFCE7\n  class Shipped ok"
+    }
+  },
+  {
+    "id": "mermaidClass",
+    "chart_type": "mermaid",
+    "diagram_type": "classDiagram",
+    "label_zh": "类图",
+    "label_en": "Class diagram",
+    "short": "Class",
+    "hint_zh": "领域模型与关系",
+    "hint_en": "Classes & relations",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "Order Domain Model",
+      "source": "classDiagram\n  namespace Commerce {\n    class Payable {\n      <<interface>>\n      +pay(amount Decimal) bool*\n    }\n    class Order {\n      +UUID id\n      -OrderStatus status\n      +create()$ Order\n      +total() Decimal\n    }\n    class OrderItem {\n      +String sku\n      +int qty\n      +Decimal price\n    }\n  }\n  class PaymentService {\n    <<service>>\n    +pay(amount Decimal) bool\n    +refund(orderId UUID) void\n  }\n  Payable <|.. PaymentService : implements\n  Order \"1\" *-- \"1..*\" OrderItem : contains\n  Order ..> PaymentService : uses\n  note for Order \"Aggregate root\""
+    }
+  },
+  {
+    "id": "mermaidEr",
+    "chart_type": "mermaid",
+    "diagram_type": "erDiagram",
+    "label_zh": "ER 实体关系图",
+    "label_en": "ER diagram",
+    "short": "ER",
+    "hint_zh": "数据库表结构",
+    "hint_en": "Entities & keys",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "E-Commerce Schema",
+      "source": "erDiagram\n  CUSTOMER[\"Customer\"] {\n    uuid id PK\n    varchar email UK \"unique login\"\n    varchar name\n  }\n  ORDER {\n    uuid id PK\n    uuid customer_id FK\n    decimal total\n    varchar status\n  }\n  ORDER_ITEM {\n    uuid order_id PK,FK\n    uuid product_id PK,FK\n    int quantity\n  }\n  PRODUCT {\n    uuid id PK\n    varchar sku UK\n    decimal unit_price\n  }\n  CUSTOMER ||--o{ ORDER : places\n  ORDER ||--|{ ORDER_ITEM : contains\n  PRODUCT ||--o{ ORDER_ITEM : \"referenced by\""
+    }
+  },
+  {
+    "id": "mermaidMindmap",
+    "chart_type": "mermaid",
+    "diagram_type": "mindmap",
+    "label_zh": "思维导图",
+    "label_en": "Mindmap",
+    "short": "Mind",
+    "hint_zh": "层级发散结构",
+    "hint_en": "Hierarchical branches",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "charts-rs Roadmap",
+      "source": "mindmap\n  root((charts-rs<br/>Roadmap))\n    {{Render Engines}}\n      [Flow & Sequence]\n      (State, Class & ER)\n      )Cloud-free Pure SVG(\n    Backend Core\n      \"`Zero **External** Deps`\"\n      Theme Palette\n    Analytics Charts\n      [Radar & Quadrant]\n      ((Treemap))\n    Quality Gates\n      ))Zero Warnings((:::accent\n      ::icon(fa fa-check)\n      Snapshot PNG Diff\n  classDef accent fill:#ef4444,color:#ffffff,stroke:#b91c1c"
+    }
+  },
+  {
+    "id": "mermaidQuadrant",
+    "chart_type": "mermaid",
+    "diagram_type": "quadrantChart",
+    "label_zh": "象限图",
+    "label_en": "Quadrant chart",
+    "short": "Quad",
+    "hint_zh": "优先级四象限",
+    "hint_en": "2x2 priority matrix",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "source": "quadrantChart\n  title Feature Impact vs Engineering Effort\n  x-axis Low Effort --> High Effort\n  y-axis Low Impact --> High Impact\n  quadrant-1 Major Bets\n  quadrant-2 Quick Wins\n  quadrant-3 Fill-Ins\n  quadrant-4 Defer\n  classDef priority color:#e11d48,radius:9,stroke-color:#ffffff,stroke-width:2px\n  PNG Rasterizer:::priority: [0.24, 0.86]\n  Mindmap Engine:::priority: [0.35, 0.78]\n  Quadrant Matrix: [0.22, 0.62] color:#2563eb\n  Dark Theme Polish: [0.68, 0.82] color:#059669,radius:8\n  Legacy Export: [0.76, 0.24] color:#64748b\n  CLI Benchmark: [0.30, 0.34] color:#d97706\n  Interactive JS Bridge: [0.84, 0.68] color:#7c3aed"
+    }
+  },
+  {
+    "id": "mermaidPie",
+    "chart_type": "mermaid",
+    "diagram_type": "pie",
+    "label_zh": "Mermaid 饼图",
+    "label_en": "Mermaid pie",
+    "short": "MPie",
+    "hint_zh": "Mermaid 占比分布",
+    "hint_en": "Slices in Mermaid",
+    "glyph": "pie",
+    "options": {
+      "type": "mermaid",
+      "source": "pie showData\n  title Traffic Sources\n  \"Organic Search\" : 42\n  \"Direct\" : 26\n  \"Referral\" : 17\n  \"Social\" : 10\n  \"Email\" : 5"
+    }
+  },
+  {
+    "id": "mermaidGantt",
+    "chart_type": "mermaid",
+    "diagram_type": "gantt",
+    "label_zh": "Mermaid 甘特图",
+    "label_en": "Mermaid gantt",
+    "short": "MGantt",
+    "hint_zh": "Mermaid 任务排期",
+    "hint_en": "Timeline in Mermaid",
+    "glyph": "gantt",
+    "options": {
+      "type": "mermaid",
+      "source": "gantt\n  title Release 2.4 Roadmap\n  dateFormat YYYY-MM-DD\n  section Planning\n    Architecture RFC :done, rfc, 2026-04-01, 4d\n    API Review       :done, rev, after rfc, 3d\n  section Implementation\n    Core Engine      :active, eng, after rev, 8d\n    SVG Renderer     :crit, svg, after rev, 6d\n    Integration Tests: tests, after eng, 4d\n  section Launch\n    Release 2.4      :milestone, rel, after tests, 0d"
+    }
+  },
+  {
+    "id": "mermaidSankey",
+    "chart_type": "mermaid",
+    "diagram_type": "sankey-beta",
+    "label_zh": "Mermaid 桑基图",
+    "label_en": "Mermaid sankey",
+    "short": "MSankey",
+    "hint_zh": "CSV 流量分配",
+    "hint_en": "Flow links in CSV",
+    "glyph": "sankey",
+    "options": {
+      "type": "mermaid",
+      "title_text": "Energy Flow",
+      "source": "sankey-beta\nSolar,Electricity,45\nWind,Electricity,35\nGas,Electricity,20\nGas,Heat,30\nElectricity,Industry,40\nElectricity,Residential,38\nElectricity,Transport,22\nHeat,Residential,18\nHeat,Industry,12"
+    }
+  },
+  {
+    "id": "mermaidXychart",
+    "chart_type": "mermaid",
+    "diagram_type": "xychart-beta",
+    "label_zh": "Mermaid 柱线图",
+    "label_en": "Mermaid XY chart",
+    "short": "MXY",
+    "hint_zh": "Mermaid 数值坐标图",
+    "hint_en": "Bar & line in Mermaid",
+    "glyph": "mix",
+    "options": {
+      "type": "mermaid",
+      "source": "xychart-beta\n  title \"Quarterly Revenue & Growth\"\n  x-axis [Q1, Q2, Q3, Q4, Q5, Q6]\n  y-axis \"Revenue ($k)\" 0 --> 120\n  bar [42, 58, 66, 84, 95, 112]\n  line [35, 50, 62, 76, 89, 108]"
+    }
+  },
+  {
+    "id": "mermaidRadar",
+    "chart_type": "mermaid",
+    "diagram_type": "radar-beta",
+    "label_zh": "Mermaid 雷达图",
+    "label_en": "Mermaid radar",
+    "short": "MRadar",
+    "hint_zh": "Mermaid 多维对比",
+    "hint_en": "Multi-axis in Mermaid",
+    "glyph": "radar",
+    "options": {
+      "type": "mermaid",
+      "source": "radar-beta\n  title Runtime Profile Comparison\n  axis perf[\"Latency\"], mem[\"Memory\"], eco[\"Ecosystem\"], dx[\"DX\"], sec[\"Safety\"]\n  curve rust[\"Rust\"]{96, 95, 78, 80, 97}\n  curve go[\"Go\"]{mem: 82, perf: 86, eco: 88, dx: 90, sec: 84}\n  curve ts[\"TypeScript\"]{70, 62, 96, 93, 76}\n  graticule polygon\n  min 0\n  max 100\n  ticks 5\n  showLegend true"
+    }
+  },
+  {
+    "id": "mermaidTreemap",
+    "chart_type": "mermaid",
+    "diagram_type": "treemap-beta",
+    "label_zh": "Mermaid 矩形树图",
+    "label_en": "Mermaid treemap",
+    "short": "MTreemap",
+    "hint_zh": "Mermaid 层级体量",
+    "hint_en": "Nested areas in Mermaid",
+    "glyph": "treemap",
+    "options": {
+      "type": "mermaid",
+      "source": "treemap-beta\n  title Monthly Cloud Spend Breakdown\n  \"Compute\"\n    \"API Cluster\": 420\n    \"Worker Nodes\": 290\n    \"GPU Inference\": 180:::highlight\n  \"Storage\"\n    \"Object Store\": 210\n    \"Block Volumes\": 145\n  \"Networking\"\n    \"CDN Edge\": 165\n    \"Egress\": 90\n  classDef highlight fill:#0ea5e9"
+    }
+  }
+]

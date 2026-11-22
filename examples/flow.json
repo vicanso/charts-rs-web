@@ -1,0 +1,993 @@
+[
+  {
+    "id": "funnelChart",
+    "chart_type": "funnel",
+    "label_zh": "漏斗图",
+    "label_en": "Funnel",
+    "short": "Funnel",
+    "hint_zh": "转化路径",
+    "hint_en": "Conversion",
+    "glyph": "funnel",
+    "options": {
+      "type": "funnel",
+      "title_text": "Funnel Chart",
+      "series_label_position": "inside",
+      "funnel_gap": 4,
+      "series_list": [
+        {
+          "name": "Impression",
+          "data": [
+            60000
+          ]
+        },
+        {
+          "name": "Click",
+          "data": [
+            40000
+          ]
+        },
+        {
+          "name": "Inquiry",
+          "data": [
+            20000
+          ]
+        },
+        {
+          "name": "Order",
+          "data": [
+            8000
+          ]
+        },
+        {
+          "name": "Re-order",
+          "data": [
+            2000
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "treemapChart",
+    "chart_type": "treemap",
+    "label_zh": "矩形树图",
+    "label_en": "Treemap",
+    "short": "TreeM",
+    "hint_zh": "体量占比",
+    "hint_en": "Sizes by area",
+    "glyph": "treemap",
+    "options": {
+      "type": "treemap",
+      "title_text": "Disk Usage",
+      "item_gap": 3,
+      "series_list": [
+        {
+          "name": "nodeExcel",
+          "data": [
+            600
+          ]
+        },
+        {
+          "name": "nodePPT",
+          "data": [
+            500
+          ]
+        },
+        {
+          "name": "nodeDoc",
+          "data": [
+            400
+          ]
+        },
+        {
+          "name": "nodeWeb",
+          "data": [
+            300
+          ]
+        },
+        {
+          "name": "nodeWord",
+          "data": [
+            200
+          ]
+        },
+        {
+          "name": "nodeOther",
+          "data": [
+            100
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "sankeyChart",
+    "chart_type": "sankey",
+    "label_zh": "桑基图",
+    "label_en": "Sankey",
+    "short": "Sankey",
+    "hint_zh": "流量迁移",
+    "hint_en": "Flows",
+    "glyph": "sankey",
+    "options": {
+      "type": "sankey",
+      "title_text": "Energy Flow",
+      "node_align": "justify",
+      "link_gradient": true,
+      "animation": {
+        "duration": 1000,
+        "easing": "ease-out",
+        "delay": 100
+      },
+      "nodes": [
+        {
+          "name": "Coal"
+        },
+        {
+          "name": "Gas"
+        },
+        {
+          "name": "Solar"
+        },
+        {
+          "name": "Electricity"
+        },
+        {
+          "name": "Heat"
+        },
+        {
+          "name": "Residential"
+        },
+        {
+          "name": "Industrial"
+        },
+        {
+          "name": "Commercial"
+        }
+      ],
+      "links": [
+        {
+          "source": "Coal",
+          "target": "Electricity",
+          "value": 25
+        },
+        {
+          "source": "Coal",
+          "target": "Heat",
+          "value": 10
+        },
+        {
+          "source": "Gas",
+          "target": "Electricity",
+          "value": 15
+        },
+        {
+          "source": "Gas",
+          "target": "Heat",
+          "value": 20
+        },
+        {
+          "source": "Solar",
+          "target": "Electricity",
+          "value": 10
+        },
+        {
+          "source": "Electricity",
+          "target": "Residential",
+          "value": 18
+        },
+        {
+          "source": "Electricity",
+          "target": "Industrial",
+          "value": 22
+        },
+        {
+          "source": "Electricity",
+          "target": "Commercial",
+          "value": 10
+        },
+        {
+          "source": "Heat",
+          "target": "Residential",
+          "value": 12
+        },
+        {
+          "source": "Heat",
+          "target": "Industrial",
+          "value": 18
+        }
+      ]
+    }
+  },
+  {
+    "id": "sankeyVertical",
+    "chart_type": "sankey",
+    "label_zh": "纵向桑基图",
+    "label_en": "Vertical sankey",
+    "short": "SankeyV",
+    "hint_zh": "自上而下",
+    "hint_en": "Flows top to bottom",
+    "glyph": "sankey",
+    "options": {
+      "type": "sankey",
+      "title_text": "Energy Flow",
+      "orient": "vertical",
+      "node_align": "justify",
+      "link_gradient": true,
+      "tooltip_show": true,
+      "nodes": [
+        {
+          "name": "Coal"
+        },
+        {
+          "name": "Gas"
+        },
+        {
+          "name": "Solar"
+        },
+        {
+          "name": "Electricity"
+        },
+        {
+          "name": "Heat"
+        },
+        {
+          "name": "Residential"
+        },
+        {
+          "name": "Industrial"
+        },
+        {
+          "name": "Commercial"
+        }
+      ],
+      "links": [
+        {
+          "source": "Coal",
+          "target": "Electricity",
+          "value": 25
+        },
+        {
+          "source": "Coal",
+          "target": "Heat",
+          "value": 10
+        },
+        {
+          "source": "Gas",
+          "target": "Electricity",
+          "value": 15
+        },
+        {
+          "source": "Gas",
+          "target": "Heat",
+          "value": 20
+        },
+        {
+          "source": "Solar",
+          "target": "Electricity",
+          "value": 10
+        },
+        {
+          "source": "Electricity",
+          "target": "Residential",
+          "value": 18
+        },
+        {
+          "source": "Electricity",
+          "target": "Industrial",
+          "value": 22
+        },
+        {
+          "source": "Electricity",
+          "target": "Commercial",
+          "value": 10
+        },
+        {
+          "source": "Heat",
+          "target": "Residential",
+          "value": 12
+        },
+        {
+          "source": "Heat",
+          "target": "Industrial",
+          "value": 18
+        }
+      ]
+    }
+  },
+  {
+    "id": "treeChart",
+    "chart_type": "tree",
+    "label_zh": "树图",
+    "label_en": "Tree",
+    "short": "Tree",
+    "hint_zh": "层级结构",
+    "hint_en": "Hierarchy",
+    "glyph": "tree",
+    "options": {
+      "type": "tree",
+      "title_text": "Tree",
+      "orient": "LR",
+      "symbol_size": 6,
+      "series_data": [
+        {
+          "name": "Root",
+          "children": [
+            {
+              "name": "Branch A",
+              "children": [
+                {
+                  "name": "Leaf A1",
+                  "value": 10
+                },
+                {
+                  "name": "Leaf A2",
+                  "value": 8
+                }
+              ]
+            },
+            {
+              "name": "Branch B",
+              "children": [
+                {
+                  "name": "Leaf B1",
+                  "value": 12
+                },
+                {
+                  "name": "Leaf B2",
+                  "value": 6
+                },
+                {
+                  "name": "Leaf B3",
+                  "value": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "treeRadial",
+    "chart_type": "tree",
+    "label_zh": "径向树图",
+    "label_en": "Radial tree",
+    "short": "Radial",
+    "hint_zh": "放射层级",
+    "hint_en": "Hierarchy around a center",
+    "glyph": "tree",
+    "options": {
+      "type": "tree",
+      "width": 700,
+      "height": 680,
+      "title_text": "Radial Tree",
+      "layout": "radial",
+      "edge_shape": "curve",
+      "tooltip_show": true,
+      "series_data": [
+        {
+          "name": "flare",
+          "children": [
+            {
+              "name": "analytics",
+              "children": [
+                {
+                  "name": "cluster",
+                  "children": [
+                    {
+                      "name": "Agglomerative"
+                    },
+                    {
+                      "name": "Community"
+                    },
+                    {
+                      "name": "Hierarchical"
+                    }
+                  ]
+                },
+                {
+                  "name": "graph",
+                  "children": [
+                    {
+                      "name": "Betweenness"
+                    },
+                    {
+                      "name": "LinkDistance"
+                    },
+                    {
+                      "name": "MaxFlow"
+                    },
+                    {
+                      "name": "ShortestPaths"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "animate",
+              "children": [
+                {
+                  "name": "Easing"
+                },
+                {
+                  "name": "Parallel"
+                },
+                {
+                  "name": "Pause"
+                },
+                {
+                  "name": "Scheduler"
+                },
+                {
+                  "name": "Sequence"
+                },
+                {
+                  "name": "Transition"
+                }
+              ]
+            },
+            {
+              "name": "data",
+              "children": [
+                {
+                  "name": "converters",
+                  "children": [
+                    {
+                      "name": "Converters"
+                    },
+                    {
+                      "name": "GraphML"
+                    },
+                    {
+                      "name": "JSON"
+                    }
+                  ]
+                },
+                {
+                  "name": "DataField"
+                },
+                {
+                  "name": "DataSchema"
+                },
+                {
+                  "name": "DataSet"
+                }
+              ]
+            },
+            {
+              "name": "display",
+              "children": [
+                {
+                  "name": "DirtySprite"
+                },
+                {
+                  "name": "LineSprite"
+                },
+                {
+                  "name": "RectSprite"
+                },
+                {
+                  "name": "TextSprite"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "chordChart",
+    "chart_type": "chord",
+    "label_zh": "和弦图",
+    "label_en": "Chord",
+    "short": "Chord",
+    "hint_zh": "相互流向",
+    "hint_en": "Flows between nodes",
+    "glyph": "chord",
+    "options": {
+      "type": "chord",
+      "title_text": "Trade Flows",
+      "node_width": 12,
+      "node_gap": 3,
+      "link_opacity": 0.5,
+      "link_gradient": true,
+      "tooltip_show": true,
+      "animation": {
+        "duration": 1000,
+        "easing": "ease-out",
+        "delay": 100
+      },
+      "nodes": [
+        {
+          "name": "Asia"
+        },
+        {
+          "name": "Europe"
+        },
+        {
+          "name": "Americas"
+        },
+        {
+          "name": "Africa"
+        },
+        {
+          "name": "Oceania"
+        }
+      ],
+      "links": [
+        {
+          "source": "Asia",
+          "target": "Europe",
+          "value": 60
+        },
+        {
+          "source": "Asia",
+          "target": "Americas",
+          "value": 45
+        },
+        {
+          "source": "Asia",
+          "target": "Oceania",
+          "value": 15
+        },
+        {
+          "source": "Europe",
+          "target": "Americas",
+          "value": 50
+        },
+        {
+          "source": "Europe",
+          "target": "Africa",
+          "value": 25
+        },
+        {
+          "source": "Americas",
+          "target": "Asia",
+          "value": 30
+        },
+        {
+          "source": "Africa",
+          "target": "Asia",
+          "value": 20
+        },
+        {
+          "source": "Oceania",
+          "target": "Europe",
+          "value": 10
+        }
+      ]
+    }
+  },
+  {
+    "id": "linesChart",
+    "chart_type": "lines",
+    "label_zh": "流向图",
+    "label_en": "Flow lines",
+    "short": "Flows",
+    "hint_zh": "地图迁徙",
+    "hint_en": "Migration on a map",
+    "glyph": "flows",
+    "options": {
+      "type": "lines",
+      "title_text": "Migration between regions",
+      "title_align": "left",
+      "tooltip_show": true,
+      "curveness": 0.22,
+      "min_width": 1,
+      "max_width": 5,
+      "arrow": true,
+      "projection": "mercator",
+      "lines": [
+        {
+          "name": "Alder → Glen",
+          "value": 80,
+          "from": [
+            102.36,
+            29.55
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Birch → Glen",
+          "value": 140,
+          "from": [
+            106.35,
+            29.29
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Cedar → Glen",
+          "value": 220,
+          "from": [
+            110.17,
+            29.73
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Fir → Glen",
+          "value": 160,
+          "from": [
+            110.18,
+            26.1
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Elm → Glen",
+          "value": 90,
+          "from": [
+            106.02,
+            25.94
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Kelp → Glen",
+          "value": 190,
+          "from": [
+            113.66,
+            21.92
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Juniper → Glen",
+          "value": 70,
+          "from": [
+            109.76,
+            22.08
+          ],
+          "to": [
+            114.29,
+            26.1
+          ]
+        },
+        {
+          "name": "Dune → Fir",
+          "value": 45,
+          "from": [
+            101.98,
+            25.62
+          ],
+          "to": [
+            110.18,
+            26.1
+          ]
+        },
+        {
+          "name": "Elm → Fir",
+          "value": 60,
+          "from": [
+            106.02,
+            25.94
+          ],
+          "to": [
+            110.18,
+            26.1
+          ]
+        },
+        {
+          "name": "Heath → Kelp",
+          "value": 55,
+          "from": [
+            101.94,
+            21.98
+          ],
+          "to": [
+            113.66,
+            21.92
+          ]
+        },
+        {
+          "name": "Ivy → Kelp",
+          "value": 35,
+          "from": [
+            105.72,
+            22.49
+          ],
+          "to": [
+            113.66,
+            21.92
+          ]
+        },
+        {
+          "name": "Juniper → Kelp",
+          "value": 110,
+          "from": [
+            109.76,
+            22.08
+          ],
+          "to": [
+            113.66,
+            21.92
+          ]
+        },
+        {
+          "name": "Alder → Dune",
+          "value": 30,
+          "from": [
+            102.36,
+            29.55
+          ],
+          "to": [
+            101.98,
+            25.62
+          ]
+        },
+        {
+          "name": "Birch → Elm",
+          "value": 48,
+          "from": [
+            106.35,
+            29.29
+          ],
+          "to": [
+            106.02,
+            25.94
+          ]
+        },
+        {
+          "name": "Cedar → Fir",
+          "value": 75,
+          "from": [
+            110.17,
+            29.73
+          ],
+          "to": [
+            110.18,
+            26.1
+          ]
+        },
+        {
+          "name": "Heath → Ivy",
+          "value": 22,
+          "from": [
+            101.94,
+            21.98
+          ],
+          "to": [
+            105.72,
+            22.49
+          ]
+        }
+      ],
+      "geo_json": "demo"
+    }
+  },
+  {
+    "id": "graphChart",
+    "chart_type": "graph",
+    "label_zh": "关系图",
+    "label_en": "Graph",
+    "short": "Graph",
+    "hint_zh": "节点网络",
+    "hint_en": "Network of nodes",
+    "glyph": "graph",
+    "options": {
+      "type": "graph",
+      "title_text": "Team Graph",
+      "layout": "force",
+      "symbol_size": 10,
+      "tooltip_show": true,
+      "categories": [
+        "Team",
+        "Tool",
+        "Service"
+      ],
+      "nodes": [
+        {
+          "name": "Ann",
+          "category": 0,
+          "value": 5
+        },
+        {
+          "name": "Bob",
+          "category": 0,
+          "value": 3
+        },
+        {
+          "name": "Cid",
+          "category": 0,
+          "value": 2
+        },
+        {
+          "name": "Git",
+          "category": 1,
+          "value": 4
+        },
+        {
+          "name": "CI",
+          "category": 1,
+          "value": 3
+        },
+        {
+          "name": "Docs",
+          "category": 1,
+          "value": 1
+        },
+        {
+          "name": "API",
+          "category": 2,
+          "value": 4
+        },
+        {
+          "name": "Web",
+          "category": 2,
+          "value": 2
+        }
+      ],
+      "links": [
+        {
+          "source": "Ann",
+          "target": "Bob",
+          "value": 3
+        },
+        {
+          "source": "Ann",
+          "target": "Cid",
+          "value": 1
+        },
+        {
+          "source": "Bob",
+          "target": "Cid",
+          "value": 1
+        },
+        {
+          "source": "Ann",
+          "target": "Git",
+          "value": 2
+        },
+        {
+          "source": "Bob",
+          "target": "Git",
+          "value": 2
+        },
+        {
+          "source": "Cid",
+          "target": "Git",
+          "value": 1
+        },
+        {
+          "source": "Ann",
+          "target": "Docs",
+          "value": 1
+        },
+        {
+          "source": "Cid",
+          "target": "Docs",
+          "value": 2
+        },
+        {
+          "source": "Git",
+          "target": "CI",
+          "value": 3
+        },
+        {
+          "source": "CI",
+          "target": "API",
+          "value": 2
+        },
+        {
+          "source": "CI",
+          "target": "Web",
+          "value": 1
+        },
+        {
+          "source": "Bob",
+          "target": "API",
+          "value": 2
+        },
+        {
+          "source": "Cid",
+          "target": "Web",
+          "value": 1
+        },
+        {
+          "source": "API",
+          "target": "Web",
+          "value": 2
+        },
+        {
+          "source": "Docs",
+          "target": "Web",
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "ganttChart",
+    "chart_type": "gantt",
+    "label_zh": "甘特图",
+    "label_en": "Gantt",
+    "short": "Gantt",
+    "hint_zh": "项目排期",
+    "hint_en": "Project schedule",
+    "glyph": "gantt",
+    "options": {
+      "type": "gantt",
+      "title_text": "Website Relaunch",
+      "title_align": "left",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "tooltip_show": true,
+      "now": "2024-03-19",
+      "tasks": [
+        {
+          "name": "Research",
+          "category": "Plan",
+          "start": "2024-03-04",
+          "end": "2024-03-08",
+          "progress": 1
+        },
+        {
+          "name": "Wireframes",
+          "category": "Design",
+          "start": "2024-03-07",
+          "end": "2024-03-14",
+          "progress": 1
+        },
+        {
+          "name": "Visual design",
+          "category": "Design",
+          "start": "2024-03-12",
+          "end": "2024-03-22",
+          "progress": 0.7
+        },
+        {
+          "name": "Design sign-off",
+          "category": "Design",
+          "start": "2024-03-22"
+        },
+        {
+          "name": "Frontend",
+          "category": "Build",
+          "start": "2024-03-18",
+          "end": "2024-04-05",
+          "progress": 0.1
+        },
+        {
+          "name": "Backend",
+          "category": "Build",
+          "start": "2024-03-14",
+          "end": "2024-04-02",
+          "progress": 0.3
+        },
+        {
+          "name": "Testing",
+          "category": "Launch",
+          "start": "2024-04-01",
+          "end": "2024-04-10"
+        },
+        {
+          "name": "Go live",
+          "category": "Launch",
+          "start": "2024-04-11"
+        }
+      ]
+    }
+  }
+]

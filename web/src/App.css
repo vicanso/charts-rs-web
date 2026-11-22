@@ -939,6 +939,39 @@ kbd.kbd {
   gap: 8px;
 }
 
+.editor-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.editor-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  line-height: 1.5;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.editor-mode-btn:hover {
+  color: var(--text);
+}
+
+.editor-mode-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
 .editor-error {
   flex-shrink: 0;
   display: flex;

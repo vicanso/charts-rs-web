@@ -27,6 +27,7 @@ impl From<charts_rs::Error> for HttpError {
     fn from(value: charts_rs::Error) -> Self {
         let category = match &value {
             charts_rs::Error::FontNotFound { .. } | charts_rs::Error::ParseFont { .. } => "font",
+            charts_rs::Error::Mermaid { .. } => "mermaid",
             charts_rs::Error::Size { .. }
             | charts_rs::Error::Raw { .. }
             | charts_rs::Error::Parse { .. }
@@ -36,6 +37,7 @@ impl From<charts_rs::Error> for HttpError {
         HttpError {
             message: value.to_string(),
             category: category.to_string(),
+            code: value.code().to_string(),
             ..Default::default()
         }
     }

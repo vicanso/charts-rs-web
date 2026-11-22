@@ -1,0 +1,1268 @@
+[
+  {
+    "id": "tableBasic",
+    "chart_type": "table",
+    "label_zh": "表格",
+    "label_en": "Table",
+    "short": "Table",
+    "hint_zh": "结构化数据",
+    "hint_en": "Structured data",
+    "glyph": "table",
+    "options": {
+      "spans": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "text_aligns": [
+        "left",
+        "center",
+        "right"
+      ],
+      "header_row_padding": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "header_row_height": 30,
+      "header_font_size": 16,
+      "type": "table",
+      "title_height": 45,
+      "title_text": "NASDAQ",
+      "sub_title_text": "",
+      "data": [
+        [
+          "Name",
+          "Price",
+          "Change"
+        ],
+        [
+          "Datadog Inc",
+          "97.32",
+          "-7.49%"
+        ],
+        [
+          "Hashicorp Inc",
+          "28.66",
+          "-9.25%"
+        ],
+        [
+          "Gitlab Inc",
+          "51.63",
+          "+4.32%"
+        ]
+      ],
+      "header_font_weight": "bold",
+      "cell_styles": [
+        {
+          "font_color": "#fff",
+          "font_weight": "bold",
+          "background_color": "#2d7c2b",
+          "indexes": [
+            1,
+            2
+          ]
+        }
+      ],
+      "outlined": false
+    }
+  },
+  {
+    "id": "tableSparkline",
+    "chart_type": "table",
+    "label_zh": "表格迷你图",
+    "label_en": "Table with sparklines",
+    "short": "Spark",
+    "hint_zh": "单元格趋势",
+    "hint_en": "Trends in cells",
+    "glyph": "table",
+    "options": {
+      "type": "table",
+      "title_text": "Servers",
+      "spans": [
+        0.3,
+        0.18,
+        0.18
+      ],
+      "text_aligns": [
+        "left",
+        "right",
+        "right",
+        "left"
+      ],
+      "data": [
+        [
+          "Server",
+          "CPU",
+          "Requests",
+          "Last 24 hours"
+        ],
+        [
+          "api-1",
+          "72%",
+          18230,
+          [
+            42,
+            45,
+            51,
+            48,
+            60,
+            66,
+            63,
+            71,
+            69,
+            74,
+            70,
+            72
+          ]
+        ],
+        [
+          "api-2",
+          "38%",
+          9120,
+          [
+            30,
+            34,
+            31,
+            29,
+            35,
+            41,
+            38,
+            36,
+            null,
+            null,
+            37,
+            38
+          ]
+        ],
+        [
+          "worker-1",
+          "91%",
+          4410,
+          [
+            55,
+            61,
+            70,
+            76,
+            80,
+            84,
+            88,
+            86,
+            90,
+            93,
+            89,
+            91
+          ]
+        ],
+        [
+          "db-1",
+          "24%",
+          26980,
+          [
+            26,
+            25,
+            24,
+            27,
+            25,
+            23,
+            24,
+            26,
+            25,
+            24,
+            23,
+            24
+          ]
+        ]
+      ],
+      "sparkline_type": "line"
+    }
+  },
+  {
+    "id": "multiChart",
+    "chart_type": "multi",
+    "label_zh": "多图表拼合",
+    "label_en": "Multi chart",
+    "short": "Multi",
+    "hint_zh": "组合看板",
+    "hint_en": "Several charts in one",
+    "glyph": "multi",
+    "options": {
+      "type": "multi",
+      "margin": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "background_color": "#fff",
+      "child_charts": [
+        {
+          "quality": 80,
+          "width": 400,
+          "height": 300,
+          "margin": {
+            "left": 5,
+            "top": 5,
+            "right": 5,
+            "bottom": 5
+          },
+          "font_family": "Roboto",
+          "title_font_size": 18,
+          "title_font_weight": "bold",
+          "title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "title_align": "right",
+          "title_height": 30,
+          "sub_title_text": "Sub Title",
+          "sub_title_font_size": 14,
+          "sub_title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "sub_title_align": "center",
+          "sub_title_height": 20,
+          "legend_font_size": 14,
+          "legend_align": "left",
+          "legend_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "legend_category": "normal",
+          "legend_show": true,
+          "x_axis_height": 30,
+          "x_axis_font_size": 14,
+          "x_axis_name_gap": 5,
+          "x_axis_name_rotate": 0,
+          "x_boundary_gap": true,
+          "x_axis_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "type": "bar",
+          "title_text": "Bar Chart",
+          "x_axis_data": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+          ],
+          "series_list": [
+            {
+              "name": "Email",
+              "label_show": true,
+              "data": [
+                120,
+                132,
+                101,
+                134,
+                90,
+                230,
+                210
+              ]
+            },
+            {
+              "name": "Union Ads",
+              "label_show": true,
+              "data": [
+                220,
+                182,
+                191,
+                234,
+                290,
+                330,
+                310
+              ]
+            }
+          ]
+        },
+        {
+          "quality": 80,
+          "width": 400,
+          "height": 300,
+          "margin": {
+            "left": 15,
+            "top": 15,
+            "right": 15,
+            "bottom": 15
+          },
+          "font_family": "Roboto",
+          "title_font_size": 18,
+          "title_font_weight": "bold",
+          "title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "title_align": "left",
+          "title_height": 30,
+          "sub_title_text": "Sub Title",
+          "sub_title_font_size": 14,
+          "sub_title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "sub_title_align": "center",
+          "sub_title_height": 20,
+          "legend_font_size": 14,
+          "legend_align": "right",
+          "legend_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "legend_category": "round_rect",
+          "legend_show": true,
+          "x_axis_height": 30,
+          "x_axis_font_size": 14,
+          "x_axis_name_gap": 5,
+          "x_axis_name_rotate": 0,
+          "x_boundary_gap": false,
+          "x_axis_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "x": 420,
+          "y": 10,
+          "type": "line",
+          "title_text": "Line Chart",
+          "x_axis_data": [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri",
+            "Sat",
+            "Sun"
+          ],
+          "series_list": [
+            {
+              "name": "Email",
+              "label_show": true,
+              "data": [
+                120,
+                132,
+                101,
+                134,
+                90,
+                230,
+                210
+              ]
+            },
+            {
+              "name": "Union Ads",
+              "label_show": true,
+              "data": [
+                220,
+                182,
+                191,
+                234,
+                290,
+                330,
+                310
+              ]
+            }
+          ]
+        },
+        {
+          "quality": 80,
+          "width": 400,
+          "height": 300,
+          "margin": {
+            "left": 5,
+            "top": 5,
+            "right": 20,
+            "bottom": 5
+          },
+          "font_family": "Roboto",
+          "title_font_size": 18,
+          "title_font_weight": "bold",
+          "title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "title_align": "left",
+          "title_height": 30,
+          "sub_title_text": "Data from: Heinz 2003",
+          "sub_title_font_size": 14,
+          "sub_title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "sub_title_align": "left",
+          "sub_title_height": 20,
+          "legend_font_size": 14,
+          "legend_align": "right",
+          "legend_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "legend_category": "normal",
+          "legend_show": true,
+          "x_axis_height": 30,
+          "x_axis_font_size": 14,
+          "x_axis_name_gap": 5,
+          "x_axis_name_rotate": 0,
+          "x_boundary_gap": true,
+          "x_axis_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "x": 10,
+          "y": 320,
+          "type": "scatter",
+          "title_text": "Height and weight",
+          "y_axis_configs": [
+            {
+              "axis_min": 40,
+              "axis_max": 100,
+              "axis_formatter": "{c} kg"
+            }
+          ],
+          "x_axis_config": {
+            "axis_min": 140,
+            "axis_max": 200,
+            "axis_formatter": "{c} cm"
+          },
+          "series_list": [
+            {
+              "name": "Female",
+              "data": [
+                161.2,
+                51.6,
+                167.5,
+                59,
+                159.5,
+                49.2,
+                157,
+                63,
+                155.8,
+                53.6,
+                170,
+                59,
+                159.1,
+                47.6,
+                166,
+                69.8,
+                176.2,
+                66.8,
+                160.2,
+                75.2,
+                172.5,
+                55.2,
+                170.9,
+                54.2,
+                172.9,
+                62.5,
+                153.4,
+                42,
+                160,
+                50,
+                147.2,
+                49.8,
+                168.2,
+                49.2,
+                175,
+                73.2,
+                157,
+                47.8,
+                167.6,
+                68.8,
+                159.5,
+                50.6,
+                175,
+                82.5,
+                166.8,
+                57.2,
+                176.5,
+                87.8,
+                170.2,
+                72.8
+              ]
+            },
+            {
+              "name": "Male",
+              "data": [
+                174,
+                65.6,
+                175.3,
+                71.8,
+                193.5,
+                80.7,
+                186.5,
+                72.6,
+                187.2,
+                78.8,
+                181.5,
+                74.8,
+                184,
+                86.4,
+                184.5,
+                78.4,
+                175,
+                62,
+                184,
+                81.6,
+                180,
+                76.6,
+                177.8,
+                83.6,
+                192,
+                90,
+                176,
+                74.6,
+                174,
+                71,
+                184,
+                79.6,
+                192.7,
+                93.8,
+                171.5,
+                70,
+                173,
+                72.4,
+                176,
+                85.9,
+                176,
+                78.8,
+                180.5,
+                77.8,
+                172.7,
+                66.2,
+                176,
+                86.4,
+                173.5,
+                81.8
+              ]
+            }
+          ],
+          "series_symbol_sizes": [
+            6,
+            6
+          ]
+        },
+        {
+          "quality": 80,
+          "width": 400,
+          "height": 300,
+          "margin": {
+            "left": 5,
+            "top": 5,
+            "right": 5,
+            "bottom": 5
+          },
+          "font_family": "Roboto",
+          "title_font_size": 18,
+          "title_font_weight": "bold",
+          "title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "title_align": "center",
+          "title_height": 30,
+          "sub_title_text": "Sub Title",
+          "sub_title_font_size": 14,
+          "sub_title_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "sub_title_align": "center",
+          "sub_title_height": 20,
+          "legend_font_size": 14,
+          "legend_align": "center",
+          "legend_margin": {
+            "top": 50
+          },
+          "legend_category": "normal",
+          "legend_show": true,
+          "x_axis_height": 30,
+          "x_axis_font_size": 14,
+          "x_axis_name_gap": 5,
+          "x_axis_name_rotate": 0,
+          "x_boundary_gap": true,
+          "x_axis_margin": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "x": 420,
+          "y": 320,
+          "type": "pie",
+          "title_text": "Nightingale Chart",
+          "series_list": [
+            {
+              "name": "rose 1",
+              "data": [
+                40
+              ]
+            },
+            {
+              "name": "rose 2",
+              "data": [
+                38
+              ]
+            },
+            {
+              "name": "rose 3",
+              "data": [
+                32
+              ]
+            },
+            {
+              "name": "rose 4",
+              "data": [
+                30
+              ]
+            },
+            {
+              "name": "rose 5",
+              "data": [
+                28
+              ]
+            },
+            {
+              "name": "rose 6",
+              "data": [
+                26
+              ]
+            },
+            {
+              "name": "rose 7",
+              "data": [
+                22
+              ]
+            },
+            {
+              "name": "rose 8",
+              "data": [
+                18
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "multiAligned",
+    "chart_type": "multi",
+    "label_zh": "K 线多图对齐",
+    "label_en": "Aligned candlestick",
+    "short": "Align",
+    "hint_zh": "绘图区对齐",
+    "hint_en": "Plots lined up",
+    "glyph": "candle",
+    "options": {
+      "type": "multi",
+      "margin": 10,
+      "gap": 4,
+      "align_plots": true,
+      "child_charts": [
+        {
+          "type": "candlestick",
+          "width": 640,
+          "height": 290,
+          "title_text": "Price",
+          "title_align": "left",
+          "series_colors": [
+            "#8c8c8c",
+            "#5470c6",
+            "#fac858"
+          ],
+          "legend_align": "right",
+          "x_axis_hidden": true,
+          "y_axis_configs": [
+            {
+              "axis_min": 100,
+              "axis_max": 130,
+              "axis_split_number": 6
+            }
+          ],
+          "x_axis_data": [
+            "10-01",
+            "10-02",
+            "10-03",
+            "10-04",
+            "10-05",
+            "10-06",
+            "10-07",
+            "10-08",
+            "10-09",
+            "10-10",
+            "10-11",
+            "10-12",
+            "10-13",
+            "10-14",
+            "10-15",
+            "10-16",
+            "10-17",
+            "10-18",
+            "10-19",
+            "10-20",
+            "10-21",
+            "10-22",
+            "10-23",
+            "10-24",
+            "10-25",
+            "10-26",
+            "10-27",
+            "10-28",
+            "10-29",
+            "10-30"
+          ],
+          "series_list": [
+            {
+              "name": "Day",
+              "data": [
+                102.03,
+                103.82,
+                101.48,
+                104.54,
+                103.7,
+                104.75,
+                103.29,
+                105.5,
+                104.47,
+                104.75,
+                102.93,
+                105.59,
+                104.82,
+                106.2,
+                104.27,
+                106.47,
+                106.76,
+                105.74,
+                105.54,
+                107.32,
+                105.74,
+                105.63,
+                105.14,
+                106.15,
+                105.12,
+                106.04,
+                104.72,
+                106.98,
+                106.51,
+                106.2,
+                105.2,
+                106.73,
+                106.11,
+                105.43,
+                104.86,
+                106.67,
+                105.12,
+                105.37,
+                104.38,
+                106.28,
+                105.15,
+                105.76,
+                102.87,
+                106.19,
+                105.25,
+                106.93,
+                104.59,
+                107.23,
+                107.38,
+                108.84,
+                106.56,
+                109.44,
+                108.97,
+                111.44,
+                108.7,
+                112.51,
+                111.82,
+                112.06,
+                111.32,
+                113.1,
+                111.58,
+                112.1,
+                111.23,
+                112.75,
+                112.36,
+                113.55,
+                112.1,
+                114.56,
+                113.96,
+                115.95,
+                113.42,
+                116.67,
+                115.35,
+                116.25,
+                115.08,
+                117.29,
+                116.16,
+                118.61,
+                115.95,
+                119.05,
+                119.1,
+                117.7,
+                117.2,
+                119.62,
+                117.47,
+                117.71,
+                116.63,
+                118.77,
+                118.18,
+                118.87,
+                117.15,
+                119.51,
+                118.76,
+                120.32,
+                118.32,
+                120.78,
+                120.76,
+                123.08,
+                120.46,
+                123.44,
+                122.88,
+                122.97,
+                122.22,
+                124.15,
+                123.34,
+                123.32,
+                122.17,
+                124.59,
+                122.98,
+                124.48,
+                122.18,
+                124.95,
+                124.84,
+                124.89,
+                124.45,
+                125.22,
+                125.45,
+                126.32,
+                124.41,
+                126.67
+              ]
+            },
+            {
+              "name": "MA5",
+              "category": "line",
+              "data": [
+                102.38,
+                102.96,
+                103.39,
+                104.2,
+                105.05,
+                105.41,
+                105.67,
+                105.96,
+                105.81,
+                105.74,
+                105.76,
+                105.94,
+                106.47,
+                107.67,
+                109,
+                110.27,
+                111.6,
+                113.02,
+                113.98,
+                115.29,
+                116.41,
+                117.24,
+                117.83,
+                118.64,
+                119.54,
+                120.59,
+                121.71,
+                122.84,
+                123.75,
+                124.4
+              ],
+              "symbol": null
+            },
+            {
+              "name": "MA10",
+              "category": "line",
+              "data": [
+                104.81,
+                104.23,
+                103.8,
+                103.71,
+                103.67,
+                103.9,
+                104.32,
+                104.67,
+                105,
+                105.39,
+                105.59,
+                105.81,
+                106.21,
+                106.74,
+                107.37,
+                108.02,
+                108.77,
+                109.74,
+                110.82,
+                112.15,
+                113.34,
+                114.42,
+                115.42,
+                116.31,
+                117.41,
+                118.5,
+                119.48,
+                120.33,
+                121.2,
+                121.97
+              ],
+              "symbol": null
+            }
+          ]
+        },
+        {
+          "title_font_size": 13,
+          "title_height": 24,
+          "title_align": "left",
+          "legend_font_size": 12,
+          "type": "bar",
+          "width": 640,
+          "height": 120,
+          "title_text": "Volume",
+          "legend_show": false,
+          "x_axis_hidden": true,
+          "y_axis_configs": [
+            {
+              "axis_min": 0,
+              "axis_max": 3000000,
+              "axis_split_number": 3
+            }
+          ],
+          "x_axis_data": [
+            "10-01",
+            "10-02",
+            "10-03",
+            "10-04",
+            "10-05",
+            "10-06",
+            "10-07",
+            "10-08",
+            "10-09",
+            "10-10",
+            "10-11",
+            "10-12",
+            "10-13",
+            "10-14",
+            "10-15",
+            "10-16",
+            "10-17",
+            "10-18",
+            "10-19",
+            "10-20",
+            "10-21",
+            "10-22",
+            "10-23",
+            "10-24",
+            "10-25",
+            "10-26",
+            "10-27",
+            "10-28",
+            "10-29",
+            "10-30"
+          ],
+          "series_list": [
+            {
+              "name": "Volume",
+              "data": [
+                2192122,
+                2167754,
+                1752262,
+                2011006,
+                1956911,
+                1644336,
+                1665693,
+                1577018,
+                1828393,
+                1388235,
+                1933148,
+                2489230,
+                2253097,
+                2457564,
+                1289143,
+                1687778,
+                2203036,
+                2330459,
+                1868551,
+                2891074,
+                1933585,
+                1660500,
+                1920448,
+                2424667,
+                2744609,
+                1581819,
+                1543671,
+                2077421,
+                1561826,
+                1775389
+              ],
+              "colors": [
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#00da3c",
+                "#00da3c",
+                "#ec0000",
+                "#00da3c",
+                "#00da3c",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#00da3c",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#00da3c",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000"
+              ]
+            }
+          ]
+        },
+        {
+          "title_font_size": 13,
+          "title_height": 24,
+          "title_align": "left",
+          "legend_font_size": 12,
+          "type": "bar",
+          "width": 640,
+          "height": 160,
+          "title_text": "MACD",
+          "legend_align": "right",
+          "series_colors": [
+            "#8c8c8c",
+            "#5470c6",
+            "#fac858"
+          ],
+          "y_axis_configs": [
+            {
+              "axis_min": -6,
+              "axis_max": 6,
+              "axis_split_number": 2
+            }
+          ],
+          "x_axis_data": [
+            "10-01",
+            "10-02",
+            "10-03",
+            "10-04",
+            "10-05",
+            "10-06",
+            "10-07",
+            "10-08",
+            "10-09",
+            "10-10",
+            "10-11",
+            "10-12",
+            "10-13",
+            "10-14",
+            "10-15",
+            "10-16",
+            "10-17",
+            "10-18",
+            "10-19",
+            "10-20",
+            "10-21",
+            "10-22",
+            "10-23",
+            "10-24",
+            "10-25",
+            "10-26",
+            "10-27",
+            "10-28",
+            "10-29",
+            "10-30"
+          ],
+          "series_list": [
+            {
+              "name": "MACD",
+              "data": [
+                -2.42,
+                -1.82,
+                -1.34,
+                -0.77,
+                -0.42,
+                -0.17,
+                0.07,
+                0.25,
+                0.27,
+                0.27,
+                0.33,
+                0.51,
+                0.85,
+                1.36,
+                1.7,
+                1.84,
+                2.01,
+                2.31,
+                2.41,
+                2.63,
+                2.5,
+                2.25,
+                2.1,
+                2.04,
+                2.21,
+                2.14,
+                1.98,
+                1.86,
+                1.69,
+                1.61
+              ],
+              "colors": [
+                "#00da3c",
+                "#00da3c",
+                "#00da3c",
+                "#00da3c",
+                "#00da3c",
+                "#00da3c",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000",
+                "#ec0000"
+              ]
+            },
+            {
+              "name": "DIF",
+              "category": "line",
+              "data": [
+                -1.59,
+                -1.52,
+                -1.45,
+                -1.26,
+                -1.14,
+                -1.03,
+                -0.91,
+                -0.79,
+                -0.74,
+                -0.71,
+                -0.64,
+                -0.49,
+                -0.21,
+                0.22,
+                0.6,
+                0.9,
+                1.24,
+                1.68,
+                2.03,
+                2.47,
+                2.71,
+                2.87,
+                3.06,
+                3.29,
+                3.65,
+                3.88,
+                4.04,
+                4.22,
+                4.34,
+                4.5
+              ],
+              "symbol": null
+            },
+            {
+              "name": "DEA",
+              "category": "line",
+              "data": [
+                -0.38,
+                -0.61,
+                -0.78,
+                -0.88,
+                -0.93,
+                -0.95,
+                -0.94,
+                -0.91,
+                -0.88,
+                -0.84,
+                -0.8,
+                -0.74,
+                -0.63,
+                -0.46,
+                -0.25,
+                -0.02,
+                0.23,
+                0.52,
+                0.82,
+                1.15,
+                1.46,
+                1.75,
+                2.01,
+                2.26,
+                2.54,
+                2.81,
+                3.06,
+                3.29,
+                3.5,
+                3.7
+              ],
+              "symbol": null
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

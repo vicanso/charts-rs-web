@@ -5,3 +5,8 @@ basic:
 mcp:
   # 允许访问/mcp的Host，多个以,分隔，为空表示不校验
   allowedHosts: ""
+limits:
+  maxJsonBytes: "1048576"
+  maxCanvasSide: "8192"
+  maxDataPoints: "100000"
+  maxMermaidSource: "65536"

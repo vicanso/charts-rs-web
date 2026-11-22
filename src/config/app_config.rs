@@ -66,6 +66,15 @@ impl APPConfig {
         }
         default_value
     }
+    /// 从配置中获取对应的值(usize)，优先从env获取，解析失败或为0时使用默认值
+    fn get_usize_value_default(&self, key: &str, default_value: usize) -> usize {
+        if let Ok(value) = self.get_value_from_env_first(key).parse::<usize>()
+            && value > 0
+        {
+            return value;
+        }
+        default_value
+    }
     /// 优先从env中获取配置的值，如果env中未配置则调用get_value获取
     fn get_value_from_env_first(&self, key: &str) -> String {
         let k = self.get_key(key);
@@ -145,4 +154,22 @@ pub fn must_new_mcp_config() -> McpConfig {
         .filter(|item| !item.is_empty())
         .collect();
     McpConfig { allowed_hosts }
+}
+
+pub fn must_new_render_limits() -> charts_rs::RenderLimits {
+    let config = must_new_config().set_prefix("limits");
+    let mut limits = charts_rs::RenderLimits::default();
+    limits.max_json_bytes = config.get_usize_value_default("maxJsonBytes", limits.max_json_bytes);
+    if let Ok(side) = config
+        .get_value_from_env_first("maxCanvasSide")
+        .parse::<f32>()
+        && side > 0.0
+    {
+        limits.max_canvas_side = side;
+    }
+    limits.max_data_points =
+        config.get_usize_value_default("maxDataPoints", limits.max_data_points);
+    limits.max_mermaid_source =
+        config.get_usize_value_default("maxMermaidSource", limits.max_mermaid_source);
+    limits
 }

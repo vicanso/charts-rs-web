@@ -1,0 +1,669 @@
+[
+  {
+    "id": "pieBasic",
+    "chart_type": "pie",
+    "label_zh": "南丁格尔玫瑰",
+    "label_en": "Nightingale rose",
+    "short": "Pie",
+    "hint_zh": "占比分布",
+    "hint_en": "Shares",
+    "glyph": "pie",
+    "options": {
+      "legend_margin": {
+        "top": 50
+      },
+      "type": "pie",
+      "title_text": "Nightingale Chart",
+      "rose_type": true,
+      "radius": 110,
+      "border_radius": 8,
+      "inner_radius": 30,
+      "animation": {
+        "duration": 800,
+        "easing": "ease-out",
+        "delay": 50
+      },
+      "series_list": [
+        {
+          "name": "rose 1",
+          "data": [
+            40
+          ]
+        },
+        {
+          "name": "rose 2",
+          "data": [
+            38
+          ]
+        },
+        {
+          "name": "rose 3",
+          "data": [
+            32
+          ]
+        },
+        {
+          "name": "rose 4",
+          "data": [
+            30
+          ]
+        },
+        {
+          "name": "rose 5",
+          "data": [
+            28
+          ]
+        },
+        {
+          "name": "rose 6",
+          "data": [
+            26
+          ]
+        },
+        {
+          "name": "rose 7",
+          "data": [
+            22
+          ]
+        },
+        {
+          "name": "rose 8",
+          "data": [
+            18
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "pieHalf",
+    "chart_type": "pie",
+    "label_zh": "半环饼图",
+    "label_en": "Half doughnut",
+    "short": "Half",
+    "hint_zh": "半圆占比",
+    "hint_en": "Shares in a half circle",
+    "glyph": "halfpie",
+    "options": {
+      "type": "pie",
+      "title_text": "Half Doughnut",
+      "rose_type": false,
+      "start_angle": -90,
+      "end_angle": 90,
+      "radius": 180,
+      "inner_radius": 100,
+      "border_radius": 4,
+      "series_list": [
+        {
+          "name": "Search",
+          "data": [
+            1048
+          ]
+        },
+        {
+          "name": "Direct",
+          "data": [
+            735
+          ]
+        },
+        {
+          "name": "Email",
+          "data": [
+            580
+          ]
+        },
+        {
+          "name": "Ads",
+          "data": [
+            484
+          ]
+        },
+        {
+          "name": "Video",
+          "data": [
+            300
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "pieNested",
+    "chart_type": "pie",
+    "label_zh": "嵌套饼图",
+    "label_en": "Nested pies",
+    "short": "Nested",
+    "hint_zh": "两级占比",
+    "hint_en": "Two levels of shares",
+    "glyph": "sunburst",
+    "options": {
+      "type": "pie",
+      "title_text": "Nested Pies",
+      "rose_type": false,
+      "radius": 150,
+      "inner_radius": 0,
+      "border_radius": 2,
+      "ring_gap": 6,
+      "tooltip_show": true,
+      "series_list": [
+        {
+          "name": "Search",
+          "data": [
+            1548
+          ],
+          "ring": 0
+        },
+        {
+          "name": "Direct",
+          "data": [
+            775
+          ],
+          "ring": 0
+        },
+        {
+          "name": "Marketing",
+          "data": [
+            679
+          ],
+          "ring": 0
+        },
+        {
+          "name": "Baidu",
+          "data": [
+            1048
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Google",
+          "data": [
+            251
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Bing",
+          "data": [
+            147
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Others",
+          "data": [
+            102
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Typed",
+          "data": [
+            335
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Bookmarks",
+          "data": [
+            440
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Email",
+          "data": [
+            310
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Ads",
+          "data": [
+            234
+          ],
+          "ring": 1
+        },
+        {
+          "name": "Video",
+          "data": [
+            135
+          ],
+          "ring": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "radarBasic",
+    "chart_type": "radar",
+    "label_zh": "雷达图",
+    "label_en": "Radar",
+    "short": "Radar",
+    "hint_zh": "多维对比",
+    "hint_en": "Several dimensions",
+    "glyph": "radar",
+    "options": {
+      "sub_title_text": "",
+      "type": "radar",
+      "title_text": "Radar Chart",
+      "series_list": [
+        {
+          "name": "Allocated Budget",
+          "label_show": false,
+          "data": [
+            4200,
+            3000,
+            20000,
+            35000,
+            50000,
+            18000
+          ]
+        },
+        {
+          "name": "Actual Spending",
+          "label_show": false,
+          "data": [
+            5000,
+            14000,
+            28000,
+            26000,
+            42000,
+            21000
+          ]
+        }
+      ],
+      "indicators": [
+        {
+          "name": "Sales",
+          "max": 6500
+        },
+        {
+          "name": "Administration",
+          "max": 16000
+        },
+        {
+          "name": "Information Technology",
+          "max": 30000
+        },
+        {
+          "name": "Customer Support",
+          "max": 38000
+        },
+        {
+          "name": "Development",
+          "max": 52000
+        },
+        {
+          "name": "Marketing",
+          "max": 25000
+        }
+      ]
+    }
+  },
+  {
+    "id": "radarCircle",
+    "chart_type": "radar",
+    "label_zh": "圆形雷达图",
+    "label_en": "Circular radar",
+    "short": "Circle",
+    "hint_zh": "同心圆环",
+    "hint_en": "Concentric rings",
+    "glyph": "radar",
+    "options": {
+      "sub_title_text": "Circular web",
+      "type": "radar",
+      "title_text": "Radar Chart",
+      "shape": "circle",
+      "series_list": [
+        {
+          "name": "Allocated Budget",
+          "label_show": false,
+          "data": [
+            4200,
+            3000,
+            20000,
+            35000,
+            50000,
+            18000
+          ]
+        },
+        {
+          "name": "Actual Spending",
+          "label_show": false,
+          "fill": false,
+          "data": [
+            5000,
+            14000,
+            28000,
+            26000,
+            42000,
+            21000
+          ]
+        }
+      ],
+      "indicators": [
+        {
+          "name": "Sales",
+          "min": 1000,
+          "max": 6500
+        },
+        {
+          "name": "Administration",
+          "max": 16000
+        },
+        {
+          "name": "Information Technology",
+          "max": 30000
+        },
+        {
+          "name": "Customer Support",
+          "max": 38000
+        },
+        {
+          "name": "Development",
+          "max": 52000
+        },
+        {
+          "name": "Marketing",
+          "max": 25000
+        }
+      ]
+    }
+  },
+  {
+    "id": "gaugeChart",
+    "chart_type": "gauge",
+    "label_zh": "仪表盘",
+    "label_en": "Gauge",
+    "short": "Gauge",
+    "hint_zh": "单值进度",
+    "hint_en": "One value",
+    "glyph": "gauge",
+    "options": {
+      "type": "gauge",
+      "title_text": "Gauge",
+      "min": 0,
+      "max": 200,
+      "series_list": [
+        {
+          "name": "Speed",
+          "data": [
+            120
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "gaugeSegments",
+    "chart_type": "gauge",
+    "label_zh": "分段仪表盘",
+    "label_en": "Segmented gauge",
+    "short": "Stage",
+    "hint_zh": "区间着色",
+    "hint_en": "Colored ranges",
+    "glyph": "gauge",
+    "options": {
+      "type": "gauge",
+      "title_text": "Speed",
+      "title_align": "left",
+      "legend_show": false,
+      "min": 0,
+      "max": 200,
+      "split_number": 4,
+      "thresholds": [
+        80,
+        140
+      ],
+      "colors": [
+        "#91cc75",
+        "#fac858",
+        "#ee6666"
+      ],
+      "value_formatter": "{c} km/h",
+      "series_list": [
+        {
+          "name": "Now",
+          "data": [
+            156
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "gaugeRings",
+    "chart_type": "gauge",
+    "label_zh": "多环进度",
+    "label_en": "Ring progress",
+    "short": "Rings",
+    "hint_zh": "多指标进度",
+    "hint_en": "Several goals",
+    "glyph": "polar",
+    "options": {
+      "type": "gauge",
+      "title_text": "Activity",
+      "legend_show": false,
+      "multi_ring": true,
+      "start_angle": 360,
+      "sweep_angle": 360,
+      "arc_width": 22,
+      "value_formatter": "{c}%",
+      "series_list": [
+        {
+          "name": "Move",
+          "data": [
+            82
+          ]
+        },
+        {
+          "name": "Exercise",
+          "data": [
+            64
+          ]
+        },
+        {
+          "name": "Stand",
+          "data": [
+            45
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "sunburstChart",
+    "chart_type": "sunburst",
+    "label_zh": "旭日图",
+    "label_en": "Sunburst",
+    "short": "Sun",
+    "hint_zh": "层级占比",
+    "hint_en": "Shares by level",
+    "glyph": "sunburst",
+    "options": {
+      "type": "sunburst",
+      "title_text": "Sunburst",
+      "inner_radius": 20,
+      "level_thickness": [
+        2,
+        1,
+        1
+      ],
+      "animation": {
+        "duration": 1000,
+        "easing": "ease-out",
+        "delay": 100
+      },
+      "series_data": [
+        {
+          "name": "Grandpa",
+          "children": [
+            {
+              "name": "Uncle Leo",
+              "children": [
+                {
+                  "name": "Cousin Jack",
+                  "value": 18
+                },
+                {
+                  "name": "Cousin Mary",
+                  "value": 12
+                }
+              ]
+            },
+            {
+              "name": "Father",
+              "children": [
+                {
+                  "name": "Me",
+                  "value": 40
+                },
+                {
+                  "name": "Brother Peter",
+                  "value": 20
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Nancy",
+          "children": [
+            {
+              "name": "Uncle Nike",
+              "children": [
+                {
+                  "name": "Cousin Betty",
+                  "value": 10
+                },
+                {
+                  "name": "Cousin Jenny",
+                  "value": 30
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "polarBarChart",
+    "chart_type": "polar_bar",
+    "label_zh": "极坐标柱状图",
+    "label_en": "Polar bar",
+    "short": "Polar",
+    "hint_zh": "周期对比",
+    "hint_en": "Cycles compared",
+    "glyph": "polar",
+    "options": {
+      "type": "polar_bar",
+      "title_text": "Polar Bar",
+      "legend_align": "left",
+      "legend_category": "rect",
+      "category_axis": "angle",
+      "inner_radius": 30,
+      "category_gap": 0.2,
+      "tooltip_show": true,
+      "y_axis_configs": [
+        {
+          "axis_max": 600,
+          "axis_split_number": 4
+        }
+      ],
+      "animation": {
+        "duration": 1000,
+        "easing": "ease-out",
+        "delay": 80
+      },
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "series_list": [
+        {
+          "name": "Email",
+          "stack": "total",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "stack": "total",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "polarBarRadial",
+    "chart_type": "polar_bar",
+    "label_zh": "径向柱状图",
+    "label_en": "Radial bar",
+    "short": "Ring",
+    "hint_zh": "目标进度",
+    "hint_en": "Progress to a goal",
+    "glyph": "polar",
+    "options": {
+      "type": "polar_bar",
+      "title_text": "Daily Goals",
+      "legend_show": false,
+      "category_axis": "radius",
+      "round_cap": true,
+      "start_angle": 0,
+      "end_angle": 270,
+      "tooltip_show": true,
+      "series_label_formatter": "{c}%",
+      "y_axis_configs": [
+        {
+          "axis_max": 100,
+          "axis_split_number": 5
+        }
+      ],
+      "x_axis_data": [
+        "Sleep",
+        "Steps",
+        "Water",
+        "Reading"
+      ],
+      "series_list": [
+        {
+          "name": "Done",
+          "label_show": true,
+          "data": [
+            92,
+            74,
+            61,
+            48
+          ],
+          "colors": [
+            "#5470c6",
+            "#91cc75",
+            "#fac858",
+            "#ee6666"
+          ]
+        }
+      ]
+    }
+  }
+]

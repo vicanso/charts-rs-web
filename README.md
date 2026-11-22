@@ -1,6 +1,6 @@
 # charts-rs-web
 
-以json的形式定义图表的相关参数，简单易用，可选择svg或png的形式返回。
+基于 [charts-rs](https://github.com/vicanso/charts-rs) 的图表与 Mermaid 渲染服务（内置 Web Playground 与 MCP Server），支持以 JSON 或 Mermaid DSL 定义图表，返回 SVG、PNG、JPEG、WebP 或 AVIF 格式。
 
 <p align="center">
   <img src="./images/charts-demo.png" alt="charts-demo">
@@ -8,7 +8,9 @@
 
 ## HTTP接口
 
-- `GET /api/basic-info`: 返回应用信息：版本与字体等。默认支持两种字体`Noto Sans SC`与`Roboto`
+- `GET /api/basic-info`: 返回应用信息：版本、字体、主题、已注册地图与支持图表类型。默认支持两种字体`Noto Sans SC`与`Roboto`
+- `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 13 种 Mermaid 规范图示例）
+- `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`）
 - `POST /api/charts/png`: 生成Png图表
 - `POST /api/charts/jpeg`: 生成Jpeg图表
 - `POST /api/charts/webp`: 生成Webp图表
@@ -17,10 +19,15 @@
 
 ## MCP
 
-服务在`/mcp`提供 [MCP](https://modelcontextprotocol.io) 接口（Streamable HTTP，无状态），LLM可通过它生成图表，包含两个工具：
+服务在`/mcp`提供 [MCP](https://modelcontextprotocol.io) 接口（Streamable HTTP，无状态），LLM可通过它生成 30 类图表与 13 种 Mermaid 图表，包含 6 个工具与 `charts://` 资源：
 
-- `get_chart_options`: 返回指定图表类型的JSON参数说明与示例，参数为`chart_type`
-- `render_chart`: 根据参数生成图表，参数为`chart_type`、`options`（图表的JSON参数）以及`format`。`format`可选`png`（默认）、`jpeg`、`webp`以及`svg`，其中`svg`以文本形式返回，其它以图片形式返回。参数有误时返回具体的出错信息，便于模型调整后重试
+- `list_chart_types`: 返回所有图表类型目录、选图/变体指南、可用主题、已加载字体（含 CJK 提示）、已注册 GeoJSON 地图、Mermaid 能力及 `RenderLimits`
+- `get_chart_schema`: 返回指定图表类型的 Draft 2020-12 JSON Schema（`essential`/`full`）、实时主题/字体/地图枚举及验证过的示例（`mermaid` 会附带全部 13 种图示例及已知限制）
+- `validate_chart`: 按 Schema、`RenderLimits` 与 Mermaid 语法预校验 JSON 参数，一次返回最多 50 条结构化 `ValidationIssue` 及非阻塞字体/CJK 提示
+- `render_chart`: 预校验并渲染图表（`format` 可选 `png`（默认）、`jpeg`、`webp`、`svg`），`mermaid` 默认 `allow_links: false`
+- `validate_mermaid`: 直接校验 Mermaid 源码语法与语义（带 1-based 行号与修正建议）
+- `render_mermaid`: 直接从 Mermaid 源码渲染图表（`allow_links` 默认 `false`）
+- **Resources**: `charts://themes`、`charts://fonts`、`charts://maps`、`charts://mermaid/capabilities`、`charts://examples/{type}`、`charts://examples/mermaid/{diagram}`（即使客户端不读取 Resources，`list_chart_types` 与 `get_chart_schema` 也会在工具响应中内嵌完整运行时信息）
 
 客户端配置地址为`http://127.0.0.1:5000/mcp`即可，以 Claude Code 为例：
 
@@ -40,13 +47,13 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 
 - `type`: 图表类型，默认为`bar`，可选的值见[图表类型](#图表类型)
 - `quality`: 输出的 PNG 质量，默认为`80`，范围`0`–`100`。`0`表示不减色，沿用渲染器的快速压缩。`1`–`100`用 NeuQuant 减色后再做 deflate：数值越大，调色板颜色越多（64–256），deflate 等级也越高（1–9）。默认`80`约为 217 色、deflate 7
-- `compact`: 是否压缩 SVG，默认为`true`。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
+- `compact`: 是否压缩 SVG，JSON API 默认为`false`（Web Playground 开关默认启用 `true`）。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
 - `theme`: 图表主题，支持`light`，`dark`，`ant`，`vintage`，`shine`，`walden`，`westeros`，`chalk`，`grafana`以及`shadcn`共10种主题色
 - `width`: 图表宽度，默认为600
-- `height`: 图表调试，默认为400
+- `height`: 图表高度，默认为400
 - `background_color`: 图表底色，不同的主题有不同的默认颜色
 - `margin`: 图表的margin，默认为`{"left":5,"top":5,"right":5,"bottom":5}`
-- `font_family`: 图表使用的字体，默认为`Roboto`
+- `font_family`: 图表使用的字体，默认为`Roboto`。未注册的字体名称不会报错而是静默回退到 `Roboto` 测量文字宽度；包含中文等 CJK 字符时，请显式指定已加载的中文字体（如 `Noto Sans SC`）
 - `title_text`: 图表标题
 - `title_font_size`: 标题的字体大小，默认为`18`
 - `title_font_color`: 标题的字体颜色，不同的主题有不同的默认颜色
@@ -72,7 +79,7 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 
 ### 图表类型
 
-`type`可选的值如下，未指定或未知的值按`bar`处理：
+`type`可选的值如下；未指定或为空时默认为`bar`，未知的`type`会返回参数错误（兼容旧别名 `multi_chart` → `multi`、`guage` → `gauge`）：
 
 | type | 图表 |
 | --- | --- |
@@ -101,10 +108,11 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 | `polar_bar` | 极坐标柱状图 |
 | `chord` | 和弦图 |
 | `gantt` | 甘特图 |
-| `map` | 地图（区域着色），地图数据以GeoJSON的形式通过`geo_json`传入 |
-| `lines` | 流向图，点与点之间的流向线，传入`geo_json`时绘制在地图上 |
+| `map` | 地图（区域着色），可通过`geo_json`传入GeoJSON对象或预注册地图名（内置`demo`，或通过`CHARTS_MAP_PATH`加载） |
+| `lines` | 流向图，点与点之间的流向线，传入`geo_json`对象或地图名时绘制在地图上 |
 | `bullet` | 子弹图，每行一个指标与其目标值对比 |
-| `multi_chart` | 多图表拼合，见[多图的相关属性](#多图的相关属性) |
+| `mermaid` | Mermaid 图表，通过 `source` 传入源码，支持 flowchart/sequence/state/class/er/mindmap/quadrant/pie/gantt/sankey/xychart/radar/treemap 共 13 类图 |
+| `multi` | 多图表拼合（兼容旧别名 `multi_chart`），见[多图的相关属性](#多图的相关属性) |
 
 ### 网格属性
 
@@ -210,6 +218,33 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 - `cell_styles.indexes`: 该表格中格的位置，数组为两位，第一位为行，第二位为列，表头为第一行，该参数不能为空
 
 
+## Mermaid 相关属性
+
+Mermaid 图表不使用 `series_list` 或 `x_axis_data`，支持以下字段：
+
+- `source`: Mermaid 图表源码文本
+- `theme`: 图表主题，默认`light`
+- `width` / `height`: 目标宽高（像素）；省略时，图类引擎（`flowchart`、`sequenceDiagram`、`stateDiagram`、`classDiagram`、`erDiagram`、`mindmap`）会自动按内容计算尺寸
+- `font_family`: 字体，默认`Roboto`（含中文时建议显式设为 `Noto Sans SC`）
+- `background_color`、`margin`、`title_*`、`sub_title_*`、`texts`、`compact`: 与其它图表一致
+- `allow_links`: 是否允许将 `click` / `link` 指令渲染为 SVG `<a href="...">`（仅放行 `http://`、`https://`、`mailto:` 与相对链接，阻止 `javascript:`/`data:`）。HTTP API 中默认 `true`；MCP 的 `render_mermaid` 与 `render_chart("mermaid")` 为安全起见默认 `false`（显式传 `true` 时开启）
+
+支持 13 种规范图与 7 个别名：
+
+- **规范图**：`flowchart`、`sequenceDiagram`、`stateDiagram-v2`、`classDiagram`、`erDiagram`、`mindmap`、`quadrantChart`、`pie`、`gantt`、`sankey-beta`、`xychart-beta`、`radar-beta`、`treemap-beta`
+- **别名**：`graph`（→ `flowchart`）、`stateDiagram`（→ `stateDiagram-v2`）、`classDiagram-v2`（→ `classDiagram`）、`sankey`（→ `sankey-beta`）、`xychart`（→ `xychart-beta`）、`radar`（→ `radar-beta`）、`treemap`（→ `treemap-beta`）
+
+最小 JSON 示例：
+
+```json
+{
+  "type": "mermaid",
+  "title_text": "Request Flow",
+  "source": "flowchart LR\n  A[Client] --> B{Gateway}\n  B -->|OK| C[(Database)]"
+}
+```
+
+
 ## 多图的相关属性
 
 - `margin`: 图表的margin，默认为`{"left":10,"top":10,"right":10,"bottom":10}`
@@ -217,11 +252,27 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 - `child_charts`: 子图表列表
 - `align_plots`: 是否对齐上下排列的子图表的绘图区（如K线图与其下方的成交量），默认为`false`
 
-## 启动
+## 示例库与启动
 
-需要注意，此镜像加载了`NotoSansSC`字体(6种粗细大小)，如果需要加载更多的字体，可运行时挂载字体目录，并通过ENV指定CHARTS_FONT_PATH为对应路径（其默认值为：/usr/share/fonts），如果有多个目录以,分隔，如`CHARTS_FONT_PATH=/usr/share/fonts,/fonts`，支持`ttf`与`otf`字体，首次启动时加载一个字体会使用100ms左右，字体越多则越慢。
+内置示例与地图数据集中在 `examples/`（60 个图表变体 + 13 种 Mermaid 规范图示例）与 `maps/demo.json`（内置名为 `demo` 的示例地图），在编译期嵌入二进制并由 Web Playground（`GET /api/examples`）与 MCP 共享；`cargo test` 会自动对所有示例执行参数校验与 SVG 渲染验证。
 
-需要注意，因为性能考虑字库是加载到内存中，因此加载的字库越多，内存占用越大。
+需要注意，Docker 镜像加载了 `fonts/` 目录下的 `NotoSansSC` 字体（Regular / Light / Bold 3 个字体文件）。如果需要加载更多字体，可运行时挂载字体目录并通过环境变量 `CHARTS_FONT_PATH` 指定（多个目录以 `,` 分隔，容器内默认 `/usr/share/fonts`），支持 `ttf` 与 `otf`；字体加载到内存中，首次启动加载单个字体约需 100ms，加载越多启动越慢、内存占用越大。
+
+常用环境变量如下：
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `BASIC_LISTEN` | 服务监听地址 | `0.0.0.0:5000` |
+| `CHARTS_FONT_PATH` | 字体目录列表（`,` 分隔，扫描 `.ttf` / `.otf`） | Docker 默认 `/usr/share/fonts` |
+| `CHARTS_MAP_PATH` | GeoJSON 地图目录列表（`,` 分隔，扫描 `.json` / `.geojson`，按文件名注册供 `map`/`lines` 引用） | 空（仅内置 `demo`） |
+| `CHARTS_THEME_<name>` | 注册自定义 JSON 主题（`<name>` 为主题名） | 无 |
+| `CHARTS_THREADS` | Tokio 工作线程数 | CPU 核数 |
+| `MCP_ALLOWEDHOSTS` | `/mcp` 允许的 `Host` 列表（`,` 分隔，不在列表中返回 403） | 空（不校验） |
+| `LIMITS_MAXJSONBYTES` | 单次请求允许的最大 JSON 字节数 | `1048576`（1 MiB） |
+| `LIMITS_MAXCANVASSIDE` | 画布 `width` / `height` 上限（像素） | `8192` |
+| `LIMITS_MAXDATAPOINTS` | 全部 JSON 数组元素总数上限 | `100000` |
+| `LIMITS_MAXMERMAIDSOURCE` | Mermaid `source` 最大字节数 | `65536`（64 KiB） |
+| `LOG_LEVEL` | 日志级别 | `INFO` |
 
 ```bash
 docker run -d --restart=always \

@@ -10,7 +10,7 @@ export function detectLang(): Lang {
 
 const zh = {
   githubTooltip: "在 GitHub 查看 charts-rs",
-  brandTag: "JSON → 矢量/位图",
+  brandTag: "JSON / Mermaid → 矢量/位图",
   format: "格式",
   theme: "主题",
   font: "字体",
@@ -29,14 +29,10 @@ const zh = {
   galleryCollapseTooltip: "返回编辑 (Esc)",
   searchPlaceholder: "搜索类型、用途…",
   galleryEmpty: "无匹配结果，试试其它关键词",
+  loadingExamples: "正在加载图库示例…",
+  loadExamplesFailed: "图库加载失败",
 
   categoryFeatured: "精选",
-  categoryBar: "柱状 / 条形",
-  categoryLine: "折线 / 曲线",
-  categoryRadial: "环形 / 径向",
-  categoryMatrix: "分布 / 矩阵",
-  categoryFlow: "流程 / 层级",
-  categoryOther: "其他",
 
   preview: "图表预览",
   renderTimeTitle: "最近一次渲染耗时",
@@ -56,6 +52,10 @@ const zh = {
   emptyTitle: "选择一个示例开始",
 
   jsonOptions: "JSON 配置",
+  mermaidSource: "Mermaid 源码",
+  editorModeMermaid: "Mermaid",
+  editorModeJson: "JSON",
+  mermaidModeTooltip: "在纯文本 Mermaid 源码与完整 JSON 配置之间切换",
   parseError: "解析失败",
   resizeEditor: "拖拽调整编辑器高度",
   compactOn: "压缩",
@@ -80,23 +80,37 @@ const zh = {
 
   mcpTitle: "MCP 接入",
   mcpLead:
-    "通过 MCP（Streamable HTTP）让 LLM 直接调用本服务生成图表，可返回 PNG、JPEG、WebP 图片或 SVG 文本。",
+    "通过 MCP（Streamable HTTP）让 LLM 直接调用本服务生成 30 类图表与 13 种 Mermaid 图表，可返回 PNG、JPEG、WebP 图片或 SVG 文本。",
   mcpEndpoint: "服务地址",
   mcpEndpointCopied: "MCP 地址已复制",
-  mcpTools: "工具",
-  mcpToolOptions: "查询指定图表类型的 JSON 参数说明与示例。",
+  mcpTools: "工具（Tools）",
+  mcpToolList:
+    "列出 30 种图表类型、变体选图指南、主题、已加载字体、已注册地图及 Mermaid 能力。",
+  mcpToolSchema:
+    "获取指定图表的 JSON Schema（essential/full）、实时主题/字体/地图枚举及验证过的示例。",
+  mcpToolValidate:
+    "校验图表 JSON 与 RenderLimits，一次返回最多 50 条结构化错误及字体提示。",
+  mcpToolRender:
+    "按 chart_type、options、format（默认 png）渲染图表，支持图片或 SVG。",
+  mcpToolValidateMermaid:
+    "校验 Mermaid 源码语法与语义，返回带行号的定位提示。",
+  mcpToolRenderMermaid:
+    "直接从 Mermaid 源码渲染图表（allow_links 默认关闭以保障安全）。",
+  mcpResources: "资源（Resources）",
+  mcpResourcesDesc:
+    "提供 charts://themes、charts://fonts、charts://maps、charts://mermaid/capabilities、charts://examples/{type} 与 charts://examples/mermaid/{diagram}。",
   mcpCommandCopied: "命令已复制",
   mcpConfig: "JSON 配置（.mcp.json）",
   mcpConfigCopied: "配置已复制",
   mcpNote:
-    "其它支持 Streamable HTTP 的客户端填入服务地址即可。参数有误时会返回具体的出错信息，模型可据此调整后重试。",
+    "对不支持 MCP Resources 的客户端，list_chart_types 与 get_chart_schema 也会在工具结果中内嵌完整运行时信息与示例；渲染前会先执行结构化校验，便于模型一次修正所有参数。",
 };
 
 export type MessageKey = keyof typeof zh;
 
 const en: Record<MessageKey, string> = {
   githubTooltip: "View charts-rs on GitHub",
-  brandTag: "JSON → vector / bitmap",
+  brandTag: "JSON / Mermaid → vector / bitmap",
   format: "Format",
   theme: "Theme",
   font: "Font",
@@ -115,14 +129,10 @@ const en: Record<MessageKey, string> = {
   galleryCollapseTooltip: "Back to the editor (Esc)",
   searchPlaceholder: "Search charts…",
   galleryEmpty: "No chart matches. Try another keyword.",
+  loadingExamples: "Loading gallery examples…",
+  loadExamplesFailed: "Failed to load examples",
 
   categoryFeatured: "Featured",
-  categoryBar: "Bar",
-  categoryLine: "Line",
-  categoryRadial: "Radial",
-  categoryMatrix: "Distribution",
-  categoryFlow: "Flow & hierarchy",
-  categoryOther: "Other",
 
   preview: "Preview",
   renderTimeTitle: "Time of the last render",
@@ -142,6 +152,10 @@ const en: Record<MessageKey, string> = {
   emptyTitle: "Pick an example to start",
 
   jsonOptions: "JSON options",
+  mermaidSource: "Mermaid source",
+  editorModeMermaid: "Mermaid",
+  editorModeJson: "JSON",
+  mermaidModeTooltip: "Switch between raw Mermaid syntax and full JSON options",
   parseError: "Parse error",
   resizeEditor: "Drag to resize the editor",
   compactOn: "Compact",
@@ -168,16 +182,30 @@ const en: Record<MessageKey, string> = {
 
   mcpTitle: "Connect over MCP",
   mcpLead:
-    "Let an LLM render charts with this server over MCP (Streamable HTTP). It returns PNG, JPEG or WebP images, or SVG as text.",
+    "Let an LLM render 30 chart types and 13 Mermaid diagram types over MCP (Streamable HTTP). Returns PNG, JPEG, WebP images or SVG text.",
   mcpEndpoint: "Endpoint",
   mcpEndpointCopied: "Endpoint copied",
   mcpTools: "Tools",
-  mcpToolOptions: "Describes the JSON options of a chart type, with an example.",
+  mcpToolList:
+    "Lists all 30 chart types, variant guide, themes, loaded fonts, registered maps, and Mermaid capabilities.",
+  mcpToolSchema:
+    "Returns Draft 2020-12 JSON Schema (essential/full), live enums, and verified examples (all 13 diagrams for mermaid).",
+  mcpToolValidate:
+    "Validates JSON options and RenderLimits, returning up to 50 structured issues and CJK/font warnings.",
+  mcpToolRender:
+    "Renders a chart from chart_type, options, and format (png by default; jpeg, webp, svg).",
+  mcpToolValidateMermaid:
+    "Validates Mermaid syntax & semantics with 1-based line numbers and typo suggestions.",
+  mcpToolRenderMermaid:
+    "Renders Mermaid source directly (allow_links defaults to false for untrusted input safety).",
+  mcpResources: "Resources",
+  mcpResourcesDesc:
+    "Exposes charts://themes, charts://fonts, charts://maps, charts://mermaid/capabilities, charts://examples/{type}, and charts://examples/mermaid/{diagram}.",
   mcpCommandCopied: "Command copied",
   mcpConfig: "JSON config (.mcp.json)",
   mcpConfigCopied: "Config copied",
   mcpNote:
-    "Any other client that speaks Streamable HTTP only needs the endpoint. Invalid options come back as an error naming the key, so the model can fix them and retry.",
+    "Clients that do not read MCP Resources still receive all runtime themes, fonts, maps, and examples inside tool responses. Pre-validation returns all issues in one pass so models can fix and retry.",
 };
 
 const messages: Record<Lang, Record<MessageKey, string>> = { zh, en };
@@ -185,67 +213,3 @@ const messages: Record<Lang, Record<MessageKey, string>> = { zh, en };
 export function translate(lang: Lang, key: MessageKey): string {
   return messages[lang][key];
 }
-
-/** English name and use of each example; the Chinese ones live with the gallery. */
-export const chartTextEn: Record<string, { label: string; hint: string }> = {
-  barBasic: { label: "Bar", hint: "Grouped bars" },
-  barStacked: { label: "Stacked bar", hint: "Totals by parts" },
-  barStackPercent: { label: "100% stacked bar", hint: "Shares of a whole" },
-  barErrorBar: { label: "Bar with error bars", hint: "Ranges of error" },
-  barTexts: { label: "Texts over a chart", hint: "Source line and watermark" },
-  horizontalBar: { label: "Horizontal bar", hint: "Rankings" },
-  bulletChart: { label: "Bullet", hint: "Measures against targets" },
-  barLineMixin: { label: "Bar and line", hint: "Two axes" },
-  waterfallChart: { label: "Waterfall", hint: "Gains and losses" },
-  lineBasic: { label: "Line", hint: "Trends" },
-  lineAnimation: { label: "Animated line", hint: "Entrance animation" },
-  lineStartIndexBasic: { label: "Line with start index", hint: "Offset series" },
-  lineSmooth: { label: "Smooth line (log2)", hint: "Log axis" },
-  lineSmoothFill: { label: "Smooth area", hint: "Filled area" },
-  lineNullData: { label: "Line with gaps", hint: "Missing values" },
-  lineBand: { label: "Line with band", hint: "Confidence interval" },
-  lineTimeAxis: { label: "Time axis line", hint: "Uneven sampling" },
-  lineStep: { label: "Step line", hint: "Changes in steps" },
-  lineBump: { label: "Bump chart", hint: "Ranking over time" },
-  themeRiverChart: { label: "Theme river", hint: "Streams over time" },
-  pieBasic: { label: "Nightingale rose", hint: "Shares" },
-  pieHalf: { label: "Half doughnut", hint: "Shares in a half circle" },
-  pieNested: { label: "Nested pies", hint: "Two levels of shares" },
-  radarBasic: { label: "Radar", hint: "Several dimensions" },
-  radarCircle: { label: "Circular radar", hint: "Concentric rings" },
-  gaugeChart: { label: "Gauge", hint: "One value" },
-  gaugeSegments: { label: "Segmented gauge", hint: "Colored ranges" },
-  gaugeRings: { label: "Ring progress", hint: "Several goals" },
-  sunburstChart: { label: "Sunburst", hint: "Shares by level" },
-  polarBarChart: { label: "Polar bar", hint: "Cycles compared" },
-  polarBarRadial: { label: "Radial bar", hint: "Progress to a goal" },
-  scatterBasic: { label: "Scatter", hint: "Correlation" },
-  scatterRegression: { label: "Scatter with regression", hint: "Fitted trend" },
-  scatterContour: { label: "Density contours", hint: "Point density" },
-  scatterMarginal: { label: "Marginal histograms", hint: "Along each axis" },
-  bubbleChart: { label: "Bubble", hint: "Three dimensions" },
-  heatmapBasic: { label: "Heatmap", hint: "Density matrix" },
-  heatmapScale: { label: "Heatmap with classes", hint: "Color classes" },
-  heatmapPunchCard: { label: "Punch card", hint: "Activity by hour" },
-  calendarChart: { label: "Calendar", hint: "Values by day" },
-  boxPlotChart: { label: "Box plot", hint: "Statistical spread" },
-  histogramChart: { label: "Histogram", hint: "Frequencies" },
-  parallelChart: { label: "Parallel", hint: "Records across dimensions" },
-  candlestick: { label: "Candlestick", hint: "Price moves" },
-  candlestickOhlc: { label: "OHLC", hint: "Open, high, low, close" },
-  mapChart: { label: "Map", hint: "Values by region" },
-  funnelChart: { label: "Funnel", hint: "Conversion" },
-  treemapChart: { label: "Treemap", hint: "Sizes by area" },
-  sankeyChart: { label: "Sankey", hint: "Flows" },
-  sankeyVertical: { label: "Vertical sankey", hint: "Flows top to bottom" },
-  treeChart: { label: "Tree", hint: "Hierarchy" },
-  treeRadial: { label: "Radial tree", hint: "Hierarchy around a center" },
-  chordChart: { label: "Chord", hint: "Flows between nodes" },
-  linesChart: { label: "Flow lines", hint: "Migration on a map" },
-  graphChart: { label: "Graph", hint: "Network of nodes" },
-  ganttChart: { label: "Gantt", hint: "Project schedule" },
-  tableBasic: { label: "Table", hint: "Structured data" },
-  tableSparkline: { label: "Table with sparklines", hint: "Trends in cells" },
-  multiChart: { label: "Multi chart", hint: "Several charts in one" },
-  multiAligned: { label: "Aligned candlestick", hint: "Plots lined up" },
-};

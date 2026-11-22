@@ -1,0 +1,57 @@
+{
+  "featured": [
+    "chordChart",
+    "sankeyChart",
+    "mermaidFlowchart",
+    "mermaidSequence",
+    "mapChart",
+    "sunburstChart",
+    "treeRadial",
+    "ganttChart",
+    "pieNested"
+  ],
+  "categories": [
+    {
+      "key": "bar",
+      "title_zh": "柱状 / 条形",
+      "title_en": "Bar",
+      "file": "bar.json"
+    },
+    {
+      "key": "line",
+      "title_zh": "折线 / 曲线",
+      "title_en": "Line",
+      "file": "line.json"
+    },
+    {
+      "key": "radial",
+      "title_zh": "环形 / 径向",
+      "title_en": "Radial",
+      "file": "radial.json"
+    },
+    {
+      "key": "matrix",
+      "title_zh": "分布 / 矩阵",
+      "title_en": "Distribution",
+      "file": "matrix.json"
+    },
+    {
+      "key": "flow",
+      "title_zh": "流程 / 层级",
+      "title_en": "Flow & hierarchy",
+      "file": "flow.json"
+    },
+    {
+      "key": "mermaid",
+      "title_zh": "Mermaid 图表",
+      "title_en": "Mermaid",
+      "file": "mermaid.json"
+    },
+    {
+      "key": "other",
+      "title_zh": "其他",
+      "title_en": "Other",
+      "file": "other.json"
+    }
+  ]
+}

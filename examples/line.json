@@ -1,0 +1,808 @@
+[
+  {
+    "id": "lineBasic",
+    "chart_type": "line",
+    "label_zh": "常规曲线图",
+    "label_en": "Line",
+    "short": "Line",
+    "hint_zh": "基础趋势",
+    "hint_en": "Trends",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Line Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "stroke_dash_array": "4,2",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineAnimation",
+    "chart_type": "line",
+    "label_zh": "动画曲线图",
+    "label_en": "Animated line",
+    "short": "Anim",
+    "hint_zh": "入场动画",
+    "hint_en": "Entrance animation",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Line Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ],
+      "animation": {
+        "duration": 1000,
+        "easing": "ease",
+        "delay": 80
+      }
+    }
+  },
+  {
+    "id": "lineStartIndexBasic",
+    "chart_type": "line",
+    "label_zh": "指定起点曲线",
+    "label_en": "Line with start index",
+    "short": "Start",
+    "hint_zh": "序列错位",
+    "hint_en": "Offset series",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "legend_align": "right",
+      "legend_category": "circle",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Line Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "start_index": 1,
+          "data": [
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineSmooth",
+    "chart_type": "line",
+    "label_zh": "平滑曲线 (log2)",
+    "label_en": "Smooth line (log2)",
+    "short": "Log2",
+    "hint_zh": "对数坐标",
+    "hint_en": "Log axis",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 5,
+        "top": 5,
+        "right": 50,
+        "bottom": 5
+      },
+      "legend_align": "right",
+      "legend_category": "rect",
+      "type": "line",
+      "title_text": "Line Smooth Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "series_smooth": true,
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "y_axis_configs": [
+        {
+          "axis_scale": "log2"
+        }
+      ],
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ],
+          "mark_lines": [
+            {
+              "category": "average"
+            }
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ],
+          "mark_points": [
+            {
+              "category": "max"
+            },
+            {
+              "category": "min"
+            },
+            {
+              "category": "index",
+              "index": 4
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineSmoothFill",
+    "chart_type": "line",
+    "label_zh": "填充平滑曲线",
+    "label_en": "Smooth area",
+    "short": "Area",
+    "hint_zh": "面积填充",
+    "hint_en": "Filled area",
+    "glyph": "area",
+    "options": {
+      "legend_align": "right",
+      "type": "line",
+      "title_text": "Line Smooth Fill Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "series_smooth": true,
+      "series_fill": true,
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineNullData",
+    "chart_type": "line",
+    "label_zh": "缺失数据曲线",
+    "label_en": "Line with gaps",
+    "short": "Null",
+    "hint_zh": "断点处理",
+    "hint_en": "Missing values",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Line Null Data",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Email",
+          "label_show": true,
+          "data": [
+            120,
+            null,
+            101,
+            134,
+            null,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Union Ads",
+          "label_show": true,
+          "data": [
+            220,
+            182,
+            null,
+            234,
+            290,
+            null,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineBand",
+    "chart_type": "line",
+    "label_zh": "区间带曲线",
+    "label_en": "Line with band",
+    "short": "Band",
+    "hint_zh": "置信区间",
+    "hint_en": "Confidence interval",
+    "glyph": "area",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "sub_title_text": "Forecast with confidence band",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Line Band Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_smooth": true,
+      "tooltip_show": true,
+      "series_list": [
+        {
+          "name": "Actual",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Forecast",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ],
+          "band": {
+            "lower": [
+              205,
+              160,
+              162,
+              196,
+              240,
+              268,
+              236
+            ],
+            "upper": [
+              235,
+              204,
+              220,
+              272,
+              340,
+              392,
+              384
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineTimeAxis",
+    "chart_type": "line",
+    "label_zh": "时间轴曲线",
+    "label_en": "Time axis line",
+    "short": "Time",
+    "hint_zh": "非等距采样",
+    "hint_en": "Uneven sampling",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 25,
+        "bottom": 15
+      },
+      "sub_title_text": "Unevenly sampled data",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "type": "line",
+      "title_text": "Line Time Axis Chart",
+      "x_axis_type": "time",
+      "x_axis_values": [
+        "2024-03-01 08:00",
+        "2024-03-01 08:30",
+        "2024-03-01 09:00",
+        "2024-03-01 11:00",
+        "2024-03-01 12:30",
+        "2024-03-01 16:00",
+        "2024-03-01 20:00"
+      ],
+      "x_axis_formatter": "%H:%M",
+      "x_axis_title": "Time",
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "y_axis_configs": [
+        {
+          "axis_formatter": "{c} ms"
+        }
+      ],
+      "series_list": [
+        {
+          "name": "API",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Web",
+          "data": [
+            220,
+            182,
+            191,
+            234,
+            290,
+            330,
+            310
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineStep",
+    "chart_type": "line",
+    "label_zh": "阶梯线图",
+    "label_en": "Step line",
+    "short": "Step",
+    "hint_zh": "阶跃变化",
+    "hint_en": "Changes in steps",
+    "glyph": "step",
+    "options": {
+      "margin": {
+        "left": 15,
+        "top": 15,
+        "right": 15,
+        "bottom": 15
+      },
+      "sub_title_text": "start / middle / end",
+      "legend_align": "right",
+      "legend_category": "round_rect",
+      "type": "line",
+      "title_text": "Line Step Chart",
+      "x_axis_data": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "series_list": [
+        {
+          "name": "Start",
+          "step": "start",
+          "data": [
+            120,
+            132,
+            101,
+            134,
+            90,
+            230,
+            210
+          ]
+        },
+        {
+          "name": "Middle",
+          "step": "middle",
+          "data": [
+            220,
+            282,
+            201,
+            234,
+            290,
+            430,
+            410
+          ]
+        },
+        {
+          "name": "End",
+          "step": "end",
+          "data": [
+            450,
+            432,
+            401,
+            454,
+            590,
+            530,
+            510
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "lineBump",
+    "chart_type": "line",
+    "label_zh": "排名图",
+    "label_en": "Bump chart",
+    "short": "Bump",
+    "hint_zh": "名次变化",
+    "hint_en": "Ranking over time",
+    "glyph": "line",
+    "options": {
+      "margin": {
+        "left": 5,
+        "top": 5,
+        "right": 20,
+        "bottom": 5
+      },
+      "title_align": "left",
+      "sub_title_text": "Ranking by year",
+      "sub_title_align": "left",
+      "legend_align": "right",
+      "x_boundary_gap": false,
+      "type": "line",
+      "title_text": "Bump Chart",
+      "series_smooth": true,
+      "x_axis_data": [
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024"
+      ],
+      "x_axis_hidden": false,
+      "y_axis_hidden": false,
+      "y_axis_configs": [
+        {
+          "axis_inverse": true,
+          "axis_min": 1,
+          "axis_max": 5,
+          "axis_split_number": 4,
+          "axis_title": "Place"
+        }
+      ],
+      "series_symbol": {
+        "type": "circle",
+        "size": 4
+      },
+      "series_list": [
+        {
+          "name": "Alpha",
+          "data": [
+            1,
+            2,
+            2,
+            1,
+            1,
+            3
+          ]
+        },
+        {
+          "name": "Beta",
+          "data": [
+            2,
+            1,
+            3,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "name": "Gamma",
+          "data": [
+            3,
+            3,
+            1,
+            2,
+            2,
+            1
+          ]
+        },
+        {
+          "name": "Delta",
+          "data": [
+            4,
+            5,
+            5,
+            4,
+            3,
+            2
+          ]
+        },
+        {
+          "name": "Epsilon",
+          "data": [
+            5,
+            4,
+            4,
+            5,
+            5,
+            4
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "themeRiverChart",
+    "chart_type": "theme_river",
+    "label_zh": "主题河流图",
+    "label_en": "Theme river",
+    "short": "River",
+    "hint_zh": "流量演变",
+    "hint_en": "Streams over time",
+    "glyph": "river",
+    "options": {
+      "type": "theme_river",
+      "title_text": "Theme River",
+      "legend_show": false,
+      "series_smooth": true,
+      "stream_opacity": 0.85,
+      "x_axis_data": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug"
+      ],
+      "series_list": [
+        {
+          "name": "News",
+          "data": [
+            10,
+            25,
+            18,
+            30,
+            42,
+            35,
+            28,
+            20
+          ]
+        },
+        {
+          "name": "Sport",
+          "data": [
+            15,
+            12,
+            22,
+            16,
+            20,
+            38,
+            45,
+            30
+          ]
+        },
+        {
+          "name": "Music",
+          "data": [
+            8,
+            14,
+            30,
+            36,
+            24,
+            18,
+            22,
+            34
+          ]
+        },
+        {
+          "name": "Movie",
+          "data": [
+            20,
+            18,
+            12,
+            22,
+            34,
+            40,
+            26,
+            16
+          ]
+        }
+      ]
+    }
+  }
+]
