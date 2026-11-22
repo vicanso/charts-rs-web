@@ -6,7 +6,7 @@ RUN apk update \
   && cd /charts-rs-web \
   && make build-web
 
-FROM rust:1.98.1-trixie AS builder
+FROM rust:1.100.0-trixie AS builder
 
 
 COPY --from=webbuilder /charts-rs-web /charts-rs-web
