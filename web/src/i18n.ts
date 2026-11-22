@@ -98,7 +98,7 @@ const zh = {
     "直接从 Mermaid 源码渲染图表（allow_links 默认关闭以保障安全）。",
   mcpResources: "资源（Resources）",
   mcpResourcesDesc:
-    "提供 charts://themes、charts://fonts、charts://maps、charts://mermaid/capabilities、charts://examples/{type} 与 charts://examples/mermaid/{diagram}。",
+    "提供 charts://themes、charts://fonts、charts://maps、charts://mermaid/capabilities、charts://llms.txt、charts://llms-full.txt、charts://examples/{type} 与 charts://examples/mermaid/{diagram}（HTTP 侧亦提供 /llms.txt 与 /llms-full.txt）。",
   mcpCommandCopied: "命令已复制",
   mcpConfig: "JSON 配置（.mcp.json）",
   mcpConfigCopied: "配置已复制",
@@ -200,7 +200,7 @@ const en: Record<MessageKey, string> = {
     "Renders Mermaid source directly (allow_links defaults to false for untrusted input safety).",
   mcpResources: "Resources",
   mcpResourcesDesc:
-    "Exposes charts://themes, charts://fonts, charts://maps, charts://mermaid/capabilities, charts://examples/{type}, and charts://examples/mermaid/{diagram}.",
+    "Exposes charts://themes, charts://fonts, charts://maps, charts://mermaid/capabilities, charts://llms.txt, charts://llms-full.txt, charts://examples/{type}, and charts://examples/mermaid/{diagram} (also served via HTTP at /llms.txt and /llms-full.txt).",
   mcpCommandCopied: "Command copied",
   mcpConfig: "JSON config (.mcp.json)",
   mcpConfigCopied: "Config copied",

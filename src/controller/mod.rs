@@ -15,6 +15,7 @@ use crate::config::must_new_render_limits;
 use crate::dist::{StaticFile, get_static_file};
 use crate::error::{HttpError, HttpResult};
 use crate::examples::{self, ExamplesCatalog};
+use crate::llms;
 use crate::maps;
 use charts_rs::{RenderLimits, svg_to_avif, svg_to_jpeg, svg_to_png, svg_to_webp};
 
@@ -47,6 +48,8 @@ pub type JsonResult<T> = HttpResult<Json<T>>;
 pub fn new_router() -> Router {
     Router::new()
         .route("/ping", get(ping))
+        .route("/llms.txt", get(get_llms_txt))
+        .route("/llms-full.txt", get(get_llms_full_txt))
         .route("/api/charts", get(preview))
         .route("/api/basic-info", get(get_basic_info))
         .route("/api/examples", get(get_examples))
@@ -143,6 +146,37 @@ async fn get_basic_info() -> JsonResult<BasicInfoResult> {
 async fn get_examples() -> JsonResult<&'static ExamplesCatalog> {
     maps::init_builtin_maps();
     Ok(Json(examples::catalog()))
+}
+
+fn markdown_response(body: String) -> Response {
+    (
+        [
+            (
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("text/markdown; charset=utf-8"),
+            ),
+            (
+                header::CACHE_CONTROL,
+                HeaderValue::from_static("public, max-age=300"),
+            ),
+        ],
+        body,
+    )
+        .into_response()
+}
+
+async fn get_llms_txt() -> HttpResult<Response> {
+    let body = tokio::task::spawn_blocking(llms::render_llms_txt)
+        .await
+        .map_err(|err| HttpError::new_with_category(&err.to_string(), "llms_task"))?;
+    Ok(markdown_response(body))
+}
+
+async fn get_llms_full_txt() -> HttpResult<Response> {
+    let body = tokio::task::spawn_blocking(llms::render_llms_full_txt)
+        .await
+        .map_err(|err| HttpError::new_with_category(&err.to_string(), "llms_task"))?;
+    Ok(markdown_response(body))
 }
 
 /// 返回图表默认使用的字体(Roboto)，

@@ -19,6 +19,7 @@ mod controller;
 mod dist;
 mod error;
 mod examples;
+mod llms;
 mod maps;
 mod mcp;
 mod middleware;

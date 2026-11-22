@@ -10,6 +10,7 @@
 
 - `GET /api/basic-info`: 返回应用信息：版本、字体、主题、已注册地图与支持图表类型。默认支持两种字体`Noto Sans SC`与`Roboto`
 - `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 13 种 Mermaid 规范图示例）
+- `GET /llms.txt` / `GET /llms-full.txt`: 随构建的 `charts-rs` 版本与服务端实时状态（字体、主题、地图、`RenderLimits`）自动生成服务说明与完整 JSON/Mermaid 参考文档
 - `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`）
 - `POST /api/charts/png`: 生成Png图表
 - `POST /api/charts/jpeg`: 生成Jpeg图表
@@ -27,7 +28,7 @@
 - `render_chart`: 预校验并渲染图表（`format` 可选 `png`（默认）、`jpeg`、`webp`、`svg`），`mermaid` 默认 `allow_links: false`
 - `validate_mermaid`: 直接校验 Mermaid 源码语法与语义（带 1-based 行号与修正建议）
 - `render_mermaid`: 直接从 Mermaid 源码渲染图表（`allow_links` 默认 `false`）
-- **Resources**: `charts://themes`、`charts://fonts`、`charts://maps`、`charts://mermaid/capabilities`、`charts://examples/{type}`、`charts://examples/mermaid/{diagram}`（即使客户端不读取 Resources，`list_chart_types` 与 `get_chart_schema` 也会在工具响应中内嵌完整运行时信息）
+- **Resources**: `charts://themes`、`charts://fonts`、`charts://maps`、`charts://mermaid/capabilities`、`charts://llms.txt`、`charts://llms-full.txt`、`charts://examples/{type}`、`charts://examples/mermaid/{diagram}`（即使客户端不读取 Resources，`list_chart_types` 与 `get_chart_schema` 也会在工具响应中内嵌完整运行时信息）
 
 客户端配置地址为`http://127.0.0.1:5000/mcp`即可，以 Claude Code 为例：
 

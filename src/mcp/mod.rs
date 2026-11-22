@@ -20,13 +20,15 @@ use std::sync::Arc;
 use crate::config::{must_new_mcp_config, must_new_render_limits};
 use crate::controller::{FormatType, encode_svg, normalize_chart_type};
 use crate::examples::{self, ExampleItem};
+use crate::llms;
 use crate::maps;
 
 const SERVER_INSTRUCTIONS: &str = "Pure-Rust charting & Mermaid SVG/raster renderer (`charts-rs` 2.4.0). \
 Workflow: (1) Call `list_chart_types` (or read `charts://` resources) to inspect the 30 chart types, variant mappings, live themes, loaded fonts, registered GeoJSON maps, and Mermaid capabilities. \
 (2) Call `get_chart_schema` (default `essential`) for the chosen `chart_type` to get its JSON Schema with live `theme`/`font_family`/`geo_json` enums and real examples; pass `chart_type: \"mermaid\"` for Mermaid capabilities, limitations, and all 13 diagram examples. \
 (3) Call `render_chart` (or `render_mermaid` directly for Mermaid). Both pre-validate and return up to 50 structured `ValidationIssue` entries (`code`, `path`, `expected`, `suggestion`, `line`) on error so you can fix all issues in one pass. \
-Important: If the chart contains Chinese/Japanese/Korean (CJK) text, set `font_family` to a loaded CJK font (e.g. `Noto Sans SC`); otherwise `charts-rs` silently falls back to `Roboto` for text measurement and rasterized PNGs may miss CJK glyphs.";
+Important: If the chart contains Chinese/Japanese/Korean (CJK) text, set `font_family` to a loaded CJK font (e.g. `Noto Sans SC`); otherwise `charts-rs` silently falls back to `Roboto` for text measurement and rasterized PNGs may miss CJK glyphs. \
+For whole-service/HTTP API documentation rather than single-chart rendering, read MCP resources `charts://llms.txt` (concise guide) or `charts://llms-full.txt` (complete reference); prefer `list_chart_types` and `get_chart_schema` for normal rendering to keep context compact.";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -211,14 +213,14 @@ struct RenderMermaidParams {
 }
 
 #[derive(Serialize)]
-struct SelectionGuideEntry {
-    intent_or_variant: &'static str,
-    chart_type: &'static str,
-    key_options: &'static [&'static str],
-    note: &'static str,
+pub(crate) struct SelectionGuideEntry {
+    pub(crate) intent_or_variant: &'static str,
+    pub(crate) chart_type: &'static str,
+    pub(crate) key_options: &'static [&'static str],
+    pub(crate) note: &'static str,
 }
 
-const CHART_SELECTION_GUIDE: &[SelectionGuideEntry] = &[
+pub(crate) const CHART_SELECTION_GUIDE: &[SelectionGuideEntry] = &[
     SelectionGuideEntry {
         intent_or_variant: "Grouped, stacked, 100% stacked, bar+line mixin, error bars",
         chart_type: "bar",
@@ -344,13 +346,13 @@ const CHART_SELECTION_GUIDE: &[SelectionGuideEntry] = &[
     },
 ];
 
-fn sorted_themes() -> Vec<String> {
+pub(crate) fn sorted_themes() -> Vec<String> {
     let mut themes = charts_rs::list_theme_name();
     themes.sort_unstable();
     themes
 }
 
-fn loaded_fonts() -> Vec<String> {
+pub(crate) fn loaded_fonts() -> Vec<String> {
     let mut families = charts_rs::get_font_families().unwrap_or_default();
     if let Some(idx) = families
         .iter()
@@ -483,7 +485,7 @@ pub(crate) fn collect_font_warnings(value: &Value) -> Vec<String> {
     warnings
 }
 
-fn cjk_font_hint(fonts: &[String]) -> String {
+pub(crate) fn cjk_font_hint(fonts: &[String]) -> String {
     let non_default: Vec<&str> = fonts
         .iter()
         .map(String::as_str)
@@ -846,6 +848,18 @@ fn static_resources() -> Vec<Resource> {
                 "Supported diagrams, aliases, unsupported diagrams, v11 shapes, init config keys, and limitations.",
             )
             .with_mime_type("application/json"),
+        Resource::new("charts://llms.txt", "llms_txt")
+            .with_title("Service LLM Guide (llms.txt)")
+            .with_description(
+                "Concise HTTP API, MCP usage, live capabilities, selection guide, minimal examples, and Mermaid specification (mirrors GET /llms.txt).",
+            )
+            .with_mime_type("text/markdown"),
+        Resource::new("charts://llms-full.txt", "llms_full_txt")
+            .with_title("Full Service & Chart Reference (llms-full.txt)")
+            .with_description(
+                "Complete Markdown manual with full JSON option tables for all 30 chart types and all 73 curated examples (mirrors GET /llms-full.txt).",
+            )
+            .with_mime_type("text/markdown"),
     ]
 }
 
@@ -864,6 +878,20 @@ fn static_resource_templates() -> Vec<ResourceTemplate> {
             )
             .with_mime_type("application/json"),
     ]
+}
+
+fn read_resource_content(uri: &str) -> Result<(String, &'static str), ErrorData> {
+    match uri {
+        "charts://llms.txt" => Ok((llms::render_llms_txt(), "text/markdown; charset=utf-8")),
+        "charts://llms-full.txt" => {
+            Ok((llms::render_llms_full_txt(), "text/markdown; charset=utf-8"))
+        }
+        _ => {
+            let value = read_resource_value(uri)?;
+            let text = serde_json::to_string_pretty(&value).unwrap_or_default();
+            Ok((text, "application/json"))
+        }
+    }
 }
 
 fn read_resource_value(uri: &str) -> Result<Value, ErrorData> {
@@ -1152,13 +1180,18 @@ impl ServerHandler for ChartServer {
         request: ReadResourceRequestParams,
         _context: RequestContext<RoleServer>,
     ) -> Result<ReadResourceResponse, ErrorData> {
-        let uri = request.uri.as_str();
-        let value = read_resource_value(uri)?;
-        let text = serde_json::to_string_pretty(&value).unwrap_or_default();
-        Ok(ReadResourceResult::new(vec![
-            ResourceContents::text(text, uri).with_mime_type("application/json"),
-        ])
-        .into())
+        let uri = request.uri;
+        let uri_for_blocking = uri.clone();
+        let (text, mime) =
+            tokio::task::spawn_blocking(move || read_resource_content(uri_for_blocking.as_str()))
+                .await
+                .map_err(|err| {
+                    ErrorData::internal_error(format!("read resource failed: {err}"), None)
+                })??;
+        Ok(
+            ReadResourceResult::new(vec![ResourceContents::text(text, uri).with_mime_type(mime)])
+                .into(),
+        )
     }
 }
 
@@ -1429,8 +1462,15 @@ mod tests {
 
     #[test]
     fn mcp_resources_cover_all_uris_and_return_not_found() {
-        assert_eq!(static_resources().len(), 4);
+        assert_eq!(static_resources().len(), 6);
         assert_eq!(static_resource_templates().len(), 2);
+
+        for uri in ["charts://llms.txt", "charts://llms-full.txt"] {
+            let (body, mime) =
+                read_resource_content(uri).unwrap_or_else(|e| panic!("{uri}: {e:?}"));
+            assert_eq!(mime, "text/markdown; charset=utf-8");
+            assert!(body.contains("# charts-rs-web"));
+        }
 
         for uri in [
             "charts://themes",
@@ -1442,17 +1482,20 @@ mod tests {
             "charts://examples/mermaid/flowchart",
             "charts://examples/mermaid/graph",
         ] {
-            let val = read_resource_value(uri).unwrap_or_else(|e| panic!("{uri}: {e:?}"));
+            let (body, mime) =
+                read_resource_content(uri).unwrap_or_else(|e| panic!("{uri}: {e:?}"));
+            assert_eq!(mime, "application/json");
+            let val: Value = serde_json::from_str(&body).unwrap();
             assert!(val.is_object());
         }
 
-        let empty_type = read_resource_value("charts://examples/");
+        let empty_type = read_resource_content("charts://examples/");
         assert!(empty_type.is_err());
-        let missing = read_resource_value("charts://examples/nonexistent");
+        let missing = read_resource_content("charts://examples/nonexistent");
         assert!(missing.is_err());
-        let missing_diag = read_resource_value("charts://examples/mermaid/gitGraph");
+        let missing_diag = read_resource_content("charts://examples/mermaid/gitGraph");
         assert!(missing_diag.is_err());
-        let unknown = read_resource_value("charts://unknown");
+        let unknown = read_resource_content("charts://unknown");
         assert!(unknown.is_err());
     }
 }
