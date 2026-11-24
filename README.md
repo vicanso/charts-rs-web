@@ -9,7 +9,7 @@
 ## HTTP接口
 
 - `GET /api/basic-info`: 返回应用信息：版本、字体、主题、已注册地图与支持图表类型。默认支持两种字体`Noto Sans SC`与`Roboto`
-- `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 13 种 Mermaid 规范图示例）
+- `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 14 个 Mermaid 示例，覆盖全部 13 种规范图）
 - `GET /llms.txt` / `GET /llms-full.txt`: 随构建的 `charts-rs` 版本与服务端实时状态（字体、主题、地图、`RenderLimits`）自动生成服务说明与完整 JSON/Mermaid 参考文档
 - `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`）
 - `POST /api/charts/png`: 生成Png图表
@@ -255,7 +255,7 @@ Mermaid 图表不使用 `series_list` 或 `x_axis_data`，支持以下字段：
 
 ## 示例库与启动
 
-内置示例与地图数据集中在 `examples/`（60 个图表变体 + 13 种 Mermaid 规范图示例）与 `maps/demo.json`（内置名为 `demo` 的示例地图），在编译期嵌入二进制并由 Web Playground（`GET /api/examples`）与 MCP 共享；`cargo test` 会自动对所有示例执行参数校验与 SVG 渲染验证。
+内置示例与地图数据集中在 `examples/`（60 个图表变体 + 14 个 Mermaid 示例，覆盖全部 13 种规范图）与 `maps/demo.json`（内置名为 `demo` 的示例地图），在编译期嵌入二进制并由 Web Playground（`GET /api/examples`）与 MCP 共享；`cargo test` 会自动对所有示例执行参数校验与 SVG 渲染验证。
 
 需要注意，Docker 镜像加载了 `fonts/` 目录下的 `NotoSansSC` 字体（Regular / Light / Bold 3 个字体文件）。如果需要加载更多字体，可运行时挂载字体目录并通过环境变量 `CHARTS_FONT_PATH` 指定（多个目录以 `,` 分隔，容器内默认 `/usr/share/fonts`），支持 `ttf` 与 `otf`；字体加载到内存中，首次启动加载单个字体约需 100ms，加载越多启动越慢、内存占用越大。
 

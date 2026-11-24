@@ -406,9 +406,9 @@ dependencies = [
 
 [[package]]
 name = "charts-rs"
-version = "2.4.0"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c84c429f7218825c31a1d1e3030ed86ecc1321cb75cdb93a6d5e45e759192d51"
+checksum = "23bfc207ef129c30e711bb166f96c0b08bb51283a92fa64bc34b513e3b0e9eda"
 dependencies = [
  "arc-swap",
  "image",

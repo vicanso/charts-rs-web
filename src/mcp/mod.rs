@@ -23,12 +23,17 @@ use crate::examples::{self, ExampleItem};
 use crate::llms;
 use crate::maps;
 
-const SERVER_INSTRUCTIONS: &str = "Pure-Rust charting & Mermaid SVG/raster renderer (`charts-rs` 2.4.0). \
+fn server_instructions() -> String {
+    format!(
+        "Pure-Rust charting & Mermaid SVG/raster renderer (`charts-rs` {}). \
 Workflow: (1) Call `list_chart_types` (or read `charts://` resources) to inspect the 30 chart types, variant mappings, live themes, loaded fonts, registered GeoJSON maps, and Mermaid capabilities. \
-(2) Call `get_chart_schema` (default `essential`) for the chosen `chart_type` to get its JSON Schema with live `theme`/`font_family`/`geo_json` enums and real examples; pass `chart_type: \"mermaid\"` for Mermaid capabilities, limitations, and all 13 diagram examples. \
+(2) Call `get_chart_schema` (default `essential`) for the chosen `chart_type` to get its JSON Schema with live `theme`/`font_family`/`geo_json` enums and real examples; pass `chart_type: \"mermaid\"` for Mermaid capabilities, limitations, and all Mermaid diagram examples. \
 (3) Call `render_chart` (or `render_mermaid` directly for Mermaid). Both pre-validate and return up to 50 structured `ValidationIssue` entries (`code`, `path`, `expected`, `suggestion`, `line`) on error so you can fix all issues in one pass. \
 Important: If the chart contains Chinese/Japanese/Korean (CJK) text, set `font_family` to a loaded CJK font (e.g. `Noto Sans SC`); otherwise `charts-rs` silently falls back to `Roboto` for text measurement and rasterized PNGs may miss CJK glyphs. \
-For whole-service/HTTP API documentation rather than single-chart rendering, read MCP resources `charts://llms.txt` (concise guide) or `charts://llms-full.txt` (complete reference); prefer `list_chart_types` and `get_chart_schema` for normal rendering to keep context compact.";
+For whole-service/HTTP API documentation rather than single-chart rendering, read MCP resources `charts://llms.txt` (concise guide) or `charts://llms-full.txt` (complete reference); prefer `list_chart_types` and `get_chart_schema` for normal rendering to keep context compact.",
+        charts_rs::version()
+    )
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -653,10 +658,10 @@ fn build_enriched_schema(
 
     let examples_list: Vec<Value> = if name == "mermaid" {
         if let Some(diag) = diagram_type.map(str::trim).filter(|s| !s.is_empty()) {
-            match examples::example_for_mermaid_diagram(diag) {
-                Some(item) => vec![summarize_example(item)],
-                None => Vec::new(),
-            }
+            examples::examples_for_mermaid_diagram(diag)
+                .into_iter()
+                .map(summarize_example)
+                .collect()
         } else {
             examples::all_mermaid_examples()
                 .into_iter()
@@ -857,7 +862,7 @@ fn static_resources() -> Vec<Resource> {
         Resource::new("charts://llms-full.txt", "llms_full_txt")
             .with_title("Full Service & Chart Reference (llms-full.txt)")
             .with_description(
-                "Complete Markdown manual with full JSON option tables for all 30 chart types and all 73 curated examples (mirrors GET /llms-full.txt).",
+                "Complete Markdown manual with full JSON option tables for all 30 chart types and all curated examples (mirrors GET /llms-full.txt).",
             )
             .with_mime_type("text/markdown"),
     ]
@@ -1154,7 +1159,7 @@ impl ServerHandler for ChartServer {
             "charts-rs-web",
             env!("CARGO_PKG_VERSION"),
         ))
-        .with_instructions(SERVER_INSTRUCTIONS.to_string())
+        .with_instructions(server_instructions())
     }
 
     async fn list_resources(
@@ -1314,13 +1319,32 @@ mod tests {
 
         let mermaid_all =
             build_enriched_schema(ChartType::Mermaid, SchemaLevel::Essential, None).unwrap();
-        assert_eq!(mermaid_all["examples"].as_array().unwrap().len(), 13);
+        assert_eq!(
+            mermaid_all["examples"].as_array().unwrap().len(),
+            examples::all_mermaid_examples().len()
+        );
         assert!(mermaid_all["mermaid_capabilities"]["supported_diagrams"].is_array());
         assert!(mermaid_all["mermaid_capabilities"]["unsupported_diagrams"].is_array());
         assert_eq!(
             mermaid_all["mermaid_capabilities"]["allow_links_default"],
             false
         );
+        let features = mermaid_all["mermaid_capabilities"]["features"]
+            .as_array()
+            .unwrap();
+        assert!(
+            features
+                .iter()
+                .any(|f| f.as_str().unwrap_or_default().contains("orthogonal"))
+        );
+
+        let mermaid_flow = build_enriched_schema(
+            ChartType::Mermaid,
+            SchemaLevel::Essential,
+            Some("flowchart"),
+        )
+        .unwrap();
+        assert!(mermaid_flow["examples"].as_array().unwrap().len() >= 2);
 
         let mermaid_seq = build_enriched_schema(
             ChartType::Mermaid,

@@ -168,12 +168,19 @@ pub fn canonical_mermaid_diagram(name: &str) -> String {
 }
 
 pub fn example_for_mermaid_diagram(diagram: &str) -> Option<&'static ExampleItem> {
+    examples_for_mermaid_diagram(diagram).into_iter().next()
+}
+
+pub fn examples_for_mermaid_diagram(diagram: &str) -> Vec<&'static ExampleItem> {
     let target = canonical_mermaid_diagram(diagram);
-    all_mermaid_examples().into_iter().find(|item| {
-        item.diagram_type
-            .as_deref()
-            .is_some_and(|d| d.eq_ignore_ascii_case(&target))
-    })
+    all_mermaid_examples()
+        .into_iter()
+        .filter(|item| {
+            item.diagram_type
+                .as_deref()
+                .is_some_and(|d| d.eq_ignore_ascii_case(&target))
+        })
+        .collect()
 }
 
 #[cfg(test)]

@@ -16,6 +16,22 @@
     }
   },
   {
+    "id": "mermaidSubgraphDirection",
+    "chart_type": "mermaid",
+    "diagram_type": "flowchart",
+    "label_zh": "流程图 (子图独立方向)",
+    "label_en": "Flowchart (subgraph direction)",
+    "short": "Subdir",
+    "hint_zh": "嵌套子图方向与正交布线",
+    "hint_en": "Per-subgraph direction & orthogonal routing",
+    "glyph": "mermaid",
+    "options": {
+      "type": "mermaid",
+      "title_text": "Release Workflow",
+      "source": "flowchart LR\n  subgraph CI [Continuous Integration]\n    direction TB\n    plan[Plan] --> build[Build]\n    build --> review[Review]\n    subgraph Checks [Quality Gates]\n      direction LR\n      lint[Lint] --> test[Test] --> scan[Scan]\n    end\n    build --> Checks\n  end\n  start([Commit]) --> CI\n  CI --> ship([Ship])"
+    }
+  },
+  {
     "id": "mermaidSequence",
     "chart_type": "mermaid",
     "diagram_type": "sequenceDiagram",
@@ -167,7 +183,7 @@
     "glyph": "mix",
     "options": {
       "type": "mermaid",
-      "source": "xychart-beta\n  title \"Quarterly Revenue & Growth\"\n  x-axis [Q1, Q2, Q3, Q4, Q5, Q6]\n  y-axis \"Revenue ($k)\" 0 --> 120\n  bar [42, 58, 66, 84, 95, 112]\n  line [35, 50, 62, 76, 89, 108]"
+      "source": "---\nconfig:\n  xyChart:\n    showLegend: true\n---\nxychart-beta\n  title \"Quarterly Revenue & Growth\"\n  x-axis [Q1, Q2, Q3, Q4, Q5, Q6]\n  y-axis \"Revenue ($k)\" 0 --> 120\n  bar \"Revenue\" [42, 58, 66, 84, 95, 112]\n  line \"Growth\" [35, 50, 62, 76, 89, 108]"
     }
   },
   {

@@ -133,6 +133,7 @@ pub fn render_llms_txt() -> String {
     let limits = must_new_render_limits();
     let caps = charts_rs::mermaid_capabilities();
     let catalog = charts_rs::chart_catalog();
+    let total_examples = examples::all_examples().count();
 
     let mut out = String::with_capacity(16 * 1024);
 
@@ -151,24 +152,25 @@ pub fn render_llms_txt() -> String {
         - `POST /api/charts/svg`: Render chart JSON options to SVG (`image/svg+xml`).\n\
         - `POST /api/charts/png`: Render chart JSON options to PNG (`image/png`). Accepts optional `"
     );
-    out.push_str(
+    let _ = write!(
+        out,
         "`quality` (`0`–`100`, default `80`; `0` keeps unquantized PNG, `1`–`100` applies NeuQuant palette quantization).\n\
         - `POST /api/charts/jpeg`, `POST /api/charts/webp`, `POST /api/charts/avif`: Render chart JSON options to raster images.\n\
         - `GET /api/charts?format=<svg|png|jpeg|webp|avif>&opts=<url-encoded-json>`: GET preview endpoint (default `format=svg`).\n\
-        - `GET /api/basic-info`: Returns `{ families, themes, maps, chart_types, version }`.\n\
-        - `GET /api/examples`: Returns the unified gallery catalog (73 verified chart & Mermaid examples).\n\
+        - `GET /api/basic-info`: Returns `{{\"families\", \"themes\", \"maps\", \"chart_types\", \"version\"}}`.\n\
+        - `GET /api/examples`: Returns the unified gallery catalog ({total_examples} verified chart & Mermaid examples).\n\
         - `GET /llms.txt`: This concise AI/LLM service guide (`text/markdown`).\n\
-        - `GET /llms-full.txt`: Complete single-file reference with full JSON option tables and all 73 examples.\n\n\
+        - `GET /llms-full.txt`: Complete single-file reference with full JSON option tables and all {total_examples} examples.\n\n\
         Notes:\n\
-        - Set `\"type\"` in the JSON payload (empty/omitted defaults to `\"bar\"`; aliases `\"multi_chart\"` -> `\"multi\"` and `\"guage\"` -> `\"gauge\"` are accepted; unknown `\"type\"` returns HTTP 400 JSON `{ message, category, code, status }`).\n\
+        - Set `\"type\"` in the JSON payload (empty/omitted defaults to `\"bar\"`; aliases `\"multi_chart\"` -> `\"multi\"` and `\"guage\"` -> `\"gauge\"` are accepted; unknown `\"type\"` returns HTTP 400 JSON `{{\"message\", \"category\", \"code\", \"status\"}}`).\n\
         - Set `\"compact\": true` to emit 20–30% smaller SVGs.\n\n\
         ```bash\n\
         curl -sX POST http://127.0.0.1:5000/api/charts/png \\\n\
           -H 'Content-Type: application/json' \\\n\
-          -d '{\"type\":\"bar\",\"theme\":\"grafana\",\"x_axis_data\":[\"Mon\",\"Tue\"],\"series_list\":[{\"name\":\"Visits\",\"data\":[120,185]}]}' -o chart.png\n\n\
+          -d '{{\"type\":\"bar\",\"theme\":\"grafana\",\"x_axis_data\":[\"Mon\",\"Tue\"],\"series_list\":[{{\"name\":\"Visits\",\"data\":[120,185]}}]}}' -o chart.png\n\n\
         curl -sX POST http://127.0.0.1:5000/api/charts/svg \\\n\
           -H 'Content-Type: application/json' \\\n\
-          -d '{\"type\":\"mermaid\",\"source\":\"flowchart LR\\n  A[Client] --> B{Gateway}\\n  B -->|OK| C[(DB)]\"}' -o flow.svg\n\
+          -d '{{\"type\":\"mermaid\",\"source\":\"flowchart LR\\n  A[Client] --> B{{Gateway}}\\n  B -->|OK| C[(DB)]\"}}' -o flow.svg\n\
         ```\n\n"
     );
 

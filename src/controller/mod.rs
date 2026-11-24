@@ -272,7 +272,7 @@ fn quantize_png(png: &[u8], quality: u8) -> Result<Vec<u8>, ImageError> {
     })
 }
 
-/// 将历史/缺省的图表类型别名规范化为 charts-rs 2.4.0 的规范类型名
+/// 将历史/缺省的图表类型别名规范化为 charts-rs 的规范类型名
 pub fn normalize_chart_type(raw: &str) -> &str {
     let trimmed = raw.trim();
     match trimmed {
