@@ -32,16 +32,72 @@ import "./App.css";
 
 const { defaultAlgorithm, darkAlgorithm } = theme;
 
-const isDarkMode = () =>
-  window.matchMedia("(prefers-color-scheme: dark)").matches;
+type UiTheme = "light" | "dark";
+type SplitMode = "horizontal" | "vertical";
+
+let monacoThemesReady = false;
+function ensureMonacoThemes() {
+  if (monacoThemesReady) {
+    return;
+  }
+  monacoThemesReady = true;
+  monaco.editor.defineTheme("charts-light", {
+    base: "vs",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#ffffff",
+      "editor.foreground": "#131416",
+      "editor.lineHighlightBackground": "#f5f6f8",
+      "editorLineNumber.foreground": "#9aa0a6",
+      "editorLineNumber.activeForeground": "#131416",
+      "editorGutter.background": "#ffffff",
+      "editorIndentGuide.background1": "#eff1f3",
+      "editorCursor.foreground": "#1b6c80",
+    },
+  });
+  monaco.editor.defineTheme("charts-dark", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#161618",
+      "editor.foreground": "#f4f4f5",
+      "editor.lineHighlightBackground": "#1f1f23",
+      "editorLineNumber.foreground": "#6e6e77",
+      "editorLineNumber.activeForeground": "#f4f4f5",
+      "editorGutter.background": "#161618",
+      "editorIndentGuide.background1": "#27272a",
+      "editorCursor.foreground": "#4eb8cf",
+    },
+  });
+}
+
+function monacoThemeFor(uiTheme: UiTheme): string {
+  return uiTheme === "dark" ? "charts-dark" : "charts-light";
+}
+
+function defaultChartThemeFor(uiTheme: UiTheme): string {
+  return uiTheme === "dark" ? "grafana" : "ant";
+}
+
+function applyUiThemeToDocument(uiTheme: UiTheme) {
+  document.documentElement.dataset.theme = uiTheme;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) {
+    meta.setAttribute("content", uiTheme === "dark" ? "#0e0e10" : "#f5f6f8");
+  }
+}
 
 function createEditor(params: {
   dom: HTMLElement;
+  uiTheme: UiTheme;
 }): editor.IStandaloneCodeEditor {
+  ensureMonacoThemes();
   const e = editor.create(params.dom, {
     readOnly: false,
     language: "json",
-    theme: isDarkMode() ? "vs-dark" : "vs",
+    theme: monacoThemeFor(params.uiTheme),
     automaticLayout: true,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
@@ -62,26 +118,84 @@ function createEditor(params: {
   return e;
 }
 
-const getGithubIcon = (lang: Lang) => {
-  if (window.location.host !== "charts.npmtrend.com") {
-    return null;
+/** Crisp geometric product mark (no gradient square). */
+function BrandMark() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      className="brand-mark"
+    >
+      <rect x="3" y="10" width="3" height="6.5" rx="1" fill="currentColor" opacity="0.45" />
+      <rect x="8.5" y="6" width="3" height="10.5" rx="1" fill="var(--accent)" />
+      <rect x="14" y="3.5" width="3" height="13" rx="1" fill="currentColor" />
+      <path d="M2 17.5h16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+    </svg>
+  );
+}
+
+function ThemeIcon({ uiTheme }: { uiTheme: UiTheme }) {
+  if (uiTheme === "dark") {
+    return (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="3" />
+        <path d="M8 1.75v1.5M8 12.75v1.5M2.93 2.93l1.06 1.06M12.01 12.01l1.06 1.06M1.75 8h1.5M12.75 8h1.5M2.93 13.07l1.06-1.06M12.01 3.99l1.06-1.06" />
+      </svg>
+    );
   }
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M13.5 9.8A5.5 5.5 0 0 1 6.2 2.5a5.5 5.5 0 1 0 7.3 7.3Z" />
+    </svg>
+  );
+}
+
+function SplitIcon({ splitMode }: { splitMode: SplitMode }) {
+  if (splitMode === "horizontal") {
+    return (
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="2" y="2.5" width="12" height="11" rx="2" />
+        <path d="M2 8.5h12" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="2.5" width="12" height="11" rx="2" />
+      <path d="M7.5 2.5v11" />
+    </svg>
+  );
+}
+
+function SidebarToggleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="2.5" width="12" height="11" rx="2" />
+      <path d="M6.2 2.5v11" />
+    </svg>
+  );
+}
+
+function GithubLink({ lang }: { lang: Lang }) {
   return (
     <Tooltip title={translate(lang, "githubTooltip")}>
       <a
         href="https://github.com/vicanso/charts-rs"
-        className="github-link"
+        className="topbar-icon-link"
         target="_blank"
         rel="noreferrer"
         aria-label="GitHub repository"
       >
-        <svg height="18" viewBox="0 0 16 16" width="18" aria-hidden="true">
+        <svg height="16" viewBox="0 0 16 16" width="16" aria-hidden="true">
           <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
         </svg>
       </a>
     </Tooltip>
   );
-};
+}
 
 type GlyphKind =
   | "bar"
@@ -161,11 +275,11 @@ function itemText(item: ExampleItem, lang: Lang) {
   };
 }
 
-/** Tiny monoline icons — readable at 18px, no dependency. */
-function ChartGlyph({ kind }: { kind: GlyphKind }) {
+/** Tiny monoline icons — readable at 16px, no dependency. */
+function ChartGlyph({ kind, size = 16 }: { kind: GlyphKind; size?: number }) {
   const common = {
-    width: 18,
-    height: 18,
+    width: size,
+    height: size,
     viewBox: "0 0 18 18",
     fill: "none",
     stroke: "currentColor",
@@ -439,9 +553,13 @@ function ChartGlyph({ kind }: { kind: GlyphKind }) {
   }
 }
 
-const PREFS_KEY = "charts-rs-lab-prefs-v1";
+const PREFS_KEY = "charts-rs-workbench-prefs-v2";
 
 type LabPrefs = {
+  uiTheme?: UiTheme;
+  chartThemeManual?: boolean;
+  splitMode?: SplitMode;
+  editorWidthPct?: number;
   simply?: boolean;
   compact?: boolean;
   editorHeight?: number;
@@ -452,6 +570,7 @@ type LabPrefs = {
   currentChartType?: string;
   previewFit?: boolean;
   lang?: Lang;
+  galleryCategory?: string;
 };
 
 function loadPrefs(): LabPrefs {
@@ -525,6 +644,11 @@ function isCommonBaseChart(chartType: string): boolean {
 }
 
 interface AppState {
+  uiTheme: UiTheme;
+  chartThemeManual: boolean;
+  splitMode: SplitMode;
+  editorWidthPct: number;
+  mobileNavOpen: boolean;
   lang: Lang;
   version: string;
   theme: string;
@@ -548,6 +672,7 @@ interface AppState {
   mermaidOptions: Record<string, unknown> | null;
   galleryQuery: string;
   galleryExpanded: boolean;
+  galleryCategory: string;
   editorHeight: number;
   editorCollapsed: boolean;
   jsonError: string;
@@ -652,7 +777,7 @@ function ChartThumb({
             root.innerHTML = THUMB_STYLE + svg;
             root
               .querySelector("svg")
-              ?.setAttribute("preserveAspectRatio", "xMidYMid slice");
+              ?.setAttribute("preserveAspectRatio", "xMidYMid meet");
             setReady(true);
           },
           () => {
@@ -670,11 +795,11 @@ function ChartThumb({
   }, [item, themeName]);
 
   return (
-    <span className={`chart-thumb${ready ? " is-ready" : ""}`} ref={ref}>
-      <span className="chart-thumb-glyph">
-        <ChartGlyph kind={item.glyph} />
+    <span className={`gallery-thumb${ready ? " is-ready" : ""}`} ref={ref}>
+      <span className="gallery-thumb-glyph">
+        <ChartGlyph kind={item.glyph} size={22} />
       </span>
-      <span className="chart-thumb-svg" ref={hostRef} aria-hidden="true" />
+      <span className="gallery-thumb-svg" ref={hostRef} aria-hidden="true" />
     </span>
   );
 }
@@ -723,42 +848,60 @@ function formatBytes(size: number) {
 const DEFAULT_EDITOR_HEIGHT = 280;
 const MIN_EDITOR_HEIGHT = 140;
 const MAX_EDITOR_HEIGHT_RATIO = 0.62;
+const DEFAULT_EDITOR_WIDTH_PCT = 44;
+const MIN_EDITOR_WIDTH_PCT = 25;
+const MAX_EDITOR_WIDTH_PCT = 66;
 
 class App extends Component<any, AppState> {
   editorInited: boolean;
   editorDom: RefObject<HTMLDivElement | null>;
+  splitStageRef: RefObject<HTMLDivElement | null>;
   galleryScrollRef: RefObject<HTMLDivElement | null>;
   chartRequestId: number;
   debounceTimer: ReturnType<typeof setTimeout> | null;
   contentChangeDisposable: { dispose: () => void } | null;
   editorInstance: editor.IStandaloneCodeEditor | null;
-  resizing: boolean;
-  resizeStartY: number;
-  resizeStartHeight: number;
+  resizingMode: SplitMode | null;
+  resizeStartPos: number;
+  resizeStartValue: number;
   ignoreContentChange: boolean;
   savedChartType: string;
 
   constructor(props: any) {
     super(props);
     this.editorDom = createRef();
+    this.splitStageRef = createRef();
     this.galleryScrollRef = createRef();
     this.editorInited = false;
     this.chartRequestId = 0;
     this.debounceTimer = null;
     this.contentChangeDisposable = null;
     this.editorInstance = null;
-    this.resizing = false;
-    this.resizeStartY = 0;
-    this.resizeStartHeight = DEFAULT_EDITOR_HEIGHT;
+    this.resizingMode = null;
+    this.resizeStartPos = 0;
+    this.resizeStartValue = DEFAULT_EDITOR_HEIGHT;
     this.ignoreContentChange = false;
 
     const prefs = loadPrefs();
+    const uiTheme: UiTheme = prefs.uiTheme === "dark" ? "dark" : "light";
+    applyUiThemeToDocument(uiTheme);
+
+    const pairedDefault = defaultChartThemeFor(uiTheme);
+    const chartTheme = prefs.theme || pairedDefault;
+    const chartThemeManual =
+      prefs.chartThemeManual ?? chartTheme !== pairedDefault;
+
     this.savedChartType = prefs.currentChartType || "";
 
     this.state = {
+      uiTheme,
+      chartThemeManual,
+      splitMode: prefs.splitMode === "vertical" ? "vertical" : "horizontal",
+      editorWidthPct: prefs.editorWidthPct || DEFAULT_EDITOR_WIDTH_PCT,
+      mobileNavOpen: false,
       lang: prefs.lang === "zh" || prefs.lang === "en" ? prefs.lang : detectLang(),
       version: "",
-      theme: prefs.theme || "grafana",
+      theme: chartTheme,
       format: prefs.format || formatOptions[0].value,
       fontFamilies: [],
       fontFamily: prefs.fontFamily || "",
@@ -778,7 +921,8 @@ class App extends Component<any, AppState> {
       editorMode: "json",
       mermaidOptions: null,
       galleryQuery: "",
-      galleryExpanded: true,
+      galleryExpanded: false,
+      galleryCategory: prefs.galleryCategory || "all",
       editorHeight: prefs.editorHeight || DEFAULT_EDITOR_HEIGHT,
       editorCollapsed: prefs.editorCollapsed ?? false,
       jsonError: "",
@@ -797,10 +941,11 @@ class App extends Component<any, AppState> {
     window.addEventListener("mouseup", this.handleResizeEnd);
     this.syncDocumentLang();
 
-    if (!this.editorInited) {
+    if (!this.editorInited && this.editorDom.current) {
       this.editorInited = true;
       const ed = createEditor({
-        dom: this.editorDom.current as HTMLElement,
+        dom: this.editorDom.current,
+        uiTheme: this.state.uiTheme,
       });
       this.editorInstance = ed;
       this.bindEditorChange();
@@ -824,6 +969,12 @@ class App extends Component<any, AppState> {
       nextState.fontFamilies = data.families;
       nextState.version = data.version;
       nextState.themes = data.themes;
+      if (data.themes.length > 0 && !data.themes.includes(this.state.theme)) {
+        const fallbackTheme = data.themes.includes("light")
+          ? "light"
+          : data.themes[0];
+        nextState.theme = fallbackTheme;
+      }
     }
 
     let initialId = "";
@@ -870,6 +1021,12 @@ class App extends Component<any, AppState> {
     ) {
       this.scrollActiveIntoView();
     }
+    if (prevState.galleryExpanded && !this.state.galleryExpanded) {
+      requestAnimationFrame(() => this.state.editor?.layout());
+    }
+    if (prevState.splitMode !== this.state.splitMode) {
+      requestAnimationFrame(() => this.state.editor?.layout());
+    }
     if (prevState.lang !== this.state.lang) {
       this.syncDocumentLang();
     }
@@ -897,6 +1054,66 @@ class App extends Component<any, AppState> {
     this.persistPrefs({ lang });
   }
 
+  toggleUiTheme = () => {
+    const nextUiTheme: UiTheme =
+      this.state.uiTheme === "light" ? "dark" : "light";
+    applyUiThemeToDocument(nextUiTheme);
+    monaco.editor.setTheme(monacoThemeFor(nextUiTheme));
+
+    const prevDefault = defaultChartThemeFor(this.state.uiTheme);
+    const nextDefault = defaultChartThemeFor(nextUiTheme);
+    const shouldPairChartTheme =
+      !this.state.chartThemeManual || this.state.theme === prevDefault;
+    const validTarget =
+      this.state.themes.length === 0 || this.state.themes.includes(nextDefault)
+        ? nextDefault
+        : this.state.theme;
+
+    if (shouldPairChartTheme && validTarget !== this.state.theme) {
+      this.setState(
+        {
+          uiTheme: nextUiTheme,
+          theme: validTarget,
+          chartThemeManual: false,
+        },
+        () => {
+          this.persistPrefs({
+            uiTheme: nextUiTheme,
+            theme: validTarget,
+            chartThemeManual: false,
+          });
+          this.refreshChartOption();
+        },
+      );
+      return;
+    }
+
+    this.setState({ uiTheme: nextUiTheme }, () => {
+      this.persistPrefs({ uiTheme: nextUiTheme });
+    });
+  };
+
+  toggleSplitMode = () => {
+    const next: SplitMode =
+      this.state.splitMode === "horizontal" ? "vertical" : "horizontal";
+    this.setState({ splitMode: next, editorCollapsed: false }, () => {
+      this.persistPrefs({ splitMode: next, editorCollapsed: false });
+      requestAnimationFrame(() => this.state.editor?.layout());
+    });
+  };
+
+  setChartTheme(nextTheme: string) {
+    const paired = defaultChartThemeFor(this.state.uiTheme);
+    const manual = nextTheme !== paired;
+    this.setState(
+      { theme: nextTheme, chartThemeManual: manual },
+      () => {
+        this.persistPrefs({ theme: nextTheme, chartThemeManual: manual });
+        this.refreshChartOption();
+      },
+    );
+  }
+
   bindEditorChange() {
     this.contentChangeDisposable?.dispose();
     this.contentChangeDisposable =
@@ -919,17 +1136,12 @@ class App extends Component<any, AppState> {
     const root = this.galleryScrollRef.current;
     if (!root) return;
     const items = Array.from(
-      root.querySelectorAll<HTMLElement>(".chart-item.active"),
+      root.querySelectorAll<HTMLElement>(".nav-item.active"),
     );
     const view = root.getBoundingClientRect();
     const inView = items.some((item) => {
       const rect = item.getBoundingClientRect();
-      return (
-        rect.top >= view.top &&
-        rect.bottom <= view.bottom &&
-        rect.left >= view.left &&
-        rect.right <= view.right
-      );
+      return rect.top >= view.top && rect.bottom <= view.bottom;
     });
     if (!inView) {
       items[0]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -937,9 +1149,15 @@ class App extends Component<any, AppState> {
   }
 
   handleGlobalKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && this.state.galleryExpanded) {
-      this.setState({ galleryExpanded: false });
-      return;
+    if (event.key === "Escape") {
+      if (this.state.mobileNavOpen) {
+        this.setState({ mobileNavOpen: false });
+        return;
+      }
+      if (this.state.galleryExpanded) {
+        this.setState({ galleryExpanded: false });
+        return;
+      }
     }
     const mod = event.metaKey || event.ctrlKey;
     if (mod && event.key === "Enter") {
@@ -964,22 +1182,45 @@ class App extends Component<any, AppState> {
 
   handleResizeStart = (event: ReactMouseEvent) => {
     event.preventDefault();
-    this.resizing = true;
-    this.resizeStartY = event.clientY;
-    this.resizeStartHeight = this.state.editorHeight;
-    document.body.style.cursor = "ns-resize";
+    const mode = this.state.splitMode;
+    this.resizingMode = mode;
+    if (mode === "horizontal") {
+      this.resizeStartPos = event.clientX;
+      this.resizeStartValue = this.state.editorWidthPct;
+      document.body.style.cursor = "ew-resize";
+    } else {
+      this.resizeStartPos = event.clientY;
+      this.resizeStartValue = this.state.editorHeight;
+      document.body.style.cursor = "ns-resize";
+    }
     document.body.style.userSelect = "none";
   };
 
   handleResizeMove = (event: MouseEvent) => {
-    if (!this.resizing) {
+    if (!this.resizingMode) {
       return;
     }
-    const delta = this.resizeStartY - event.clientY;
+    if (this.resizingMode === "horizontal") {
+      const stageEl = this.splitStageRef.current;
+      const totalWidth = stageEl?.getBoundingClientRect().width || window.innerWidth;
+      if (totalWidth <= 0) return;
+      const deltaPct = ((event.clientX - this.resizeStartPos) / totalWidth) * 100;
+      const next = Math.min(
+        MAX_EDITOR_WIDTH_PCT,
+        Math.max(MIN_EDITOR_WIDTH_PCT, Math.round((this.resizeStartValue + deltaPct) * 10) / 10),
+      );
+      this.setState({ editorWidthPct: next, editorCollapsed: false }, () => {
+        this.state.editor?.layout();
+        this.persistPrefs({ editorWidthPct: next, editorCollapsed: false });
+      });
+      return;
+    }
+
+    const delta = this.resizeStartPos - event.clientY;
     const maxHeight = Math.floor(window.innerHeight * MAX_EDITOR_HEIGHT_RATIO);
     const next = Math.min(
       maxHeight,
-      Math.max(MIN_EDITOR_HEIGHT, this.resizeStartHeight + delta),
+      Math.max(MIN_EDITOR_HEIGHT, this.resizeStartValue + delta),
     );
     this.setState({ editorHeight: next, editorCollapsed: false }, () => {
       this.state.editor?.layout();
@@ -988,10 +1229,10 @@ class App extends Component<any, AppState> {
   };
 
   handleResizeEnd = () => {
-    if (!this.resizing) {
+    if (!this.resizingMode) {
       return;
     }
-    this.resizing = false;
+    this.resizingMode = null;
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
   };
@@ -1447,7 +1688,7 @@ class App extends Component<any, AppState> {
     }
   }
 
-  displayCategories(): DisplayCategory[] {
+  displayCategories(filterFeatured = true): DisplayCategory[] {
     const { categories, featuredIds, examplesById, lang, galleryQuery } =
       this.state;
     const regular: DisplayCategory[] = categories.map((cat) => ({
@@ -1458,6 +1699,9 @@ class App extends Component<any, AppState> {
 
     const q = galleryQuery.trim().toLowerCase();
     if (!q) {
+      if (!filterFeatured) {
+        return regular;
+      }
       const featuredItems = featuredIds
         .map((id) => examplesById[id])
         .filter((item): item is ExampleItem => Boolean(item));
@@ -1493,14 +1737,25 @@ class App extends Component<any, AppState> {
     return Object.keys(this.state.examplesById).length;
   }
 
-  filteredCount(categories: DisplayCategory[]) {
-    return categories
-      .filter((cat) => !cat.isFeatured)
-      .reduce((n, cat) => n + cat.items.length, 0);
+  selectExample(exampleId: string, closeGallery = false) {
+    this.setState(
+      (s) => ({
+        currentChartType: exampleId,
+        mobileNavOpen: false,
+        galleryExpanded: closeGallery ? false : s.galleryExpanded,
+      }),
+      () => {
+        this.changeChartOption(exampleId);
+      },
+    );
   }
 
   render(): ReactNode {
     const {
+      uiTheme,
+      splitMode,
+      editorWidthPct,
+      mobileNavOpen,
       svg,
       imageData,
       width,
@@ -1517,6 +1772,7 @@ class App extends Component<any, AppState> {
       themes,
       galleryQuery,
       galleryExpanded,
+      galleryCategory,
       editorHeight,
       editorCollapsed,
       jsonError,
@@ -1528,7 +1784,7 @@ class App extends Component<any, AppState> {
     } = this.state;
     const t = this.t;
 
-    const dark = isDarkMode();
+    const dark = uiTheme === "dark";
     const hasPreview =
       (format === "svg" && Boolean(svg)) ||
       (format !== "svg" && Boolean(imageData));
@@ -1536,11 +1792,8 @@ class App extends Component<any, AppState> {
     const currentText = current ? itemText(current, lang) : null;
     const isMermaid =
       current?.chart_type === "mermaid" || editorMode === "mermaid";
-    const categories = this.displayCategories();
+    const sidebarCategories = this.displayCategories(true);
     const totalCount = this.totalExampleCount();
-    const matchCount = this.filteredCount(categories);
-    const toolbarH = jsonError && !editorCollapsed ? 72 : 44;
-    const dockHeight = editorCollapsed ? 44 : editorHeight;
     const runShortcut = isMac() ? "⌘↵" : "Ctrl+↵";
 
     const familyOptions = fontFamilies.map((item) => ({
@@ -1560,159 +1813,232 @@ class App extends Component<any, AppState> {
         : undefined;
     const formatLabel = format.toUpperCase();
 
+    const metaParts: string[] = [formatLabel, sizeLabel];
+    if (renderMs != null && !processing) {
+      metaParts.push(`${renderMs} ms`);
+    }
+    if (outputBytes != null && !processing) {
+      metaParts.push(formatBytes(outputBytes));
+    }
+    const metaLine = metaParts.join(" · ");
+
+    const allRegularCats = this.displayCategories(false);
+    const featuredCategory = sidebarCategories.find((c) => c.isFeatured);
+    const galleryFilterTabs: Array<{ key: string; title: string; count: number }> = [
+      { key: "all", title: t("categoryAll"), count: totalCount },
+    ];
+    if (!galleryQuery.trim() && featuredCategory) {
+      galleryFilterTabs.push({
+        key: "featured",
+        title: featuredCategory.title,
+        count: featuredCategory.items.length,
+      });
+    }
+    for (const cat of this.state.categories) {
+      galleryFilterTabs.push({
+        key: cat.key,
+        title: lang === "en" ? cat.title_en : cat.title_zh,
+        count: cat.items.length,
+      });
+    }
+
+    const activeGalleryCategory = galleryFilterTabs.some(
+      (tab) => tab.key === galleryCategory,
+    )
+      ? galleryCategory
+      : "all";
+
+    let gallerySections: DisplayCategory[];
+    if (galleryQuery.trim()) {
+      gallerySections =
+        activeGalleryCategory === "all" || activeGalleryCategory === "featured"
+          ? allRegularCats
+          : allRegularCats.filter((c) => c.key === activeGalleryCategory);
+    } else if (activeGalleryCategory === "all") {
+      gallerySections = allRegularCats;
+    } else if (activeGalleryCategory === "featured") {
+      gallerySections = featuredCategory ? [featuredCategory] : [];
+    } else {
+      gallerySections = allRegularCats.filter(
+        (c) => c.key === activeGalleryCategory,
+      );
+    }
+
+    const visibleGalleryCount = gallerySections.reduce(
+      (sum, s) => sum + s.items.length,
+      0,
+    );
+
+    const WorkbenchTitleTag = galleryExpanded ? "div" : "h1";
+    const isHorizontalDesktop = splitMode === "horizontal";
+    const editorPaneStyle =
+      isHorizontalDesktop && !editorCollapsed
+        ? { flexBasis: `${editorWidthPct}%` }
+        : !isHorizontalDesktop
+          ? { height: editorCollapsed ? 40 : editorHeight }
+          : undefined;
+
     return (
       <ConfigProvider
         locale={lang === "zh" ? zhCN : enUS}
         theme={{
           algorithm: dark ? darkAlgorithm : defaultAlgorithm,
           token: {
-            borderRadius: 9,
-            colorPrimary: dark ? "#38bdf8" : "#0284c7",
+            borderRadius: 6,
+            controlHeight: 32,
+            colorPrimary: dark ? "#f4f4f5" : "#18181b",
+            colorBgContainer: dark ? "#161618" : "#ffffff",
+            colorBgElevated: dark ? "#1e1e22" : "#ffffff",
+            colorBorder: dark ? "#3f3f46" : "#cfd3d8",
+            colorText: dark ? "#f4f4f5" : "#131416",
+            colorTextSecondary: dark ? "#a1a1aa" : "#575b61",
             fontFamily:
-              '"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif',
+              '"IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          },
+          components: {
+            Button: {
+              primaryShadow: "none",
+              defaultShadow: "none",
+              dangerShadow: "none",
+              colorPrimary: dark ? "#f4f4f5" : "#18181b",
+              primaryColor: dark ? "#111113" : "#ffffff",
+            },
+            Switch: {
+              colorPrimary: "#1b6c80",
+              colorPrimaryHover: "#15596a",
+            },
           },
         }}
       >
         <div className="app-shell">
           <header className="topbar">
-            <div className="brand">
-              <div className="brand-glyph" aria-hidden="true" />
-              <div className="brand-copy">
-                <div className="brand-name">CHARTS-RS</div>
-                <div className="brand-tag">
-                  Chart Lab{version ? ` · v${version}` : ""} · {t("brandTag")}
-                </div>
-              </div>
-            </div>
+            <div className="topbar-left">
+              {!galleryExpanded && (
+                <Tooltip title={t("examplesDrawerTooltip")}>
+                  <Button
+                    type="text"
+                    size="small"
+                    className="mobile-nav-trigger"
+                    aria-label={t("examplesDrawerTooltip")}
+                    aria-expanded={mobileNavOpen}
+                    onClick={() =>
+                      this.setState({ mobileNavOpen: !mobileNavOpen })
+                    }
+                  >
+                    <SidebarToggleIcon />
+                  </Button>
+                </Tooltip>
+              )}
 
-            <div className="topbar-actions">
-              <div className="field">
-                <span className="field-label">{t("format")}</span>
-                <Select
-                  size="middle"
-                  style={{ width: 96 }}
-                  options={formatOptions}
-                  value={format}
-                  popupMatchSelectWidth={false}
-                  onChange={(nextFormat) => {
-                    this.setState({ format: nextFormat }, () => {
-                      this.persistPrefs({ format: nextFormat });
-                      void this.generateChart({ silentJsonError: true });
-                    });
-                  }}
-                />
-              </div>
-              <div className="field">
-                <span className="field-label">{t("theme")}</span>
-                <Select
-                  size="middle"
-                  style={{ width: 118 }}
-                  options={themeOptions}
-                  value={this.state.theme}
-                  popupMatchSelectWidth={false}
-                  placeholder={t("theme")}
-                  onChange={(nextTheme) => {
-                    this.setState({ theme: nextTheme }, () => {
-                      this.persistPrefs({ theme: nextTheme });
-                      this.refreshChartOption();
-                    });
-                  }}
-                />
-              </div>
-              <div className="field">
-                <span className="field-label">{t("font")}</span>
-                <Select
-                  size="middle"
-                  style={{ width: 132 }}
-                  value={this.state.fontFamily || "Roboto"}
-                  options={
-                    familyOptions.length
-                      ? familyOptions
-                      : [{ label: "Roboto", value: "Roboto" }]
-                  }
-                  popupMatchSelectWidth={false}
-                  placeholder={t("font")}
-                  onChange={(fontFamily) => {
-                    this.setState({ fontFamily }, () => {
-                      this.persistPrefs({ fontFamily });
-                      this.refreshChartOption();
-                    });
-                  }}
-                />
+              <div className="brand">
+                <BrandMark />
+                <span className="brand-name">charts-rs</span>
+                {version && (
+                  <span className="brand-version num">v{version}</span>
+                )}
               </div>
 
-              <div className="action-divider" />
-
-              <Tooltip title={`${t("runTooltip")} (${runShortcut})`}>
-                <Button
-                  type="primary"
-                  loading={processing}
+              <nav className="topbar-tabs" aria-label="Workspace mode">
+                <button
+                  type="button"
+                  className={`topbar-tab${!galleryExpanded ? " active" : ""}`}
                   onClick={() =>
-                    this.generateChart({ silentJsonError: false })
+                    this.setState({ galleryExpanded: false, mobileNavOpen: false })
                   }
                 >
-                  {t("run")}
-                  <span className="btn-kbd">{runShortcut}</span>
-                </Button>
-              </Tooltip>
-              <Tooltip title={t("copyLinkTooltip")}>
-                <Button onClick={() => this.generateAndCopy()}>
-                  {t("copyLink")}
-                </Button>
-              </Tooltip>
+                  {t("tabWorkbench")}
+                </button>
+                <button
+                  type="button"
+                  className={`topbar-tab${galleryExpanded ? " active" : ""}`}
+                  onClick={() =>
+                    this.setState({ galleryExpanded: true, mobileNavOpen: false })
+                  }
+                >
+                  <span>{t("tabGallery")}</span>
+                  {totalCount > 0 && (
+                    <span className="tab-count num">{totalCount}</span>
+                  )}
+                </button>
+              </nav>
+            </div>
+
+            <div className="topbar-right">
               <Tooltip title={t("mcpTooltip")}>
-                <Button onClick={() => this.setState({ mcpOpen: true })}>
+                <Button
+                  type="text"
+                  className="topbar-btn"
+                  onClick={() => this.setState({ mcpOpen: true })}
+                >
                   MCP
                 </Button>
               </Tooltip>
+
+              <Tooltip
+                title={t(dark ? "themeLightTooltip" : "themeDarkTooltip")}
+              >
+                <Button
+                  type="text"
+                  className="topbar-icon-btn"
+                  aria-label={t(dark ? "themeLightTooltip" : "themeDarkTooltip")}
+                  onClick={this.toggleUiTheme}
+                >
+                  <ThemeIcon uiTheme={uiTheme} />
+                </Button>
+              </Tooltip>
+
               <Tooltip title={t("switchLangTooltip")}>
                 <Button
                   type="text"
-                  className="lang-switch"
+                  className="topbar-btn num"
                   lang={lang === "zh" ? "en" : "zh-CN"}
                   onClick={() => this.setLang(lang === "zh" ? "en" : "zh")}
                 >
                   {t("switchLang")}
                 </Button>
               </Tooltip>
-              {getGithubIcon(lang)}
+
+              <GithubLink lang={lang} />
             </div>
           </header>
 
-          <div
-            className={`main-grid${galleryExpanded ? " is-gallery-expanded" : ""}`}
-          >
-            <aside className="gallery">
-              <div className="gallery-head">
-                <div className="gallery-title-row">
-                  <div className="gallery-title">{t("gallery")}</div>
-                  <div className="gallery-count">
-                    {galleryQuery
-                      ? `${matchCount}/${totalCount}`
-                      : `${totalCount}`}
-                  </div>
-                  <Tooltip
-                    title={t(
-                      galleryExpanded
-                        ? "galleryCollapseTooltip"
-                        : "galleryExpandTooltip",
-                    )}
-                  >
-                    <Button
-                      size="small"
-                      type="text"
-                      className="icon-btn gallery-toggle"
-                      aria-expanded={galleryExpanded}
-                      onClick={() =>
-                        this.setState({ galleryExpanded: !galleryExpanded })
-                      }
-                    >
-                      {t(galleryExpanded ? "galleryCollapse" : "galleryExpand")}
-                    </Button>
-                  </Tooltip>
-                </div>
+          <nav className="mobile-mode-bar" aria-label="Workspace mode">
+            <button
+              type="button"
+              className={`topbar-tab${!galleryExpanded ? " active" : ""}`}
+              onClick={() =>
+                this.setState({ galleryExpanded: false, mobileNavOpen: false })
+              }
+            >
+              {t("tabWorkbench")}
+            </button>
+            <button
+              type="button"
+              className={`topbar-tab${galleryExpanded ? " active" : ""}`}
+              onClick={() =>
+                this.setState({ galleryExpanded: true, mobileNavOpen: false })
+              }
+            >
+              <span>{t("tabGallery")}</span>
+              {totalCount > 0 && (
+                <span className="tab-count num">{totalCount}</span>
+              )}
+            </button>
+          </nav>
+
+          {/* ---------- Workbench View (kept mounted so Monaco preserves state) ---------- */}
+          <div className={`workbench-frame${galleryExpanded ? " is-hidden" : ""}`}>
+            {mobileNavOpen && (
+              <div
+                className="sidebar-backdrop"
+                onClick={() => this.setState({ mobileNavOpen: false })}
+                aria-hidden="true"
+              />
+            )}
+
+            <aside className={`sidebar${mobileNavOpen ? " is-open" : ""}`}>
+              <div className="sidebar-search">
                 <Input.Search
-                  className="gallery-search"
                   allowClear
                   placeholder={t("searchPlaceholder")}
                   value={galleryQuery}
@@ -1721,48 +2047,39 @@ class App extends Component<any, AppState> {
                   }
                 />
               </div>
-              <div className="gallery-scroll" ref={this.galleryScrollRef}>
+
+              <div className="sidebar-scroll" ref={this.galleryScrollRef}>
                 {!examplesLoaded && (
-                  <div className="gallery-empty">{t("loadingExamples")}</div>
+                  <div className="sidebar-empty">{t("loadingExamples")}</div>
                 )}
-                {examplesLoaded && categories.length === 0 && (
-                  <div className="gallery-empty">{t("galleryEmpty")}</div>
+                {examplesLoaded && sidebarCategories.length === 0 && (
+                  <div className="sidebar-empty">{t("galleryEmpty")}</div>
                 )}
-                {categories.map((cat) => (
-                  <div className="cat-block" key={cat.key}>
-                    <div className="cat-title">
-                      {cat.title}
-                      <span className="cat-count">{cat.items.length}</span>
+                {sidebarCategories.map((cat) => (
+                  <div className="nav-group" key={cat.key}>
+                    <div className="nav-group-head">
+                      <span className="nav-group-title">{cat.title}</span>
+                      <span className="nav-group-count num">
+                        {cat.items.length}
+                      </span>
                     </div>
-                    <div
-                      className={`chart-list${cat.isFeatured ? " is-featured" : ""}`}
-                    >
+                    <div className="nav-group-items">
                       {cat.items.map((item) => {
                         const active = item.id === currentChartType;
                         const text = itemText(item, lang);
                         return (
                           <button
                             type="button"
-                            key={item.id}
-                            className={`chart-item${active ? " active" : ""}`}
+                            key={`${cat.key}:${item.id}`}
+                            className={`nav-item${active ? " active" : ""}`}
                             aria-current={active ? "true" : undefined}
                             title={text.hint}
-                            onClick={() => {
-                              this.setState({
-                                currentChartType: item.id,
-                                galleryExpanded: false,
-                              });
-                              this.changeChartOption(item.id);
-                            }}
+                            onClick={() => this.selectExample(item.id, false)}
                           >
-                            <ChartThumb
-                              item={item}
-                              themeName={this.state.theme}
-                            />
-                            <span className="chart-name">{text.label}</span>
-                            {galleryExpanded && (
-                              <span className="chart-hint">{text.hint}</span>
-                            )}
+                            <span className="nav-item-icon">
+                              <ChartGlyph kind={item.glyph} size={15} />
+                            </span>
+                            <span className="nav-item-label">{text.label}</span>
                           </button>
                         );
                       })}
@@ -1772,49 +2089,265 @@ class App extends Component<any, AppState> {
               </div>
             </aside>
 
-            <div className="stage">
-              <section className="preview-pane">
-                <div className="preview-toolbar">
-                  <div className="preview-heading">
-                    <span className="preview-chart-name">
-                      {current ? (
-                        <>
-                          <span className="preview-glyph">
-                            <ChartGlyph kind={current.glyph} />
-                          </span>
-                          {currentText?.label}
-                        </>
-                      ) : (
-                        t("preview")
-                      )}
+            <main className="sheet workbench-sheet">
+              <div className="sheet-head">
+                <div className="sheet-title-group">
+                  <WorkbenchTitleTag className="sheet-title">
+                    {currentText?.label || t("preview")}
+                  </WorkbenchTitleTag>
+                  {currentText?.hint && (
+                    <span className="sheet-desc" title={currentText.hint}>
+                      {currentText.hint}
                     </span>
-                    {currentText?.hint && (
-                      <span className="preview-sub">{currentText.hint}</span>
+                  )}
+                </div>
+
+                <div className="sheet-controls">
+                  <Select
+                    style={{ width: 146 }}
+                    prefix={<span className="select-prefix">{t("theme")}</span>}
+                    options={themeOptions}
+                    value={this.state.theme}
+                    popupMatchSelectWidth={false}
+                    onChange={(nextTheme) => this.setChartTheme(nextTheme)}
+                  />
+
+                  <Select
+                    style={{ width: 154 }}
+                    prefix={<span className="select-prefix">{t("font")}</span>}
+                    value={this.state.fontFamily || "Roboto"}
+                    options={
+                      familyOptions.length
+                        ? familyOptions
+                        : [{ label: "Roboto", value: "Roboto" }]
+                    }
+                    popupMatchSelectWidth={false}
+                    onChange={(fontFamily) => {
+                      this.setState({ fontFamily }, () => {
+                        this.persistPrefs({ fontFamily });
+                        this.refreshChartOption();
+                      });
+                    }}
+                  />
+
+                  <Select
+                    style={{ width: 120 }}
+                    prefix={<span className="select-prefix">{t("format")}</span>}
+                    options={formatOptions}
+                    value={format}
+                    popupMatchSelectWidth={false}
+                    onChange={(nextFormat) => {
+                      this.setState({ format: nextFormat }, () => {
+                        this.persistPrefs({ format: nextFormat });
+                        void this.generateChart({ silentJsonError: true });
+                      });
+                    }}
+                  />
+
+                  <Tooltip
+                    title={t(
+                      splitMode === "horizontal"
+                        ? "splitVerticalTooltip"
+                        : "splitHorizontalTooltip",
                     )}
+                  >
+                    <Button
+                      className="ctrl-icon-btn split-toggle-btn"
+                      aria-label={t(
+                        splitMode === "horizontal"
+                          ? "splitVerticalTooltip"
+                          : "splitHorizontalTooltip",
+                      )}
+                      onClick={this.toggleSplitMode}
+                    >
+                      <SplitIcon splitMode={splitMode} />
+                    </Button>
+                  </Tooltip>
+
+                  <Tooltip title={t("copyLinkTooltip")}>
+                    <Button onClick={() => this.generateAndCopy()}>
+                      {t("copyLink")}
+                    </Button>
+                  </Tooltip>
+
+                  <Tooltip title={`${t("runTooltip")} (${runShortcut})`}>
+                    <Button
+                      type="primary"
+                      className="run-btn"
+                      loading={processing}
+                      onClick={() =>
+                        this.generateChart({ silentJsonError: false })
+                      }
+                    >
+                      {t("run")}
+                      <span className="btn-kbd num">{runShortcut}</span>
+                    </Button>
+                  </Tooltip>
+                </div>
+              </div>
+
+              <div
+                ref={this.splitStageRef}
+                className={`split-stage ${
+                  isHorizontalDesktop ? "is-horizontal" : "is-vertical"
+                }${editorCollapsed ? " is-editor-collapsed" : ""}`}
+              >
+                <section
+                  className={`editor-pane${editorCollapsed ? " is-collapsed" : ""}`}
+                  style={editorPaneStyle}
+                >
+                  <div className="pane-toolbar editor-toolbar">
+                    <div className="pane-title-row">
+                      <span className="pane-title">
+                        {editorMode === "mermaid"
+                          ? t("mermaidSource")
+                          : t("jsonOptions")}
+                      </span>
+                      {jsonError ? (
+                        <span className="meta-error" title={jsonError}>
+                          {t("parseError")}
+                        </span>
+                      ) : (
+                        <span className="pane-hint num">auto · 480ms</span>
+                      )}
+                    </div>
+
+                    <div className="editor-tools">
+                      {isMermaid && (
+                        <Tooltip title={t("mermaidModeTooltip")}>
+                          <div
+                            className="editor-mode-toggle"
+                            role="group"
+                            aria-label={t("mermaidModeTooltip")}
+                          >
+                            <button
+                              type="button"
+                              className={`editor-mode-btn${editorMode === "mermaid" ? " active" : ""}`}
+                              onClick={() => this.switchEditorMode("mermaid")}
+                            >
+                              {t("editorModeMermaid")}
+                            </button>
+                            <button
+                              type="button"
+                              className={`editor-mode-btn${editorMode === "json" ? " active" : ""}`}
+                              onClick={() => this.switchEditorMode("json")}
+                            >
+                              {t("editorModeJson")}
+                            </button>
+                          </div>
+                        </Tooltip>
+                      )}
+
+                      <Tooltip title={t("compactTooltip")}>
+                        <span className="switch-pair">
+                          <Switch
+                            size="small"
+                            checked={compact}
+                            onChange={(value) => this.setCompact(value)}
+                          />
+                          <span className="switch-label">{t("compactOn")}</span>
+                        </span>
+                      </Tooltip>
+
+                      {!(isMermaid && editorMode === "mermaid") && (
+                        <Tooltip title={t("simpleTooltip")}>
+                          <span className="switch-pair">
+                            <Switch
+                              size="small"
+                              checked={simply}
+                              onChange={(value) => {
+                                this.setState({ simply: value }, () => {
+                                  this.persistPrefs({ simply: value });
+                                  this.changeChartOption(currentChartType);
+                                });
+                              }}
+                            />
+                            <span className="switch-label">{t("simpleOn")}</span>
+                          </span>
+                        </Tooltip>
+                      )}
+
+                      <Button
+                        size="small"
+                        type="text"
+                        className="pane-text-btn"
+                        onClick={() => {
+                          this.setState(
+                            (s) => ({
+                              editorCollapsed: !s.editorCollapsed,
+                            }),
+                            () => {
+                              this.persistPrefs({
+                                editorCollapsed: this.state.editorCollapsed,
+                              });
+                              requestAnimationFrame(() => {
+                                this.state.editor?.layout();
+                              });
+                            },
+                          );
+                        }}
+                      >
+                        {t(editorCollapsed ? "editorExpand" : "editorCollapse")}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="preview-stats">
-                    <span className="stat-chip">{formatLabel}</span>
-                    <span className="stat-chip">{sizeLabel}</span>
-                    {renderMs != null && !processing && (
-                      <span className="stat-chip" title={t("renderTimeTitle")}>
-                        {renderMs}ms
-                      </span>
-                    )}
-                    {outputBytes != null && !processing && (
-                      <span className="stat-chip" title={t("outputSizeTitle")}>
-                        {formatBytes(outputBytes)}
-                      </span>
-                    )}
-                    {processing ? (
-                      <span className="stat-chip busy">{t("rendering")}</span>
-                    ) : hasPreview ? (
-                      <span className="stat-chip live">{t("ready")}</span>
-                    ) : null}
-                    {jsonError ? (
-                      <span className="stat-chip danger" title={jsonError}>
-                        {t("jsonError")}
-                      </span>
-                    ) : null}
+
+                  {jsonError && !editorCollapsed && (
+                    <div className="editor-error" title={jsonError}>
+                      <span className="editor-error-label">JSON</span>
+                      {jsonError}
+                    </div>
+                  )}
+
+                  <div
+                    className="editor-body"
+                    ref={this.editorDom}
+                    style={{
+                      display: editorCollapsed ? "none" : "block",
+                    }}
+                  />
+                </section>
+
+                {!editorCollapsed && (
+                  <div
+                    className={`split-handle ${
+                      isHorizontalDesktop ? "is-horizontal" : "is-vertical"
+                    }`}
+                    onMouseDown={this.handleResizeStart}
+                    title={t("resizeEditor")}
+                    role="separator"
+                    aria-orientation={
+                      isHorizontalDesktop ? "vertical" : "horizontal"
+                    }
+                  />
+                )}
+
+                <section className="preview-pane">
+                  <div className="pane-toolbar preview-toolbar">
+                    <div className="preview-meta num">
+                      <span
+                        className={`status-dot${
+                          jsonError
+                            ? " is-error"
+                            : processing
+                              ? " is-busy"
+                              : hasPreview
+                                ? " is-ready"
+                                : ""
+                        }`}
+                        aria-hidden="true"
+                      />
+                      <span className="meta-text">{metaLine}</span>
+                      {processing && (
+                        <span className="meta-state">{t("rendering")}</span>
+                      )}
+                      {jsonError && (
+                        <span className="meta-error" title={jsonError}>
+                          {t("jsonError")}
+                        </span>
+                      )}
+                    </div>
+
                     <div className="preview-actions">
                       <Tooltip
                         title={t(previewFit ? "actualSizeTooltip" : "fitTooltip")}
@@ -1822,7 +2355,7 @@ class App extends Component<any, AppState> {
                         <Button
                           size="small"
                           type="text"
-                          className="icon-btn"
+                          className="pane-text-btn num"
                           disabled={!hasPreview}
                           onClick={() => {
                             const next = !previewFit;
@@ -1833,6 +2366,7 @@ class App extends Component<any, AppState> {
                           {previewFit ? t("fit") : "1:1"}
                         </Button>
                       </Tooltip>
+
                       <Tooltip
                         title={
                           format === "svg"
@@ -1843,18 +2377,19 @@ class App extends Component<any, AppState> {
                         <Button
                           size="small"
                           type="text"
-                          className="icon-btn"
+                          className="pane-text-btn"
                           disabled={!hasPreview}
                           onClick={() => this.copyChartOutput()}
                         >
                           {t("copy")}
                         </Button>
                       </Tooltip>
+
                       <Tooltip title={t("downloadTooltip")}>
                         <Button
                           size="small"
                           type="text"
-                          className="icon-btn"
+                          className="pane-text-btn"
                           disabled={!hasPreview}
                           onClick={() => this.downloadChart()}
                         >
@@ -1863,185 +2398,179 @@ class App extends Component<any, AppState> {
                       </Tooltip>
                     </div>
                   </div>
-                </div>
 
-                <div
-                  className={`preview-viewport${previewFit ? " is-fit" : " is-actual"}`}
-                >
-                  {processing && (
-                    <div className="preview-loading">
-                      <Spin description={t("generating")} size="large">
-                        <div style={{ width: 120, height: 72 }} />
-                      </Spin>
-                    </div>
-                  )}
-
-                  {!hasPreview && !processing && (
-                    <div className="preview-empty">
-                      <div className="empty-orb" aria-hidden="true">
-                        <ChartGlyph kind="multi" />
+                  <div
+                    className={`preview-viewport${previewFit ? " is-fit" : " is-actual"}`}
+                  >
+                    {processing && (
+                      <div className="preview-loading">
+                        <Spin description={t("generating")} />
                       </div>
-                      <div className="empty-title">{t("emptyTitle")}</div>
-                      <div className="empty-desc">
-                        {lang === "zh" ? (
-                          <>
-                            从图库挑选图表类型，或直接编辑下方配置。修改后约
-                            0.5s 自动渲染，也可按{" "}
-                            <kbd className="kbd">{runShortcut}</kbd> 手动运行。
-                          </>
+                    )}
+
+                    {!hasPreview && !processing && (
+                      <div className="preview-empty">
+                        <div className="empty-title">{t("emptyTitle")}</div>
+                        <div className="empty-desc">
+                          {lang === "zh" ? (
+                            <>
+                              从左侧目录挑选图表类型，或直接编辑左侧配置。修改后约
+                              0.5s 自动渲染，也可按{" "}
+                              <kbd className="kbd num">{runShortcut}</kbd>{" "}
+                              手动运行。
+                            </>
+                          ) : (
+                            <>
+                              Pick an example from the sidebar, or edit the options.
+                              Changes render after 0.5s, or press{" "}
+                              <kbd className="kbd num">{runShortcut}</kbd>.
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {hasPreview && (
+                      <div
+                        className="preview-canvas"
+                        style={fitWidth ? { width: fitWidth } : undefined}
+                      >
+                        {format === "svg" ? (
+                          <div
+                            key={this.state.lastOkAt}
+                            dangerouslySetInnerHTML={{ __html: svg }}
+                          />
                         ) : (
-                          <>
-                            Pick a chart from the gallery, or edit the options
-                            below. It renders about 0.5s after a change, or
-                            press <kbd className="kbd">{runShortcut}</kbd> to
-                            run it yourself.
-                          </>
+                          <img
+                            src={imageData}
+                            alt={currentText?.label || t("preview")}
+                          />
                         )}
                       </div>
-                    </div>
-                  )}
-
-                  {hasPreview && (
-                    <div
-                      className="preview-canvas"
-                      style={fitWidth ? { width: fitWidth } : undefined}
-                    >
-                      {format === "svg" ? (
-                        <div
-                          key={this.state.lastOkAt}
-                          dangerouslySetInnerHTML={{ __html: svg }}
-                        />
-                      ) : (
-                        <img
-                          src={imageData}
-                          alt={currentText?.label || t("preview")}
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              <section className="editor-dock" style={{ height: dockHeight }}>
-                {!editorCollapsed && (
-                  <div
-                    className="resize-handle"
-                    onMouseDown={this.handleResizeStart}
-                    title={t("resizeEditor")}
-                  />
-                )}
-                <div className="editor-toolbar">
-                  <div className="editor-title-row">
-                    <span className="editor-title">
-                      {editorMode === "mermaid"
-                        ? t("mermaidSource")
-                        : t("jsonOptions")}
-                    </span>
-                    {jsonError ? (
-                      <span className="stat-chip danger" title={jsonError}>
-                        {t("parseError")}
-                      </span>
-                    ) : (
-                      <span className="stat-chip subtle editor-hint">
-                        auto-run · 480ms
-                      </span>
                     )}
                   </div>
-                  <div className="editor-tools">
-                    {isMermaid && (
-                      <Tooltip title={t("mermaidModeTooltip")}>
-                        <div
-                          className="editor-mode-toggle"
-                          role="group"
-                          aria-label={t("mermaidModeTooltip")}
-                        >
-                          <button
-                            type="button"
-                            className={`editor-mode-btn${editorMode === "mermaid" ? " active" : ""}`}
-                            onClick={() => this.switchEditorMode("mermaid")}
-                          >
-                            {t("editorModeMermaid")}
-                          </button>
-                          <button
-                            type="button"
-                            className={`editor-mode-btn${editorMode === "json" ? " active" : ""}`}
-                            onClick={() => this.switchEditorMode("json")}
-                          >
-                            {t("editorModeJson")}
-                          </button>
-                        </div>
-                      </Tooltip>
-                    )}
-                    <Tooltip title={t("compactTooltip")}>
-                      <Switch
-                        size="small"
-                        checkedChildren={t("compactOn")}
-                        unCheckedChildren={t("compactOff")}
-                        checked={compact}
-                        onChange={(value) => this.setCompact(value)}
-                      />
-                    </Tooltip>
-                    {!(isMermaid && editorMode === "mermaid") && (
-                      <Tooltip title={t("simpleTooltip")}>
-                        <Switch
-                          size="small"
-                          checkedChildren={t("simpleOn")}
-                          unCheckedChildren={t("simpleOff")}
-                          checked={simply}
-                          onChange={(value) => {
-                            this.setState({ simply: value }, () => {
-                              this.persistPrefs({ simply: value });
-                              this.changeChartOption(currentChartType);
-                            });
-                          }}
-                        />
-                      </Tooltip>
-                    )}
+                </section>
+              </div>
+            </main>
+          </div>
+
+          {/* ---------- Fullscreen Gallery View ---------- */}
+          {galleryExpanded && (
+            <div className="gallery-frame">
+              <main className="sheet gallery-sheet">
+                <div className="gallery-sheet-head">
+                  <div className="sheet-title-group">
+                    <h1 className="sheet-title">{t("galleryHeading")}</h1>
+                    <span className="sheet-desc">{t("galleryLead")}</span>
+                  </div>
+
+                  <div className="gallery-sheet-controls">
+                    <Input.Search
+                      className="gallery-search-input"
+                      allowClear
+                      placeholder={t("searchPlaceholder")}
+                      value={galleryQuery}
+                      onChange={(e) =>
+                        this.setState({ galleryQuery: e.target.value })
+                      }
+                    />
+
+                    <Select
+                      style={{ width: 146 }}
+                      prefix={<span className="select-prefix">{t("theme")}</span>}
+                      options={themeOptions}
+                      value={this.state.theme}
+                      popupMatchSelectWidth={false}
+                      onChange={(nextTheme) => this.setChartTheme(nextTheme)}
+                    />
+
                     <Button
-                      size="small"
-                      type="text"
-                      className="icon-btn"
-                      onClick={() => {
-                        this.setState(
-                          (s) => ({
-                            editorCollapsed: !s.editorCollapsed,
-                          }),
-                          () => {
-                            this.persistPrefs({
-                              editorCollapsed: this.state.editorCollapsed,
-                            });
-                            requestAnimationFrame(() => {
-                              this.state.editor?.layout();
-                            });
-                          },
-                        );
-                      }}
+                      onClick={() => this.setState({ galleryExpanded: false })}
                     >
-                      {t(editorCollapsed ? "editorExpand" : "editorCollapse")}
+                      {t("backToWorkbench")}
                     </Button>
                   </div>
                 </div>
-                {jsonError && !editorCollapsed && (
-                  <div className="editor-error" title={jsonError}>
-                    <span className="editor-error-label">JSON</span>
-                    {jsonError}
+
+                <div className="gallery-cat-bar">
+                  <div className="gallery-cat-tabs" role="tablist">
+                    {galleryFilterTabs.map((tab) => {
+                      const active = tab.key === activeGalleryCategory;
+                      return (
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          key={tab.key}
+                          className={`gallery-cat-tab${active ? " active" : ""}`}
+                          onClick={() => {
+                            this.setState({ galleryCategory: tab.key });
+                            this.persistPrefs({ galleryCategory: tab.key });
+                          }}
+                        >
+                          <span>{tab.title}</span>
+                          <span className="tab-count num">{tab.count}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-                <div
-                  className="editor-body"
-                  ref={this.editorDom}
-                  style={{
-                    height: editorCollapsed
-                      ? 0
-                      : Math.max(0, editorHeight - toolbarH),
-                    overflow: "hidden",
-                    opacity: editorCollapsed ? 0 : 1,
-                    pointerEvents: editorCollapsed ? "none" : "auto",
-                  }}
-                />
-              </section>
+                  <span className="gallery-visible-count num">
+                    {visibleGalleryCount}/{totalCount}
+                  </span>
+                </div>
+
+                <div className="gallery-grid-scroll">
+                  {!examplesLoaded && (
+                    <div className="gallery-empty-state">
+                      {t("loadingExamples")}
+                    </div>
+                  )}
+                  {examplesLoaded && gallerySections.length === 0 && (
+                    <div className="gallery-empty-state">{t("galleryEmpty")}</div>
+                  )}
+                  {gallerySections.map((section) => (
+                    <section className="gallery-section" key={section.key}>
+                      <div className="gallery-section-head">
+                        <h2 className="gallery-section-title">{section.title}</h2>
+                        <span className="gallery-section-count num">
+                          {section.items.length}
+                        </span>
+                      </div>
+                      <div className="gallery-grid">
+                        {section.items.map((item) => {
+                          const active = item.id === currentChartType;
+                          const text = itemText(item, lang);
+                          return (
+                            <button
+                              type="button"
+                              key={`${section.key}:${item.id}`}
+                              className={`gallery-card${active ? " active" : ""}`}
+                              aria-current={active ? "true" : undefined}
+                              onClick={() => this.selectExample(item.id, true)}
+                            >
+                              <ChartThumb
+                                item={item}
+                                themeName={this.state.theme}
+                              />
+                              <div className="gallery-card-meta">
+                                <span className="gallery-card-title">
+                                  {text.label}
+                                </span>
+                                <span className="gallery-card-hint">
+                                  {text.hint}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              </main>
             </div>
-          </div>
+          )}
+
           {this.renderMcpGuide()}
         </div>
       </ConfigProvider>

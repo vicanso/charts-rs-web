@@ -1,30 +1,41 @@
 :root {
   /* Typography */
-  --font-display: "Sora", "Segoe UI", system-ui, sans-serif;
-  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Light — cool instrument panel */
-  --bg: #eef2f7;
-  --surface: #f7f9fc;
-  --elevated: #ffffff;
-  --text: #0f172a;
-  --muted: #64748b;
-  --border: #d8e0ea;
-  --border-strong: #b7c3d4;
-  --hover: rgba(15, 23, 42, 0.05);
-  --accent: #0284c7;
-  --accent-2: #0ea5e9;
-  --accent-ink: #0369a1;
-  --glow-a: rgba(14, 165, 233, 0.16);
-  --glow-b: rgba(16, 185, 129, 0.1);
-  --preview-base: #e4ebf4;
-  --grid-line: rgba(100, 116, 139, 0.12);
+  /* Light — Framed sheet (neutral L-frame + crisp white workspace sheet) */
+  --ground: #f5f6f8;
+  --surface: #ffffff;
+  --raised: #f4f6f8;
+  --active: #e8ebee;
+  --hover: rgba(19, 20, 22, 0.045);
+  --border: #e6e8eb;
+  --rule: #eff1f3;
+  --control: #cfd3d8;
+  --text: #131416;
+  --muted: #575b61;
+  --faint: #666a70;
+  --primary: #18181b;
+  --primary-ink: #ffffff;
+  --accent: #1b6c80;
+  --positive: #1e7b4f;
+  --negative: #c4242a;
+  --pill-negative-bg: #ffedea;
+  --pill-negative-ink: #831c1e;
   --canvas-bg: #ffffff;
 
-  color-scheme: light dark;
+  /* Framed-sheet geometry tokens */
+  --radius-sheet: 14px;
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --topbar-height: 48px;
+  --sidebar-width: 228px;
+  --sheet-inset: 8px;
+
+  color-scheme: light;
   font-family: var(--font-body);
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.45;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -33,25 +44,28 @@
   -webkit-text-size-adjust: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #070b14;
-    --surface: #0d1422;
-    --elevated: #121a2b;
-    --text: #e8eef9;
-    --muted: #8b9bb8;
-    --border: #1c2740;
-    --border-strong: #2a3a58;
-    --hover: rgba(232, 238, 249, 0.06);
-    --accent: #38bdf8;
-    --accent-2: #22d3ee;
-    --accent-ink: #7dd3fc;
-    --glow-a: rgba(56, 189, 248, 0.14);
-    --glow-b: rgba(52, 211, 153, 0.08);
-    --preview-base: #0a101c;
-    --grid-line: rgba(148, 163, 184, 0.07);
-    --canvas-bg: #0f172a;
-  }
+:root[data-theme="dark"] {
+  --ground: #0e0e10;
+  --surface: #161618;
+  --raised: #111113;
+  --active: #26262a;
+  --hover: rgba(244, 244, 245, 0.06);
+  --border: #27272a;
+  --rule: #222226;
+  --control: #3f3f46;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --faint: #94949c;
+  --primary: #f4f4f5;
+  --primary-ink: #111113;
+  --accent: #4eb8cf;
+  --positive: #3fc07a;
+  --negative: #e5566f;
+  --pill-negative-bg: #2c1a20;
+  --pill-negative-ink: #f38ba0;
+  --canvas-bg: #111113;
+
+  color-scheme: dark;
 }
 
 *,
@@ -70,7 +84,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--bg);
+  background: var(--ground);
   color: var(--text);
 }
 
@@ -97,9 +111,13 @@ a {
 }
 
 a:hover {
-  color: var(--accent-2);
+  color: var(--text);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
 }
