@@ -198,7 +198,6 @@
       "background_color": "#fff",
       "child_charts": [
         {
-          "quality": 80,
           "width": 400,
           "height": 300,
           "margin": {
@@ -290,7 +289,6 @@
           ]
         },
         {
-          "quality": 80,
           "width": 400,
           "height": 300,
           "margin": {
@@ -384,7 +382,6 @@
           ]
         },
         {
-          "quality": 80,
           "width": 400,
           "height": 300,
           "margin": {
@@ -569,7 +566,6 @@
           ]
         },
         {
-          "quality": 80,
           "width": 400,
           "height": 300,
           "margin": {

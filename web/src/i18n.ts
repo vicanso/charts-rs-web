@@ -13,6 +13,8 @@ const zh = {
   tabWorkbench: "工作台",
   tabGallery: "图库",
   format: "格式",
+  scale: "倍图",
+  scaleTooltip: "位图渲染倍率（2× / 3× 适配高分屏）",
   theme: "主题",
   font: "字体",
   run: "运行",
@@ -97,11 +99,11 @@ const zh = {
   mcpToolValidate:
     "校验图表 JSON 与 RenderLimits，一次返回最多 50 条结构化错误及字体提示。",
   mcpToolRender:
-    "按 chart_type、options、format（默认 png）渲染图表，支持图片或 SVG。",
+    "按 chart_type、options、format（默认 png）与 scale（1–4，默认 2x）渲染图表，支持图片或 SVG。",
   mcpToolValidateMermaid:
     "校验 Mermaid 源码语法与语义，返回带行号的定位提示。",
   mcpToolRenderMermaid:
-    "直接从 Mermaid 源码渲染图表（allow_links 默认关闭以保障安全）。",
+    "直接从 Mermaid 源码渲染图表（位图默认 2x，allow_links 默认关闭以保障安全）。",
   mcpResources: "资源（Resources）",
   mcpResourcesDesc:
     "提供 charts://themes、charts://fonts、charts://maps、charts://mermaid/capabilities、charts://llms.txt、charts://llms-full.txt、charts://examples/{type} 与 charts://examples/mermaid/{diagram}（HTTP 侧亦提供 /llms.txt 与 /llms-full.txt）。",
@@ -119,6 +121,8 @@ const en: Record<MessageKey, string> = {
   tabWorkbench: "Workbench",
   tabGallery: "Gallery",
   format: "Format",
+  scale: "Scale",
+  scaleTooltip: "Raster pixel scale (2× / 3× for HiDPI displays)",
   theme: "Theme",
   font: "Font",
   run: "Run",
@@ -205,11 +209,11 @@ const en: Record<MessageKey, string> = {
   mcpToolValidate:
     "Validates JSON options and RenderLimits, returning up to 50 structured issues and CJK/font warnings.",
   mcpToolRender:
-    "Renders a chart from chart_type, options, and format (png by default; jpeg, webp, svg).",
+    "Renders a chart from chart_type, options, format (png by default; jpeg, webp, svg), and scale (1–4, default 2x).",
   mcpToolValidateMermaid:
     "Validates Mermaid syntax & semantics with 1-based line numbers and typo suggestions.",
   mcpToolRenderMermaid:
-    "Renders Mermaid source directly (allow_links defaults to false for untrusted input safety).",
+    "Renders Mermaid source directly (raster scale defaults to 2x; allow_links defaults to false for safety).",
   mcpResources: "Resources",
   mcpResourcesDesc:
     "Exposes charts://themes, charts://fonts, charts://maps, charts://mermaid/capabilities, charts://llms.txt, charts://llms-full.txt, charts://examples/{type}, and charts://examples/mermaid/{diagram} (also served via HTTP at /llms.txt and /llms-full.txt).",

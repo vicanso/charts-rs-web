@@ -714,8 +714,14 @@
   max-width: none;
 }
 
-.preview-viewport.is-actual .preview-canvas svg,
 .preview-viewport.is-actual .preview-canvas img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+}
+
+.preview-viewport.is-actual .preview-canvas svg {
   display: block;
   max-width: none;
   height: auto;
@@ -1214,7 +1220,7 @@ kbd.kbd {
     width: 100% !important;
   }
 
-  .sheet-controls .run-btn {
+  .sheet-controls:not(.has-scale) .run-btn {
     grid-column: 1 / -1;
   }
 

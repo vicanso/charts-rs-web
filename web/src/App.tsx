@@ -565,6 +565,7 @@ type LabPrefs = {
   editorHeight?: number;
   editorCollapsed?: boolean;
   format?: string;
+  scale?: number;
   theme?: string;
   fontFamily?: string;
   currentChartType?: string;
@@ -604,9 +605,42 @@ const formatOptions = [
   { value: "jpeg", label: "Jpeg" },
 ];
 
+const scaleOptions = [
+  { value: 1, label: "1x" },
+  { value: 2, label: "2x" },
+  { value: 3, label: "3x" },
+];
+
+function normalizeScale(raw: unknown): number {
+  return raw === 1 || raw === 2 || raw === 3 ? raw : 2;
+}
+
+function parseSvgSize(svg: string): { width: number; height: number } {
+  const openTag = svg.match(/<svg\b[^>]*>/i)?.[0];
+  if (!openTag) {
+    return { width: 0, height: 0 };
+  }
+  const wMatch = openTag.match(/\bwidth=["']\s*([0-9.]+)(?:px)?\s*["']/i);
+  const hMatch = openTag.match(/\bheight=["']\s*([0-9.]+)(?:px)?\s*["']/i);
+  if (wMatch && hMatch) {
+    const w = Math.round(Number(wMatch[1]));
+    const h = Math.round(Number(hMatch[1]));
+    if (w > 0 && h > 0) {
+      return { width: w, height: h };
+    }
+  }
+  const vbMatch = openTag.match(/\bviewBox=["']\s*([^"']+)\s*["']/i);
+  if (vbMatch) {
+    const parts = vbMatch[1].trim().split(/[\s,]+/).map(Number);
+    if (parts.length >= 4 && parts[2] > 0 && parts[3] > 0) {
+      return { width: Math.round(parts[2]), height: Math.round(parts[3]) };
+    }
+  }
+  return { width: 0, height: 0 };
+}
+
 // Full-mode base option defaults for standard charts (table, multi and mermaid omit base axis/legend defaults).
 const defaultOption: Record<string, unknown> = {
-  quality: 80,
   width: 600,
   height: 400,
   margin: { left: 5, top: 5, right: 5, bottom: 5 },
@@ -653,6 +687,8 @@ interface AppState {
   version: string;
   theme: string;
   format: string;
+  scale: number;
+  renderedScale: number;
   svg: string;
   imageData: string;
   fontFamilies: string[];
@@ -660,6 +696,8 @@ interface AppState {
   fontFamily: string;
   width: number;
   height: number;
+  pixelWidth: number;
+  pixelHeight: number;
   editor: editor.IStandaloneCodeEditor | null;
   processing: boolean;
   simply: boolean;
@@ -903,12 +941,16 @@ class App extends Component<any, AppState> {
       version: "",
       theme: chartTheme,
       format: prefs.format || formatOptions[0].value,
+      scale: normalizeScale(prefs.scale),
+      renderedScale: normalizeScale(prefs.scale),
       fontFamilies: [],
       fontFamily: prefs.fontFamily || "",
       themes: [],
       editor: null,
       width: 0,
       height: 0,
+      pixelWidth: 0,
+      pixelHeight: 0,
       svg: "",
       imageData: "",
       processing: false,
@@ -1448,9 +1490,10 @@ class App extends Component<any, AppState> {
     if (!value) {
       return;
     }
-    const { format } = this.state;
+    const { format, scale } = this.state;
     try {
-      const url = `${window.location.origin}${window.location.pathname}api/charts?format=${format}&opts=${encodeURIComponent(JSON.stringify(value))}`;
+      const scaleParam = format !== "svg" ? `&scale=${scale}` : "";
+      const url = `${window.location.origin}${window.location.pathname}api/charts?format=${format}${scaleParam}&opts=${encodeURIComponent(JSON.stringify(value))}`;
       await navigator.clipboard.writeText(url);
       message.success(this.t("linkCopied"));
     } catch (err: any) {
@@ -1581,8 +1624,12 @@ class App extends Component<any, AppState> {
   }
 
   downloadChart() {
-    const { format, svg, imageData, currentChartType } = this.state;
-    const name = `${currentChartType || "chart"}.${format === "jpeg" ? "jpg" : format}`;
+    const { format, svg, imageData, currentChartType, renderedScale } =
+      this.state;
+    const ext = format === "jpeg" ? "jpg" : format;
+    const scaleSuffix =
+      format !== "svg" && renderedScale > 1 ? `@${renderedScale}x` : "";
+    const name = `${currentChartType || "chart"}${scaleSuffix}.${ext}`;
     if (format === "svg") {
       if (!svg) {
         message.warning(this.t("noSvgToDownload"));
@@ -1615,10 +1662,11 @@ class App extends Component<any, AppState> {
     }
     const requestId = ++this.chartRequestId;
     let isSvg = true;
-    const { format } = this.state;
+    const { format, scale } = this.state;
+    const requestScale = format === "svg" ? 1 : scale;
     let url = "./api/charts/svg";
     if (format != "svg") {
-      url = `./api/charts/${format}`;
+      url = `./api/charts/${format}?scale=${requestScale}`;
       isSvg = false;
     }
     const started = performance.now();
@@ -1635,8 +1683,19 @@ class App extends Component<any, AppState> {
       }
       let svg = "";
       let imageData = "";
+      let w = Number(value.width) || 0;
+      let h = Number(value.height) || 0;
+      let pixelWidth = 0;
+      let pixelHeight = 0;
       if (isSvg) {
         svg = data;
+        if (w <= 0 || h <= 0) {
+          const parsedSize = parseSvgSize(svg);
+          if (w <= 0) w = parsedSize.width;
+          if (h <= 0) h = parsedSize.height;
+        }
+        pixelWidth = w;
+        pixelHeight = h;
       } else {
         const base64 = btoa(
           new Uint8Array(data).reduce(
@@ -1645,6 +1704,10 @@ class App extends Component<any, AppState> {
           ),
         );
         imageData = `data:image/${format};base64,${base64}`;
+        if (w > 0 && h > 0) {
+          pixelWidth = Math.round(w * requestScale);
+          pixelHeight = Math.round(h * requestScale);
+        }
       }
       const renderMs = Math.round(performance.now() - started);
       const outputBytes = isSvg
@@ -1653,8 +1716,11 @@ class App extends Component<any, AppState> {
       this.setState({
         svg,
         imageData,
-        width: Number(value.width) || 0,
-        height: Number(value.height) || 0,
+        width: w,
+        height: h,
+        pixelWidth,
+        pixelHeight,
+        renderedScale: requestScale,
         renderMs,
         outputBytes,
         lastOkAt: Date.now(),
@@ -1760,7 +1826,11 @@ class App extends Component<any, AppState> {
       imageData,
       width,
       height,
+      pixelWidth,
+      pixelHeight,
       format,
+      scale,
+      renderedScale,
       processing,
       fontFamilies,
       version,
@@ -1805,13 +1875,34 @@ class App extends Component<any, AppState> {
       value: item,
     }));
 
+    const isRaster = format !== "svg";
+    const logicalWidth =
+      width > 0
+        ? width
+        : pixelWidth > 0
+          ? Math.round(pixelWidth / (isRaster ? renderedScale : 1))
+          : 0;
+    const logicalHeight =
+      height > 0
+        ? height
+        : pixelHeight > 0
+          ? Math.round(pixelHeight / (isRaster ? renderedScale : 1))
+          : 0;
     const sizeLabel =
-      width > 0 && height > 0 ? `${width}×${height}` : "auto";
+      isRaster && pixelWidth > 0 && pixelHeight > 0
+        ? `${pixelWidth}×${pixelHeight}`
+        : logicalWidth > 0 && logicalHeight > 0
+          ? `${logicalWidth}×${logicalHeight}`
+          : "auto";
     const fitWidth =
-      previewFit && width > 0 && height > 0
-        ? `min(${width * (format === "svg" ? 2 : 1)}px, 100cqw, 100cqh * ${(width / height).toFixed(4)})`
-        : undefined;
-    const formatLabel = format.toUpperCase();
+      previewFit && logicalWidth > 0 && logicalHeight > 0
+        ? `min(${logicalWidth * (isRaster ? 1 : 2)}px, 100cqw, 100cqh * ${(logicalWidth / logicalHeight).toFixed(4)})`
+        : !previewFit && isRaster && logicalWidth > 0
+          ? `${logicalWidth}px`
+          : undefined;
+    const formatLabel = isRaster
+      ? `${format.toUpperCase()} ${renderedScale}×`
+      : format.toUpperCase();
 
     const metaParts: string[] = [formatLabel, sizeLabel];
     if (renderMs != null && !processing) {
@@ -2102,7 +2193,9 @@ class App extends Component<any, AppState> {
                   )}
                 </div>
 
-                <div className="sheet-controls">
+                <div
+                  className={`sheet-controls${isRaster ? " has-scale" : ""}`}
+                >
                   <Select
                     style={{ width: 146 }}
                     prefix={<span className="select-prefix">{t("theme")}</span>}
@@ -2143,6 +2236,27 @@ class App extends Component<any, AppState> {
                       });
                     }}
                   />
+
+                  {isRaster && (
+                    <Tooltip title={t("scaleTooltip")}>
+                      <Select
+                        style={{ width: 106 }}
+                        prefix={
+                          <span className="select-prefix">{t("scale")}</span>
+                        }
+                        options={scaleOptions}
+                        value={scale}
+                        popupMatchSelectWidth={false}
+                        onChange={(nextScale) => {
+                          const normalized = normalizeScale(nextScale);
+                          this.setState({ scale: normalized }, () => {
+                            this.persistPrefs({ scale: normalized });
+                            void this.generateChart({ silentJsonError: true });
+                          });
+                        }}
+                      />
+                    </Tooltip>
+                  )}
 
                   <Tooltip
                     title={t(
@@ -2444,6 +2558,26 @@ class App extends Component<any, AppState> {
                           <img
                             src={imageData}
                             alt={currentText?.label || t("preview")}
+                            onLoad={(e) => {
+                              const img = e.currentTarget;
+                              if (
+                                img.naturalWidth > 0 &&
+                                img.naturalHeight > 0 &&
+                                (img.naturalWidth !== pixelWidth ||
+                                  img.naturalHeight !== pixelHeight)
+                              ) {
+                                this.setState({
+                                  pixelWidth: img.naturalWidth,
+                                  pixelHeight: img.naturalHeight,
+                                  width: Math.round(
+                                    img.naturalWidth / renderedScale,
+                                  ),
+                                  height: Math.round(
+                                    img.naturalHeight / renderedScale,
+                                  ),
+                                });
+                              }
+                            }}
                           />
                         )}
                       </div>

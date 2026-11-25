@@ -11,11 +11,11 @@
 - `GET /api/basic-info`: 返回应用信息：版本、字体、主题、已注册地图与支持图表类型。默认支持两种字体`Noto Sans SC`与`Roboto`
 - `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 14 个 Mermaid 示例，覆盖全部 13 种规范图）
 - `GET /llms.txt` / `GET /llms-full.txt`: 随构建的 `charts-rs` 版本与服务端实时状态（字体、主题、地图、`RenderLimits`）自动生成服务说明与完整 JSON/Mermaid 参考文档
-- `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`）
-- `POST /api/charts/png`: 生成Png图表
-- `POST /api/charts/jpeg`: 生成Jpeg图表
-- `POST /api/charts/webp`: 生成Webp图表
-- `POST /api/charts/avif`: 生成Avif图表（注意生成avif需要时间较长）
+- `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>&scale=<1..4>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`，位图 `scale` 默认 `1`）
+- `POST /api/charts/png`: 生成Png图表（支持 `?scale=<1..4>` 或 JSON `"scale"`，Query 优先，默认 `1`）
+- `POST /api/charts/jpeg`: 生成Jpeg图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
+- `POST /api/charts/webp`: 生成Webp图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
+- `POST /api/charts/avif`: 生成Avif图表（支持 `?scale=<1..4>` 或 JSON `"scale"`，注意生成avif需要时间较长）
 - `POST /api/charts/svg`: 生成Svg图表
 
 ## MCP
@@ -25,9 +25,9 @@
 - `list_chart_types`: 返回所有图表类型目录、选图/变体指南、可用主题、已加载字体（含 CJK 提示）、已注册 GeoJSON 地图、Mermaid 能力及 `RenderLimits`
 - `get_chart_schema`: 返回指定图表类型的 Draft 2020-12 JSON Schema（`essential`/`full`）、实时主题/字体/地图枚举及验证过的示例（`mermaid` 会附带全部 13 种图示例及已知限制）
 - `validate_chart`: 按 Schema、`RenderLimits` 与 Mermaid 语法预校验 JSON 参数，一次返回最多 50 条结构化 `ValidationIssue` 及非阻塞字体/CJK 提示
-- `render_chart`: 预校验并渲染图表（`format` 可选 `png`（默认）、`jpeg`、`webp`、`svg`），`mermaid` 默认 `allow_links: false`
+- `render_chart`: 预校验并渲染图表（`format` 可选 `png`（默认）、`jpeg`、`webp`、`svg`，可选 `scale` 1.0–4.0 默认 `2`），`mermaid` 默认 `allow_links: false`
 - `validate_mermaid`: 直接校验 Mermaid 源码语法与语义（带 1-based 行号与修正建议）
-- `render_mermaid`: 直接从 Mermaid 源码渲染图表（`allow_links` 默认 `false`）
+- `render_mermaid`: 直接从 Mermaid 源码渲染图表（可选 `scale` 默认 `2`，`allow_links` 默认 `false`）
 - **Resources**: `charts://themes`、`charts://fonts`、`charts://maps`、`charts://mermaid/capabilities`、`charts://llms.txt`、`charts://llms-full.txt`、`charts://examples/{type}`、`charts://examples/mermaid/{diagram}`（即使客户端不读取 Resources，`list_chart_types` 与 `get_chart_schema` 也会在工具响应中内嵌完整运行时信息）
 
 客户端配置地址为`http://127.0.0.1:5000/mcp`即可，以 Claude Code 为例：
@@ -47,7 +47,8 @@ claude mcp add --transport http charts http://127.0.0.1:5000/mcp
 ### 公共参数
 
 - `type`: 图表类型，默认为`bar`，可选的值见[图表类型](#图表类型)
-- `quality`: 输出的 PNG 质量，默认为`80`，范围`0`–`100`。`0`表示不减色，沿用渲染器的快速压缩。`1`–`100`用 NeuQuant 减色后再做 deflate：数值越大，调色板颜色越多（64–256），deflate 等级也越高（1–9）。默认`80`约为 217 色、deflate 7
+- `scale`: 位图缩放倍率，支持 `1`–`4`（含小数如 `1.5`），仅作用于 `png`、`jpeg`、`webp`、`avif`（`svg` 会忽略）。HTTP API 默认为 `1`，MCP 与 Web 工作台默认 `2`（高分屏 2x 输出）；支持通过 Query `?scale=2` 或 JSON `"scale": 2` 指定（Query 优先），缩放后像素边长仍受 `max_canvas_side` 限制
+- `quality`: 输出质量参数，范围为 `0`–`100`（默认 `0`）。对 **PNG**：`0` 表示无损 32-bit RGBA PNG（不做调色板减色），`1`–`100` 使用 NeuQuant 减色（调色板 64–256 色，deflate 1–9）；对 **JPEG**：`0` 使用高质量默认值 `92`，`1`–`100` 指定编码质量；对 **AVIF**：`0` 使用高质量默认值 `90`，`1`–`100` 指定编码质量；**WebP** 为无损编码
 - `compact`: 是否压缩 SVG，JSON API 默认为`false`（Web Playground 开关默认启用 `true`）。为`true`时去掉空白、路径改为相对坐标、合并网格线并缩短属性。画面不变，体积通常小 20–30%。`png`、`jpeg`、`webp`、`avif` 会先压缩 SVG 再栅格化，位图体积不变
 - `theme`: 图表主题，支持`light`，`dark`，`ant`，`vintage`，`shine`，`walden`，`westeros`，`chalk`，`grafana`以及`shadcn`共10种主题色
 - `width`: 图表宽度，默认为600

@@ -18,7 +18,10 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use crate::config::{must_new_mcp_config, must_new_render_limits};
-use crate::controller::{FormatType, encode_svg, normalize_chart_type};
+use crate::controller::{
+    DEFAULT_MCP_SCALE, FormatType, encode_svg, extract_and_strip_scale, normalize_chart_type,
+    validate_scale,
+};
 use crate::examples::{self, ExampleItem};
 use crate::llms;
 use crate::maps;
@@ -28,7 +31,7 @@ fn server_instructions() -> String {
         "Pure-Rust charting & Mermaid SVG/raster renderer (`charts-rs` {}). \
 Workflow: (1) Call `list_chart_types` (or read `charts://` resources) to inspect the 30 chart types, variant mappings, live themes, loaded fonts, registered GeoJSON maps, and Mermaid capabilities. \
 (2) Call `get_chart_schema` (default `essential`) for the chosen `chart_type` to get its JSON Schema with live `theme`/`font_family`/`geo_json` enums and real examples; pass `chart_type: \"mermaid\"` for Mermaid capabilities, limitations, and all Mermaid diagram examples. \
-(3) Call `render_chart` (or `render_mermaid` directly for Mermaid). Both pre-validate and return up to 50 structured `ValidationIssue` entries (`code`, `path`, `expected`, `suggestion`, `line`) on error so you can fix all issues in one pass. \
+(3) Call `render_chart` (or `render_mermaid` directly for Mermaid). Both pre-validate and return up to 50 structured `ValidationIssue` entries (`code`, `path`, `expected`, `suggestion`, `line`) on error so you can fix all issues in one pass. Raster formats default to `scale: 2` (range `1`–`4`) and lossless RGBA PNG (`quality: 0`). \
 Important: If the chart contains Chinese/Japanese/Korean (CJK) text, set `font_family` to a loaded CJK font (e.g. `Noto Sans SC`); otherwise `charts-rs` silently falls back to `Roboto` for text measurement and rasterized PNGs may miss CJK glyphs. \
 For whole-service/HTTP API documentation rather than single-chart rendering, read MCP resources `charts://llms.txt` (concise guide) or `charts://llms-full.txt` (complete reference); prefer `list_chart_types` and `get_chart_schema` for normal rendering to keep context compact.",
         charts_rs::version()
@@ -179,6 +182,9 @@ struct RenderChartParams {
     /// Output format: "png" (default), "jpeg", "webp", or "svg" (returned as text).
     #[serde(default)]
     format: ImageFormat,
+    /// Optional raster pixel scale factor in 1.0..=4.0 (default 2.0 for crisp HiDPI PNG/JPEG/WebP; ignored for SVG).
+    #[serde(default)]
+    scale: Option<f32>,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]
@@ -215,6 +221,9 @@ struct RenderMermaidParams {
     /// Output format: "png" (default), "jpeg", "webp", or "svg".
     #[serde(default)]
     format: ImageFormat,
+    /// Optional raster pixel scale factor in 1.0..=4.0 (default 2.0 for crisp HiDPI PNG/JPEG/WebP; ignored for SVG).
+    #[serde(default)]
+    scale: Option<f32>,
 }
 
 #[derive(Serialize)]
@@ -789,10 +798,23 @@ fn format_render_success_blocks(
 
 async fn render_validated_options(
     chart_type: &'static str,
-    options: Value,
+    mut options: Value,
     format: FormatType,
+    scale_override: Option<f32>,
     limits: RenderLimits,
 ) -> Result<CallToolResult, ErrorData> {
+    let body_scale = match extract_and_strip_scale(&mut options) {
+        Ok(s) => s,
+        Err(err) => return Ok(CallToolResult::error(vec![ContentBlock::text(err.message)])),
+    };
+    let scale = match scale_override {
+        Some(s) => match validate_scale(s) {
+            Ok(valid) => valid,
+            Err(err) => return Ok(CallToolResult::error(vec![ContentBlock::text(err.message)])),
+        },
+        None => body_scale.unwrap_or(DEFAULT_MCP_SCALE),
+    };
+
     let (issues, warnings) = match validate_with_warnings(chart_type, &options, &limits) {
         Ok(res) => res,
         Err(msg) => return Ok(CallToolResult::error(vec![ContentBlock::text(msg)])),
@@ -807,12 +829,12 @@ async fn render_validated_options(
         .get("quality")
         .and_then(|v| v.as_u64())
         .map(|v| v.min(100) as u8)
-        .unwrap_or(80);
+        .unwrap_or(0);
 
     let rendered = tokio::task::spawn_blocking(move || {
         let svg = charts_rs::render_chart_from_value_with_limits(chart_type, &options, &limits)
             .map_err(|e| e.to_string())?;
-        encode_svg(&svg, format, quality).map_err(|e| e.message)
+        encode_svg(&svg, format, quality, scale, &limits).map_err(|e| e.message)
     })
     .await;
 
@@ -1030,7 +1052,10 @@ impl ChartServer {
     ) -> Result<CallToolResult, ErrorData> {
         let chart_type = params.chart_type.as_str();
         let limits = must_new_render_limits();
-        let value = Value::Object(params.options);
+        let mut value = Value::Object(params.options);
+        if let Err(err) = extract_and_strip_scale(&mut value) {
+            return Ok(CallToolResult::error(vec![ContentBlock::text(err.message)]));
+        }
         match validate_with_warnings(chart_type, &value, &limits) {
             Ok((issues, warnings)) => {
                 let payload = json!({
@@ -1048,7 +1073,7 @@ impl ChartServer {
     }
 
     #[tool(
-        description = "Pre-validate and render a chart from JSON options to an image (png, jpeg, webp) or SVG text. Defaults `allow_links` to `false` when `chart_type` is `mermaid`. Returns structured ValidationIssue errors if invalid, plus non-blocking CJK/font warnings when relevant.",
+        description = "Pre-validate and render a chart from JSON options to an image (png, jpeg, webp) or SVG text. Raster formats default to `scale: 2` (range `1.0..=4.0`) and lossless RGBA PNG (`quality: 0`). Defaults `allow_links` to `false` when `chart_type` is `mermaid`. Returns structured ValidationIssue errors if invalid, plus non-blocking CJK/font warnings when relevant.",
         annotations(
             title = "Render chart",
             read_only_hint = true,
@@ -1067,7 +1092,14 @@ impl ChartServer {
         if chart_type == "mermaid" && !options.contains_key("allow_links") {
             options.insert("allow_links".to_string(), Value::Bool(false));
         }
-        render_validated_options(chart_type, Value::Object(options), format, limits).await
+        render_validated_options(
+            chart_type,
+            Value::Object(options),
+            format,
+            params.scale,
+            limits,
+        )
+        .await
     }
 
     #[tool(
@@ -1107,7 +1139,7 @@ impl ChartServer {
     }
 
     #[tool(
-        description = "Render a Mermaid diagram directly from source text to an image (png, jpeg, webp) or SVG text. Supports 13 canonical diagram types (flowchart, sequenceDiagram, stateDiagram-v2, classDiagram, erDiagram, mindmap, quadrantChart, pie, gantt, sankey-beta, xychart-beta, radar-beta, treemap-beta). `allow_links` defaults to `false` for safety.",
+        description = "Render a Mermaid diagram directly from source text to an image (png, jpeg, webp) or SVG text. Supports 13 canonical diagram types (flowchart, sequenceDiagram, stateDiagram-v2, classDiagram, erDiagram, mindmap, quadrantChart, pie, gantt, sankey-beta, xychart-beta, radar-beta, treemap-beta). Raster formats default to `scale: 2` (range `1.0..=4.0`) and `allow_links` defaults to `false` for safety.",
         annotations(
             title = "Render Mermaid diagram",
             read_only_hint = true,
@@ -1142,7 +1174,14 @@ impl ChartServer {
         if let Some(title) = params.title_text {
             options.insert("title_text".to_string(), Value::String(title));
         }
-        render_validated_options("mermaid", Value::Object(options), format, limits).await
+        render_validated_options(
+            "mermaid",
+            Value::Object(options),
+            format,
+            params.scale,
+            limits,
+        )
+        .await
     }
 }
 
@@ -1408,6 +1447,7 @@ mod tests {
                 chart_type: ChartType::Bar,
                 options: bad_opts,
                 format: ImageFormat::Svg,
+                scale: None,
             }))
             .await
             .unwrap();
@@ -1415,6 +1455,56 @@ mod tests {
         let err_json: Value =
             serde_json::from_str(err_res.content[0].as_text().unwrap().text.as_str()).unwrap();
         assert!(err_json["issues"].as_array().unwrap().len() >= 2);
+
+        // render_chart defaults PNG raster scale to 2x and supports explicit scale=1
+        let bar_opts = serde_json::from_str::<Map<String, Value>>(
+            r#"{"width":80,"height":48,"x_axis_data":["A","B"],"series_list":[{"name":"S","data":[1,3]}]}"#,
+        )
+        .unwrap();
+        let png_2x_res = server
+            .render_chart(Parameters(RenderChartParams {
+                chart_type: ChartType::Bar,
+                options: bar_opts.clone(),
+                format: ImageFormat::Png,
+                scale: None,
+            }))
+            .await
+            .unwrap();
+        assert_ne!(png_2x_res.is_error, Some(true));
+        let png_2x_bytes = STANDARD
+            .decode(&png_2x_res.content[0].as_image().unwrap().data)
+            .unwrap();
+        let img_2x =
+            image::load_from_memory_with_format(&png_2x_bytes, image::ImageFormat::Png).unwrap();
+        assert_eq!((img_2x.width(), img_2x.height()), (160, 96));
+
+        let png_1x_res = server
+            .render_chart(Parameters(RenderChartParams {
+                chart_type: ChartType::Bar,
+                options: bar_opts.clone(),
+                format: ImageFormat::Png,
+                scale: Some(1.0),
+            }))
+            .await
+            .unwrap();
+        assert_ne!(png_1x_res.is_error, Some(true));
+        let png_1x_bytes = STANDARD
+            .decode(&png_1x_res.content[0].as_image().unwrap().data)
+            .unwrap();
+        let img_1x =
+            image::load_from_memory_with_format(&png_1x_bytes, image::ImageFormat::Png).unwrap();
+        assert_eq!((img_1x.width(), img_1x.height()), (80, 48));
+
+        let invalid_scale_res = server
+            .render_chart(Parameters(RenderChartParams {
+                chart_type: ChartType::Bar,
+                options: bar_opts,
+                format: ImageFormat::Png,
+                scale: Some(5.0),
+            }))
+            .await
+            .unwrap();
+        assert_eq!(invalid_scale_res.is_error, Some(true));
 
         // Mermaid defaults allow_links to false in render_mermaid and render_chart
         let linked_src =
@@ -1429,6 +1519,7 @@ mod tests {
                 title_text: None,
                 allow_links: None,
                 format: ImageFormat::Svg,
+                scale: None,
             }))
             .await
             .unwrap();
@@ -1443,6 +1534,7 @@ mod tests {
                 chart_type: ChartType::Mermaid,
                 options: raw_map,
                 format: ImageFormat::Svg,
+                scale: None,
             }))
             .await
             .unwrap();
@@ -1464,11 +1556,30 @@ mod tests {
                 title_text: None,
                 allow_links: Some(true),
                 format: ImageFormat::Svg,
+                scale: None,
             }))
             .await
             .unwrap();
         let allowed_svg = allowed_res.content[0].as_text().unwrap().text.as_str();
         assert!(allowed_svg.contains("<a "));
+
+        // render_mermaid also supports HiDPI PNG scaling
+        let mermaid_png = server
+            .render_mermaid(Parameters(RenderMermaidParams {
+                source: "flowchart LR\n  A --> B".to_string(),
+                theme: None,
+                font_family: None,
+                width: None,
+                height: None,
+                title_text: None,
+                allow_links: None,
+                format: ImageFormat::Png,
+                scale: Some(2.0),
+            }))
+            .await
+            .unwrap();
+        assert_ne!(mermaid_png.is_error, Some(true));
+        assert!(!mermaid_png.content[0].as_image().unwrap().data.is_empty());
 
         // validate_mermaid reports line-numbered syntax errors
         let bad_mermaid = server

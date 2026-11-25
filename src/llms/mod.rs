@@ -154,18 +154,19 @@ pub fn render_llms_txt() -> String {
     );
     let _ = write!(
         out,
-        "`quality` (`0`–`100`, default `80`; `0` keeps unquantized PNG, `1`–`100` applies NeuQuant palette quantization).\n\
-        - `POST /api/charts/jpeg`, `POST /api/charts/webp`, `POST /api/charts/avif`: Render chart JSON options to raster images.\n\
-        - `GET /api/charts?format=<svg|png|jpeg|webp|avif>&opts=<url-encoded-json>`: GET preview endpoint (default `format=svg`).\n\
+        "`quality` (`0`–`100`, default `0`; `0` keeps lossless RGBA PNG or high-quality defaults JPEG=`92` / AVIF=`90`, `1`–`100` sets NeuQuant PNG quantization or JPEG/AVIF encoder quality; WebP is lossless) and `?scale=<1..4>` (or JSON `\"scale\"`, query takes precedence; HTTP default `1`, ignored for SVG).\n\
+        - `POST /api/charts/jpeg`, `POST /api/charts/webp`, `POST /api/charts/avif`: Render chart JSON options to raster images (accepts `?scale=<1..4>` or JSON `\"scale\"`, HTTP default `1`; `quality` applies to JPEG/AVIF).\n\
+        - `GET /api/charts?format=<svg|png|jpeg|webp|avif>&scale=<1..4>&opts=<url-encoded-json>`: GET preview endpoint (default `format=svg`, `scale=1`).\n\
         - `GET /api/basic-info`: Returns `{{\"families\", \"themes\", \"maps\", \"chart_types\", \"version\"}}`.\n\
         - `GET /api/examples`: Returns the unified gallery catalog ({total_examples} verified chart & Mermaid examples).\n\
         - `GET /llms.txt`: This concise AI/LLM service guide (`text/markdown`).\n\
         - `GET /llms-full.txt`: Complete single-file reference with full JSON option tables and all {total_examples} examples.\n\n\
         Notes:\n\
         - Set `\"type\"` in the JSON payload (empty/omitted defaults to `\"bar\"`; aliases `\"multi_chart\"` -> `\"multi\"` and `\"guage\"` -> `\"gauge\"` are accepted; unknown `\"type\"` returns HTTP 400 JSON `{{\"message\", \"category\", \"code\", \"status\"}}`).\n\
+        - Raster `scale` supports `1.0`–`4.0` (e.g. `1.5`, `2`, `3`); scaled pixel dimensions are bounded by `max_canvas_side`.\n\
         - Set `\"compact\": true` to emit 20–30% smaller SVGs.\n\n\
         ```bash\n\
-        curl -sX POST http://127.0.0.1:5000/api/charts/png \\\n\
+        curl -sX POST 'http://127.0.0.1:5000/api/charts/png?scale=2' \\\n\
           -H 'Content-Type: application/json' \\\n\
           -d '{{\"type\":\"bar\",\"theme\":\"grafana\",\"x_axis_data\":[\"Mon\",\"Tue\"],\"series_list\":[{{\"name\":\"Visits\",\"data\":[120,185]}}]}}' -o chart.png\n\n\
         curl -sX POST http://127.0.0.1:5000/api/charts/svg \\\n\
@@ -181,9 +182,9 @@ pub fn render_llms_txt() -> String {
         - `list_chart_types`: Returns `chart_catalog()` + selection/variant guide + live themes, loaded fonts (with CJK hint), registered maps, Mermaid capabilities, and `RenderLimits`.\n\
         - `get_chart_schema(chart_type, level?, diagram_type?)`: Returns Draft 2020-12 JSON Schema (`essential` default, or `full`) with live `theme`/`font_family`/`geo_json` enums and curated examples; when `chart_type=\"mermaid\"`, includes Mermaid capabilities, limitations, and all 13 canonical diagram examples.\n\
         - `validate_chart(chart_type, options)`: Validates against schema, `RenderLimits`, and Mermaid syntax without rendering; returns up to 50 structured `ValidationIssue` entries + font/CJK warnings.\n\
-        - `render_chart(chart_type, options, format?)`: Pre-validates and renders (`png` default, `jpeg`, `webp`, `svg`). Defaults `allow_links: false` for `mermaid`.\n\
+        - `render_chart(chart_type, options, format?, scale?)`: Pre-validates and renders (`png` default, `jpeg`, `webp`, `svg`; raster `scale` defaults to `2`, range `1`–`4`). Defaults `allow_links: false` for `mermaid`.\n\
         - `validate_mermaid(source, font_family?)`: Validates Mermaid DSL directly with 1-based line numbers and typo suggestions.\n\
-        - `render_mermaid(source, theme?, font_family?, width?, height?, title_text?, allow_links?, format?)`: Renders Mermaid source directly (`allow_links` defaults to `false`).\n\n\
+        - `render_mermaid(source, theme?, font_family?, width?, height?, title_text?, allow_links?, format?, scale?)`: Renders Mermaid source directly (`allow_links` defaults to `false`; raster `scale` defaults to `2`, range `1`–`4`).\n\n\
         ### MCP Resources\n\
         - `charts://themes`, `charts://fonts`, `charts://maps`, `charts://mermaid/capabilities`\n\
         - `charts://llms.txt`, `charts://llms-full.txt`\n\
