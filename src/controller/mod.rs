@@ -1,9 +1,10 @@
 use axum::body::{Body, Bytes};
-use axum::extract::Query;
-use axum::http::{HeaderValue, Request, Uri, header};
+use axum::extract::{Path, Query, State};
+use axum::http::{HeaderMap, HeaderValue, Request, Uri, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use chrono::Utc;
 use http_body_util::BodyExt;
 use image::codecs::{avif::AvifEncoder, jpeg::JpegEncoder};
 use image::{ExtendedColorType, ImageEncoder, ImageFormat, load};
@@ -11,6 +12,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use snafu::{ResultExt, Snafu};
 use std::io::Cursor;
+use std::sync::Arc;
 
 use crate::config::must_new_render_limits;
 use crate::dist::{StaticFile, get_static_file};
@@ -18,6 +20,7 @@ use crate::error::{HttpError, HttpResult};
 use crate::examples::{self, ExamplesCatalog};
 use crate::llms;
 use crate::maps;
+use crate::short_link::ShortLinkService;
 use charts_rs::{
     RenderLimits, svg_to_png, svg_to_png_with_size, svg_to_webp, svg_to_webp_with_size,
 };
@@ -49,11 +52,18 @@ impl From<ImageError> for HttpError {
 pub type JsonResult<T> = HttpResult<Json<T>>;
 
 pub fn new_router() -> Router {
+    new_router_with_short_links(Arc::new(ShortLinkService::new_default_memory()))
+}
+
+pub fn new_router_with_short_links(short_links: Arc<ShortLinkService>) -> Router {
     Router::new()
         .route("/ping", get(ping))
         .route("/llms.txt", get(get_llms_txt))
         .route("/llms-full.txt", get(get_llms_full_txt))
         .route("/api/charts", get(preview))
+        .route("/api/charts/short-links", post(create_short_link))
+        .route("/api/charts/short-links/{id}", get(get_short_link_meta))
+        .route("/s/{id}", get(preview_short_link))
         .route("/api/basic-info", get(get_basic_info))
         .route("/api/examples", get(get_examples))
         .route("/api/fonts/default", get(get_default_font))
@@ -63,6 +73,7 @@ pub fn new_router() -> Router {
         .route("/api/charts/avif", post(chart_avif))
         .route("/api/charts/jpeg", post(chart_jpeg))
         .fallback(get(serve))
+        .with_state(short_links)
 }
 
 #[derive(Deserialize)]
@@ -223,6 +234,35 @@ impl FormatType {
             FormatType::Webp => "image/webp",
             FormatType::Avif => "image/avif",
             FormatType::Jpeg => mime::IMAGE_JPEG.as_ref(),
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            FormatType::Svg => "svg",
+            FormatType::Png => "png",
+            FormatType::Webp => "webp",
+            FormatType::Avif => "avif",
+            FormatType::Jpeg => "jpeg",
+        }
+    }
+
+    pub fn from_str_strict(raw: &str) -> HttpResult<Self> {
+        let trimmed = raw.trim().to_ascii_lowercase();
+        match trimmed.as_str() {
+            "" | "svg" => Ok(FormatType::Svg),
+            "png" => Ok(FormatType::Png),
+            "webp" => Ok(FormatType::Webp),
+            "avif" => Ok(FormatType::Avif),
+            "jpeg" | "jpg" => Ok(FormatType::Jpeg),
+            other => Err(HttpError {
+                message: format!(
+                    "unsupported format `{other}`; expected svg, png, jpeg, webp, or avif"
+                ),
+                category: "charts".to_string(),
+                code: "invalid_format".to_string(),
+                ..Default::default()
+            }),
         }
     }
 }
@@ -455,6 +495,43 @@ fn encode_avif_from_png(png: &[u8], quality: u8) -> Result<Vec<u8>, ImageError> 
     Ok(buf)
 }
 
+fn resolve_scaled_dimensions(
+    svg: &str,
+    scale: f32,
+    limits: &RenderLimits,
+) -> HttpResult<(Option<u32>, Option<u32>)> {
+    validate_scale(scale)?;
+    if (scale - 1.0).abs() <= f32::EPSILON {
+        return Ok((None, None));
+    }
+    let (w, h) = parse_svg_dimensions(svg).ok_or_else(|| {
+        HttpError::new_with_category(
+            "unable to determine SVG dimensions for scaled rasterization",
+            "charts_encoder",
+        )
+    })?;
+    let scaled_w = (w * scale).round();
+    let scaled_h = (h * scale).round();
+    if !scaled_w.is_finite() || !scaled_h.is_finite() || scaled_w <= 0.0 || scaled_h <= 0.0 {
+        return Err(HttpError::new_with_category(
+            "scaled raster dimensions must be positive",
+            "charts_encoder",
+        ));
+    }
+    if scaled_w > limits.max_canvas_side || scaled_h > limits.max_canvas_side {
+        return Err(HttpError {
+            message: format!(
+                "scaled dimensions ({}x{}) exceed max_canvas_side ({})",
+                scaled_w as u32, scaled_h as u32, limits.max_canvas_side
+            ),
+            category: "charts".to_string(),
+            code: "limit_exceeded".to_string(),
+            ..Default::default()
+        });
+    }
+    Ok((Some(scaled_w as u32), Some(scaled_h as u32)))
+}
+
 pub fn encode_svg(
     svg: &str,
     format: FormatType,
@@ -465,37 +542,7 @@ pub fn encode_svg(
     if matches!(format, FormatType::Svg) {
         return Ok(Bytes::from(svg.to_owned()));
     }
-    validate_scale(scale)?;
-    let (target_w, target_h) = if (scale - 1.0).abs() > f32::EPSILON {
-        let (w, h) = parse_svg_dimensions(svg).ok_or_else(|| {
-            HttpError::new_with_category(
-                "unable to determine SVG dimensions for scaled rasterization",
-                "charts_encoder",
-            )
-        })?;
-        let scaled_w = (w * scale).round();
-        let scaled_h = (h * scale).round();
-        if !scaled_w.is_finite() || !scaled_h.is_finite() || scaled_w <= 0.0 || scaled_h <= 0.0 {
-            return Err(HttpError::new_with_category(
-                "scaled raster dimensions must be positive",
-                "charts_encoder",
-            ));
-        }
-        if scaled_w > limits.max_canvas_side || scaled_h > limits.max_canvas_side {
-            return Err(HttpError {
-                message: format!(
-                    "scaled dimensions ({}x{}) exceed max_canvas_side ({})",
-                    scaled_w as u32, scaled_h as u32, limits.max_canvas_side
-                ),
-                category: "charts".to_string(),
-                code: "limit_exceeded".to_string(),
-                ..Default::default()
-            });
-        }
-        (Some(scaled_w as u32), Some(scaled_h as u32))
-    } else {
-        (None, None)
-    };
+    let (target_w, target_h) = resolve_scaled_dimensions(svg, scale, limits)?;
 
     let data = match format {
         FormatType::Svg => unreachable!(),
@@ -611,6 +658,225 @@ async fn chart_avif(Query(query): Query<ScaleQuery>, req: Request<Body>) -> Http
 
 async fn chart_jpeg(Query(query): Query<ScaleQuery>, req: Request<Body>) -> HttpResult<Response> {
     render_from_bdoy(FormatType::Jpeg, query, req).await
+}
+
+#[derive(Deserialize, Default)]
+struct CreateShortLinkQuery {
+    format: Option<String>,
+    scale: Option<f32>,
+    ttl: Option<u64>,
+}
+
+#[derive(Deserialize, Default)]
+struct PreviewShortLinkQuery {
+    format: Option<String>,
+    scale: Option<f32>,
+}
+
+#[derive(Serialize)]
+struct CreateShortLinkResponse {
+    id: String,
+    path: String,
+    url: String,
+    format: String,
+    scale: f32,
+    ttl: u64,
+    expires_at: i64,
+}
+
+#[derive(Serialize)]
+struct ShortLinkMetaResponse {
+    id: String,
+    path: String,
+    format: String,
+    scale: f32,
+    options: serde_json::Value,
+    created_at: i64,
+    expires_at: i64,
+}
+
+fn short_link_not_found() -> HttpError {
+    HttpError {
+        message: "short link not found or expired".to_string(),
+        category: "short_link".to_string(),
+        code: "not_found".to_string(),
+        status: 404,
+        extra: None,
+    }
+}
+
+fn build_short_link_url(base_url: &str, headers: &HeaderMap, path: &str) -> String {
+    if !base_url.is_empty() {
+        return format!("{base_url}{path}");
+    }
+    if let Some(host) = headers
+        .get(header::HOST)
+        .and_then(|v| v.to_str().ok())
+        .map(str::trim)
+        .filter(|h| !h.is_empty())
+    {
+        let proto = headers
+            .get("x-forwarded-proto")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.split(',').next())
+            .map(str::trim)
+            .filter(|p| *p == "http" || *p == "https")
+            .unwrap_or("http");
+        return format!("{proto}://{host}{path}");
+    }
+    path.to_string()
+}
+
+async fn create_short_link(
+    State(short_links): State<Arc<ShortLinkService>>,
+    Query(query): Query<CreateShortLinkQuery>,
+    headers: HeaderMap,
+    req: Request<Body>,
+) -> HttpResult<Json<CreateShortLinkResponse>> {
+    let format = FormatType::from_str_strict(query.format.as_deref().unwrap_or("svg"))?;
+    short_links.resolve_ttl(query.ttl)?;
+    let limits = must_new_render_limits();
+    let buf = read_http_body(req).await?;
+    if buf.len() > limits.max_json_bytes {
+        return Err(HttpError {
+            message: format!(
+                "JSON payload ({} bytes) exceeds max_json_bytes ({})",
+                buf.len(),
+                limits.max_json_bytes
+            ),
+            category: "charts".to_string(),
+            code: "limit_exceeded".to_string(),
+            ..Default::default()
+        });
+    }
+    let json = std::string::String::from_utf8_lossy(&buf);
+    let mut value: serde_json::Value = serde_json::from_str(&json)?;
+    let body_scale = extract_and_strip_scale(&mut value)?;
+    let scale = match query.scale {
+        Some(q) => validate_scale(q)?,
+        None => body_scale.unwrap_or(DEFAULT_HTTP_SCALE),
+    };
+
+    let chart_type = value
+        .get("type")
+        .and_then(|item| item.as_str())
+        .unwrap_or_default()
+        .to_string();
+    let value_for_render = value.clone();
+    tokio::task::spawn_blocking(move || -> HttpResult<()> {
+        maps::init_builtin_maps();
+        let canonical = normalize_chart_type(&chart_type);
+        let issues =
+            charts_rs::validate_chart_json_with_limits(canonical, &value_for_render, &limits)?;
+        if !issues.is_empty() {
+            let messages: Vec<String> = issues
+                .into_iter()
+                .map(|issue| format!("{}: {}", issue.path, issue.message))
+                .collect();
+            return Err(HttpError {
+                message: messages[0].clone(),
+                category: "charts".to_string(),
+                code: "validation_failed".to_string(),
+                extra: Some(messages),
+                ..Default::default()
+            });
+        }
+        // Trial-render SVG (and check raster scale bounds) before persisting so created links always render.
+        let svg =
+            charts_rs::render_chart_from_value_with_limits(canonical, &value_for_render, &limits)?;
+        if !matches!(format, FormatType::Svg) {
+            resolve_scaled_dimensions(&svg, scale, &limits)?;
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|err| HttpError::new_with_category(&err.to_string(), "render_task"))??;
+
+    let created = short_links
+        .create(format.as_str(), scale, value, query.ttl)
+        .await?;
+    let url = build_short_link_url(short_links.base_url(), &headers, &created.path);
+
+    Ok(Json(CreateShortLinkResponse {
+        id: created.id,
+        path: created.path,
+        url,
+        format: created.format,
+        scale: created.scale,
+        ttl: created.ttl,
+        expires_at: created.expires_at,
+    }))
+}
+
+async fn get_short_link_meta(
+    State(short_links): State<Arc<ShortLinkService>>,
+    Path(id): Path<String>,
+) -> HttpResult<Json<ShortLinkMetaResponse>> {
+    let record = short_links
+        .get(&id)
+        .await?
+        .ok_or_else(short_link_not_found)?;
+    Ok(Json(ShortLinkMetaResponse {
+        path: format!("/s/{id}"),
+        id,
+        format: record.format,
+        scale: record.scale,
+        options: record.options,
+        created_at: record.created_at,
+        expires_at: record.expires_at,
+    }))
+}
+
+async fn preview_short_link(
+    State(short_links): State<Arc<ShortLinkService>>,
+    Path(id): Path<String>,
+    Query(query): Query<PreviewShortLinkQuery>,
+) -> HttpResult<Response> {
+    let record = short_links
+        .get(&id)
+        .await?
+        .ok_or_else(short_link_not_found)?;
+    let format = match query.format.as_deref() {
+        Some(raw) => FormatType::from_str_strict(raw)?,
+        None => FormatType::from_str_strict(&record.format)?,
+    };
+    let scale = match query.scale {
+        Some(s) => validate_scale(s)?,
+        None => record.scale,
+    };
+    let remaining_ttl = (record.expires_at - Utc::now().timestamp()).clamp(1, 300);
+    let cache_control = HeaderValue::from_str(&format!("public, max-age={remaining_ttl}"))
+        .unwrap_or_else(|_| HeaderValue::from_static("public, max-age=60"));
+
+    let data = tokio::task::spawn_blocking(move || {
+        let limits = must_new_render_limits();
+        let chart_type = record
+            .options
+            .get("type")
+            .and_then(|item| item.as_str())
+            .unwrap_or_default();
+        let quality: u8 = record
+            .options
+            .get("quality")
+            .and_then(|item| item.as_u64())
+            .map(|q| q.min(100) as u8)
+            .unwrap_or(0);
+        render_chart_value(chart_type, &record.options, format, quality, scale, &limits)
+    })
+    .await
+    .map_err(|err| HttpError::new_with_category(&err.to_string(), "render_task"))??;
+
+    Ok((
+        [
+            (
+                header::CONTENT_TYPE,
+                HeaderValue::from_static(format.mime()),
+            ),
+            (header::CACHE_CONTROL, cache_control),
+        ],
+        data,
+    )
+        .into_response())
 }
 
 #[cfg(test)]
@@ -821,5 +1087,249 @@ mod tests {
         });
         let err = render_chart(oversized.to_string().as_bytes(), FormatType::Svg).unwrap_err();
         assert!(err.message.contains("max_canvas_side"));
+    }
+
+    #[tokio::test]
+    async fn short_link_routes_create_fetch_and_render() {
+        use crate::config::ShortLinkConfig;
+        use crate::short_link::{MemoryStore, ShortLinkStore};
+        use axum::http::StatusCode;
+        use tower::ServiceExt;
+
+        let store: Arc<dyn ShortLinkStore> = Arc::new(MemoryStore::new(32));
+        let svc = Arc::new(ShortLinkService::new(
+            store,
+            ShortLinkConfig {
+                default_ttl: 3600,
+                max_ttl: 7200,
+                max_entries: 32,
+                base_url: "https://charts.example.com".to_string(),
+            },
+        ));
+        let app = new_router_with_short_links(svc);
+
+        let chart_body = r#"{"type":"bar","width":80,"height":48,"x_axis_data":["a","b"],"series_list":[{"name":"A","data":[1,3]}]}"#;
+        let create_req = Request::builder()
+            .method("POST")
+            .uri("/api/charts/short-links?format=svg&ttl=120")
+            .body(Body::from(chart_body))
+            .unwrap();
+        let create_res = app.clone().oneshot(create_req).await.unwrap();
+        assert_eq!(create_res.status(), StatusCode::OK);
+        let create_bytes = create_res.into_body().collect().await.unwrap().to_bytes();
+        let created: serde_json::Value = serde_json::from_slice(&create_bytes).unwrap();
+        let id = created["id"].as_str().unwrap().to_string();
+        assert_eq!(id.len(), 10);
+        assert_eq!(created["path"], format!("/s/{id}"));
+        assert_eq!(created["url"], format!("https://charts.example.com/s/{id}"));
+        assert_eq!(created["ttl"], 120);
+
+        // Fetch stored JSON metadata.
+        let meta_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/api/charts/short-links/{id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(meta_res.status(), StatusCode::OK);
+        let meta_bytes = meta_res.into_body().collect().await.unwrap().to_bytes();
+        let meta: serde_json::Value = serde_json::from_slice(&meta_bytes).unwrap();
+        assert_eq!(meta["options"]["width"], 80);
+
+        // Preview as default SVG.
+        let svg_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/s/{id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(svg_res.status(), StatusCode::OK);
+        assert_eq!(
+            svg_res.headers().get(header::CONTENT_TYPE).unwrap(),
+            mime::IMAGE_SVG.as_ref()
+        );
+        let svg_bytes = svg_res.into_body().collect().await.unwrap().to_bytes();
+        assert!(svg_bytes.starts_with(b"<svg"));
+
+        // Override preview format & HiDPI scale on the short link.
+        let png_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/s/{id}?format=png&scale=2"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(png_res.status(), StatusCode::OK);
+        assert_eq!(
+            png_res.headers().get(header::CONTENT_TYPE).unwrap(),
+            mime::IMAGE_PNG.as_ref()
+        );
+        let png_bytes = png_res.into_body().collect().await.unwrap().to_bytes();
+        assert_png(&png_bytes, 160, 96);
+
+        // Unknown ID returns 404.
+        for path in ["/s/missingId1", "/api/charts/short-links/missingId1"] {
+            let not_found = app
+                .clone()
+                .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_eq!(not_found.status(), StatusCode::NOT_FOUND);
+        }
+
+        // Invalid options or oversized TTL fail pre-validation with 400.
+        let bad_chart_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=png")
+                    .body(Body::from(r#"{"type":"bar","theme":"bogus"}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(bad_chart_res.status(), StatusCode::BAD_REQUEST);
+
+        let bad_ttl_res = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?ttl=999999")
+                    .body(Body::from(chart_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(bad_ttl_res.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn short_link_creation_requires_successful_svg_render_and_scale_bounds() {
+        use crate::config::ShortLinkConfig;
+        use crate::short_link::{MemoryStore, ShortLinkStore, StoreFuture};
+        use axum::http::StatusCode;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::time::Duration;
+        use tower::ServiceExt;
+
+        struct CountingStore {
+            inner: MemoryStore,
+            sets: AtomicUsize,
+        }
+
+        impl ShortLinkStore for CountingStore {
+            fn get<'a>(&'a self, id: &'a str) -> StoreFuture<'a, Result<Option<Vec<u8>>, String>> {
+                self.inner.get(id)
+            }
+
+            fn set<'a>(
+                &'a self,
+                id: &'a str,
+                value: Vec<u8>,
+                ttl: Duration,
+            ) -> StoreFuture<'a, Result<(), String>> {
+                self.sets.fetch_add(1, Ordering::SeqCst);
+                self.inner.set(id, value, ttl)
+            }
+        }
+
+        let store = Arc::new(CountingStore {
+            inner: MemoryStore::new(16),
+            sets: AtomicUsize::new(0),
+        });
+        let svc = Arc::new(ShortLinkService::new(
+            store.clone(),
+            ShortLinkConfig {
+                default_ttl: 3600,
+                max_ttl: 7200,
+                max_entries: 16,
+                base_url: String::new(),
+            },
+        ));
+        let app = new_router_with_short_links(svc);
+
+        // 1. Render-failing payloads must return 400 and never persist a short link.
+        let bad_mermaid = r#"{"type":"mermaid","source":"not_a_real_diagram\n  a --> b"}"#;
+        let bad_mermaid_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=svg")
+                    .body(Body::from(bad_mermaid))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(bad_mermaid_res.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+
+        let missing_map = r#"{"type":"map","geo_json":"nonexistent_map_for_short_link_test","series_list":[{"name":"A","data":[{"name":"X","value":1}]}]}"#;
+        let missing_map_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=svg")
+                    .body(Body::from(missing_map))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(missing_map_res.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+
+        // 2. Unscaled width within max_canvas_side, but width * scale > max_canvas_side for PNG -> 400 limit_exceeded.
+        let side = (must_new_render_limits().max_canvas_side * 0.6).round() as u32;
+        let wide_chart = format!(
+            r#"{{"type":"bar","width":{side},"height":200,"x_axis_data":["a","b"],"series_list":[{{"name":"A","data":[1,3]}}]}}"#
+        );
+        let scaled_png_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=png&scale=2")
+                    .body(Body::from(wide_chart.clone()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(scaled_png_res.status(), StatusCode::BAD_REQUEST);
+        let err_bytes = scaled_png_res
+            .into_body()
+            .collect()
+            .await
+            .unwrap()
+            .to_bytes();
+        let err_json: serde_json::Value = serde_json::from_slice(&err_bytes).unwrap();
+        assert_eq!(err_json["code"], "limit_exceeded");
+        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+
+        // 3. Same wide payload requested as SVG succeeds (scale does not affect vector SVG bounds).
+        let svg_res = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=svg&scale=2")
+                    .body(Body::from(wide_chart))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(svg_res.status(), StatusCode::OK);
+        assert_eq!(store.sets.load(Ordering::SeqCst), 1);
     }
 }

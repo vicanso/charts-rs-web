@@ -429,6 +429,7 @@ dependencies = [
  "chrono",
  "color_quant 2.0.0",
  "config",
+ "getrandom 0.4.3",
  "glob",
  "hex",
  "http-body-util",

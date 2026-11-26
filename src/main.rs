@@ -23,6 +23,7 @@ mod llms;
 mod maps;
 mod mcp;
 mod middleware;
+mod short_link;
 mod util;
 
 fn init_logger() {

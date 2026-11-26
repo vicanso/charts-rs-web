@@ -12,6 +12,9 @@
 - `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 14 个 Mermaid 示例，覆盖全部 13 种规范图）
 - `GET /llms.txt` / `GET /llms-full.txt`: 随构建的 `charts-rs` 版本与服务端实时状态（字体、主题、地图、`RenderLimits`）自动生成服务说明与完整 JSON/Mermaid 参考文档
 - `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>&scale=<1..4>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`，位图 `scale` 默认 `1`）
+- `POST /api/charts/short-links?format=<...>&scale=<1..4>&ttl=<secs>`: 校验并试渲染 SVG（位图同时校验缩放后尺寸上限）通过后创建临时短链（10 位 NanoID，默认有效期 24 小时，最长 7 天），返回 `{ id, path, url, format, scale, ttl, expires_at }`
+- `GET /s/{id}`: 根据短链 ID 获取存储参数并重新渲染输出（支持 `?format=&scale=` 临时覆盖，过期或不存在返回 404）
+- `GET /api/charts/short-links/{id}`: 获取短链存储的原始 JSON 配置与元信息（前端可通过 `/?s={id}` 自动回填编辑器）
 - `POST /api/charts/png`: 生成Png图表（支持 `?scale=<1..4>` 或 JSON `"scale"`，Query 优先，默认 `1`）
 - `POST /api/charts/jpeg`: 生成Jpeg图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
 - `POST /api/charts/webp`: 生成Webp图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
@@ -274,6 +277,10 @@ Mermaid 图表不使用 `series_list` 或 `x_axis_data`，支持以下字段：
 | `LIMITS_MAXCANVASSIDE` | 画布 `width` / `height` 上限（像素） | `8192` |
 | `LIMITS_MAXDATAPOINTS` | 全部 JSON 数组元素总数上限 | `100000` |
 | `LIMITS_MAXMERMAIDSOURCE` | Mermaid `source` 最大字节数 | `65536`（64 KiB） |
+| `SHORTLINK_DEFAULTTTL` | 短链默认过期时间（秒） | `86400`（24 小时） |
+| `SHORTLINK_MAXTTL` | 短链允许的最大过期时间（秒） | `604800`（7 天） |
+| `SHORTLINK_MAXENTRIES` | 内存短链存储最大条数（超限自动清理过期及最早过期项） | `10000` |
+| `SHORTLINK_BASEURL` | 短链完整 URL 前缀（如 `https://charts.example.com`），为空时自动按 `Host` 推导 | 空 |
 | `LOG_LEVEL` | 日志级别 | `INFO` |
 
 ```bash

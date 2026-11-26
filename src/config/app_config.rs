@@ -75,6 +75,15 @@ impl APPConfig {
         }
         default_value
     }
+    /// 从配置中获取对应的值(u64)，优先从env获取，解析失败或为0时使用默认值
+    fn get_u64_value_default(&self, key: &str, default_value: u64) -> u64 {
+        if let Ok(value) = self.get_value_from_env_first(key).parse::<u64>()
+            && value > 0
+        {
+            return value;
+        }
+        default_value
+    }
     /// 优先从env中获取配置的值，如果env中未配置则调用get_value获取
     fn get_value_from_env_first(&self, key: &str) -> String {
         let k = self.get_key(key);
@@ -172,4 +181,32 @@ pub fn must_new_render_limits() -> charts_rs::RenderLimits {
     limits.max_mermaid_source =
         config.get_usize_value_default("maxMermaidSource", limits.max_mermaid_source);
     limits
+}
+
+#[derive(Debug, Clone)]
+pub struct ShortLinkConfig {
+    pub default_ttl: u64,
+    pub max_ttl: u64,
+    pub max_entries: usize,
+    pub base_url: String,
+}
+
+pub fn must_new_short_link_config() -> ShortLinkConfig {
+    let config = must_new_config().set_prefix("shortLink");
+    let max_ttl = config.get_u64_value_default("maxTtl", 604_800);
+    let default_ttl = config
+        .get_u64_value_default("defaultTtl", 86_400)
+        .min(max_ttl);
+    let max_entries = config.get_usize_value_default("maxEntries", 10_000);
+    let base_url = config
+        .get_value_from_env_first("baseUrl")
+        .trim()
+        .trim_end_matches('/')
+        .to_string();
+    ShortLinkConfig {
+        default_ttl,
+        max_ttl,
+        max_entries,
+        base_url,
+    }
 }

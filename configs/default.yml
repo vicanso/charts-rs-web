@@ -10,3 +10,8 @@ limits:
   maxCanvasSide: "8192"
   maxDataPoints: "100000"
   maxMermaidSource: "65536"
+shortLink:
+  defaultTtl: "86400"
+  maxTtl: "604800"
+  maxEntries: "10000"
+  baseUrl: ""

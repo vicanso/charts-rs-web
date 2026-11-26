@@ -996,21 +996,36 @@ class App extends Component<any, AppState> {
       this.bindEditorChange();
     }
 
-    const [basicInfoResult, examplesResult] = await Promise.allSettled([
-      axios.get<{
-        families: string[];
-        version: string;
-        themes: string[];
-      }>("./api/basic-info"),
-      axios.get<ExamplesCatalogResponse>("./api/examples"),
-    ]);
+    const shortId = new URLSearchParams(window.location.search)
+      .get("s")
+      ?.trim();
+
+    const [basicInfoResult, examplesResult, shortLinkResult] =
+      await Promise.allSettled([
+        axios.get<{
+          families: string[];
+          version: string;
+          themes: string[];
+        }>("./api/basic-info"),
+        axios.get<ExamplesCatalogResponse>("./api/examples"),
+        shortId
+          ? axios.get<{
+              id: string;
+              format: string;
+              scale: number;
+              options: Record<string, unknown>;
+            }>(`./api/charts/short-links/${encodeURIComponent(shortId)}`)
+          : Promise.resolve(null),
+      ]);
 
     const nextState: Partial<AppState> = {};
+    let loadedThemes = this.state.themes;
     if (basicInfoResult.status === "fulfilled") {
       const data = basicInfoResult.value.data;
       nextState.fontFamilies = data.families;
       nextState.version = data.version;
       nextState.themes = data.themes;
+      loadedThemes = data.themes;
       if (data.themes.length > 0 && !data.themes.includes(this.state.theme)) {
         const fallbackTheme = data.themes.includes("light")
           ? "light"
@@ -1046,7 +1061,66 @@ class App extends Component<any, AppState> {
       message.error(this.t("loadExamplesFailed"));
     }
 
+    const loadedShortLink =
+      shortId &&
+      shortLinkResult.status === "fulfilled" &&
+      shortLinkResult.value?.data
+        ? shortLinkResult.value.data
+        : null;
+
+    if (shortId && !loadedShortLink) {
+      message.warning(this.t("shortLinkExpired"));
+    }
+
+    if (loadedShortLink) {
+      const opts = loadedShortLink.options || {};
+      const validFormat = formatOptions.some(
+        (opt) => opt.value === loadedShortLink.format,
+      )
+        ? loadedShortLink.format
+        : this.state.format;
+      const nextScale = normalizeScale(Math.round(loadedShortLink.scale));
+      nextState.format = validFormat;
+      nextState.scale = nextScale;
+      nextState.renderedScale = nextScale;
+      if (typeof opts.compact === "boolean") {
+        nextState.compact = opts.compact;
+      }
+      if (
+        typeof opts.theme === "string" &&
+        (loadedThemes.length === 0 || loadedThemes.includes(opts.theme))
+      ) {
+        nextState.theme = opts.theme;
+        nextState.chartThemeManual =
+          opts.theme !== defaultChartThemeFor(this.state.uiTheme);
+      }
+      if (typeof opts.font_family === "string" && opts.font_family.trim()) {
+        nextState.fontFamily = opts.font_family;
+      }
+      nextState.currentChartType = "";
+      nextState.galleryExpanded = false;
+      nextState.jsonError = "";
+      if (opts.type === "mermaid") {
+        nextState.editorMode = "mermaid";
+        nextState.mermaidOptions = opts;
+      } else {
+        nextState.editorMode = "json";
+        nextState.mermaidOptions = null;
+      }
+    }
+
     this.setState(nextState as AppState, () => {
+      if (loadedShortLink) {
+        const opts = loadedShortLink.options || {};
+        if (opts.type === "mermaid") {
+          const source = typeof opts.source === "string" ? opts.source : "";
+          this.setEditorValue(source, "plaintext");
+        } else {
+          this.setEditorValue(formatJson(opts), "json");
+        }
+        void this.generateChart({ silentJsonError: true });
+        return;
+      }
       if (initialId) {
         this.changeChartOption(initialId);
         if (!this.state.galleryExpanded) {
@@ -1491,11 +1565,24 @@ class App extends Component<any, AppState> {
       return;
     }
     const { format, scale } = this.state;
+    const scaleParam = format !== "svg" ? `&scale=${scale}` : "";
+    let shortId = "";
     try {
-      const scaleParam = format !== "svg" ? `&scale=${scale}` : "";
-      const url = `${window.location.origin}${window.location.pathname}api/charts?format=${format}${scaleParam}&opts=${encodeURIComponent(JSON.stringify(value))}`;
+      const { data } = await axios.post<{ id: string }>(
+        `./api/charts/short-links?format=${format}${scaleParam}`,
+        value,
+      );
+      shortId = data.id;
+    } catch {
+      // Fall back to the full URL if short-link storage is unavailable.
+    }
+
+    try {
+      const url = shortId
+        ? new URL(`s/${shortId}`, window.location.href).href
+        : `${window.location.origin}${window.location.pathname}api/charts?format=${format}${scaleParam}&opts=${encodeURIComponent(JSON.stringify(value))}`;
       await navigator.clipboard.writeText(url);
-      message.success(this.t("linkCopied"));
+      message.success(this.t(shortId ? "shortLinkCopied" : "linkCopied"));
     } catch (err: any) {
       message.error(err?.message || String(err), 10);
     }
