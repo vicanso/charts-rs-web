@@ -84,6 +84,26 @@ impl APPConfig {
         }
         default_value
     }
+    /// 从配置中获取对应的值(u32)，优先从env获取，允许为0，解析失败时使用默认值
+    fn get_u32_value_allow_zero(&self, key: &str, default_value: u32) -> u32 {
+        if let Ok(value) = self.get_value_from_env_first(key).trim().parse::<u32>() {
+            return value;
+        }
+        default_value
+    }
+    /// 从配置中获取布尔值，优先从env获取
+    fn get_bool_value_default(&self, key: &str, default_value: bool) -> bool {
+        match self
+            .get_value_from_env_first(key)
+            .trim()
+            .to_ascii_lowercase()
+            .as_str()
+        {
+            "true" | "1" | "yes" | "on" => true,
+            "false" | "0" | "no" | "off" => false,
+            _ => default_value,
+        }
+    }
     /// 优先从env中获取配置的值，如果env中未配置则调用get_value获取
     fn get_value_from_env_first(&self, key: &str) -> String {
         let k = self.get_key(key);
@@ -183,8 +203,9 @@ pub fn must_new_render_limits() -> charts_rs::RenderLimits {
     limits
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ShortLinkConfig {
+    pub store: String,
     pub default_ttl: u64,
     pub max_ttl: u64,
     pub max_entries: usize,
@@ -193,6 +214,10 @@ pub struct ShortLinkConfig {
 
 pub fn must_new_short_link_config() -> ShortLinkConfig {
     let config = must_new_config().set_prefix("shortLink");
+    let store = config
+        .get_value_from_env_first("store")
+        .trim()
+        .to_ascii_lowercase();
     let max_ttl = config.get_u64_value_default("maxTtl", 604_800);
     let default_ttl = config
         .get_u64_value_default("defaultTtl", 86_400)
@@ -204,9 +229,77 @@ pub fn must_new_short_link_config() -> ShortLinkConfig {
         .trim_end_matches('/')
         .to_string();
     ShortLinkConfig {
+        store,
         default_ttl,
         max_ttl,
         max_entries,
         base_url,
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(not(feature = "redis-store"), allow(dead_code))]
+pub struct RedisConfig {
+    pub url: String,
+    pub cluster: bool,
+    pub key_prefix: String,
+}
+
+pub fn must_new_redis_config() -> RedisConfig {
+    let config = must_new_config().set_prefix("redis");
+    let url = config.get_value_from_env_first("url").trim().to_string();
+    let cluster = config.get_bool_value_default("cluster", false);
+    let key_prefix = config.get_value_from_env_first("keyPrefix");
+    let key_prefix = if key_prefix.is_empty() {
+        "charts:short_link:".to_string()
+    } else {
+        key_prefix
+    };
+    RedisConfig {
+        url,
+        cluster,
+        key_prefix,
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(
+    not(any(feature = "postgres-store", feature = "mysql-store")),
+    allow(dead_code)
+)]
+pub struct DatabaseConfig {
+    pub url: String,
+    pub max_connections: u32,
+    pub min_connections: u32,
+    pub acquire_timeout: u64,
+    pub table_name: String,
+    pub auto_migrate: bool,
+}
+
+pub fn must_new_database_config() -> DatabaseConfig {
+    let config = must_new_config().set_prefix("database");
+    let url = config.get_value_from_env_first("url").trim().to_string();
+    let max_connections = config.get_u32_value_allow_zero("maxConnections", 10).max(1);
+    let min_connections = config
+        .get_u32_value_allow_zero("minConnections", 0)
+        .min(max_connections);
+    let acquire_timeout = config.get_u64_value_default("acquireTimeout", 5);
+    let table_name = config
+        .get_value_from_env_first("tableName")
+        .trim()
+        .to_string();
+    let table_name = if table_name.is_empty() {
+        "chart_short_links".to_string()
+    } else {
+        table_name
+    };
+    let auto_migrate = config.get_bool_value_default("autoMigrate", true);
+    DatabaseConfig {
+        url,
+        max_connections,
+        min_connections,
+        acquire_timeout,
+        table_name,
+        auto_migrate,
     }
 }

@@ -11,7 +11,19 @@ limits:
   maxDataPoints: "100000"
   maxMermaidSource: "65536"
 shortLink:
+  store: ""
   defaultTtl: "86400"
   maxTtl: "604800"
   maxEntries: "10000"
   baseUrl: ""
+redis:
+  url: ""
+  cluster: "false"
+  keyPrefix: "charts:short_link:"
+database:
+  url: ""
+  maxConnections: "10"
+  minConnections: "0"
+  acquireTimeout: "5"
+  tableName: "chart_short_links"
+  autoMigrate: "true"

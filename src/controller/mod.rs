@@ -51,10 +51,6 @@ impl From<ImageError> for HttpError {
 // json响应的result
 pub type JsonResult<T> = HttpResult<Json<T>>;
 
-pub fn new_router() -> Router {
-    new_router_with_short_links(Arc::new(ShortLinkService::new_default_memory()))
-}
-
 pub fn new_router_with_short_links(short_links: Arc<ShortLinkService>) -> Router {
     Router::new()
         .route("/ping", get(ping))
@@ -680,8 +676,8 @@ struct CreateShortLinkResponse {
     url: String,
     format: String,
     scale: f32,
-    ttl: u64,
-    expires_at: i64,
+    ttl: Option<u64>,
+    expires_at: Option<i64>,
 }
 
 #[derive(Serialize)]
@@ -692,7 +688,7 @@ struct ShortLinkMetaResponse {
     scale: f32,
     options: serde_json::Value,
     created_at: i64,
-    expires_at: i64,
+    expires_at: Option<i64>,
 }
 
 fn short_link_not_found() -> HttpError {
@@ -844,7 +840,10 @@ async fn preview_short_link(
         Some(s) => validate_scale(s)?,
         None => record.scale,
     };
-    let remaining_ttl = (record.expires_at - Utc::now().timestamp()).clamp(1, 300);
+    let remaining_ttl = record
+        .expires_at
+        .map(|exp| (exp - Utc::now().timestamp()).clamp(1, 300))
+        .unwrap_or(300);
     let cache_control = HeaderValue::from_str(&format!("public, max-age={remaining_ttl}"))
         .unwrap_or_else(|_| HeaderValue::from_static("public, max-age=60"));
 
@@ -1100,6 +1099,7 @@ mod tests {
         let svc = Arc::new(ShortLinkService::new(
             store,
             ShortLinkConfig {
+                store: String::new(),
                 default_ttl: 3600,
                 max_ttl: 7200,
                 max_entries: 32,
@@ -1216,9 +1216,114 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn short_link_routes_handle_permanent_store_without_ttl() {
+        use crate::config::ShortLinkConfig;
+        use crate::short_link::{MemoryStore, ShortLinkRecord, ShortLinkStore, StoreFuture};
+        use axum::http::StatusCode;
+        use std::time::Duration;
+        use tower::ServiceExt;
+
+        struct PermanentMockStore {
+            inner: MemoryStore,
+        }
+
+        impl ShortLinkStore for PermanentMockStore {
+            fn backend_name(&self) -> &'static str {
+                "postgres"
+            }
+
+            fn supports_ttl(&self) -> bool {
+                false
+            }
+
+            fn insert<'a>(
+                &'a self,
+                id: &'a str,
+                record: &'a ShortLinkRecord,
+                ttl: Option<Duration>,
+            ) -> StoreFuture<'a, Result<bool, String>> {
+                assert!(ttl.is_none());
+                assert!(record.expires_at.is_none());
+                self.inner.insert(id, record, None)
+            }
+
+            fn get<'a>(
+                &'a self,
+                id: &'a str,
+            ) -> StoreFuture<'a, Result<Option<ShortLinkRecord>, String>> {
+                self.inner.get(id)
+            }
+        }
+
+        let store: Arc<dyn ShortLinkStore> = Arc::new(PermanentMockStore {
+            inner: MemoryStore::new(16),
+        });
+        let svc = Arc::new(ShortLinkService::new(
+            store,
+            ShortLinkConfig {
+                store: "postgres".to_string(),
+                default_ttl: 3600,
+                max_ttl: 7200,
+                max_entries: 16,
+                base_url: String::new(),
+            },
+        ));
+        let app = new_router_with_short_links(svc);
+
+        let chart_body = r#"{"type":"bar","width":80,"height":48,"x_axis_data":["a","b"],"series_list":[{"name":"A","data":[1,3]}]}"#;
+        let create_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/charts/short-links?format=svg&ttl=999999")
+                    .body(Body::from(chart_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(create_res.status(), StatusCode::OK);
+        let create_bytes = create_res.into_body().collect().await.unwrap().to_bytes();
+        let created: serde_json::Value = serde_json::from_slice(&create_bytes).unwrap();
+        assert!(created["ttl"].is_null());
+        assert!(created["expires_at"].is_null());
+
+        let id = created["id"].as_str().unwrap();
+        let meta_res = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/api/charts/short-links/{id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(meta_res.status(), StatusCode::OK);
+        let meta_bytes = meta_res.into_body().collect().await.unwrap().to_bytes();
+        let meta: serde_json::Value = serde_json::from_slice(&meta_bytes).unwrap();
+        assert!(meta["expires_at"].is_null());
+
+        let svg_res = app
+            .oneshot(
+                Request::builder()
+                    .uri(format!("/s/{id}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(svg_res.status(), StatusCode::OK);
+        assert_eq!(
+            svg_res.headers().get(header::CACHE_CONTROL).unwrap(),
+            "public, max-age=300"
+        );
+    }
+
+    #[tokio::test]
     async fn short_link_creation_requires_successful_svg_render_and_scale_bounds() {
         use crate::config::ShortLinkConfig;
-        use crate::short_link::{MemoryStore, ShortLinkStore, StoreFuture};
+        use crate::short_link::{MemoryStore, ShortLinkRecord, ShortLinkStore, StoreFuture};
         use axum::http::StatusCode;
         use std::sync::atomic::{AtomicUsize, Ordering};
         use std::time::Duration;
@@ -1226,32 +1331,36 @@ mod tests {
 
         struct CountingStore {
             inner: MemoryStore,
-            sets: AtomicUsize,
+            inserts: AtomicUsize,
         }
 
         impl ShortLinkStore for CountingStore {
-            fn get<'a>(&'a self, id: &'a str) -> StoreFuture<'a, Result<Option<Vec<u8>>, String>> {
+            fn get<'a>(
+                &'a self,
+                id: &'a str,
+            ) -> StoreFuture<'a, Result<Option<ShortLinkRecord>, String>> {
                 self.inner.get(id)
             }
 
-            fn set<'a>(
+            fn insert<'a>(
                 &'a self,
                 id: &'a str,
-                value: Vec<u8>,
-                ttl: Duration,
-            ) -> StoreFuture<'a, Result<(), String>> {
-                self.sets.fetch_add(1, Ordering::SeqCst);
-                self.inner.set(id, value, ttl)
+                record: &'a ShortLinkRecord,
+                ttl: Option<Duration>,
+            ) -> StoreFuture<'a, Result<bool, String>> {
+                self.inserts.fetch_add(1, Ordering::SeqCst);
+                self.inner.insert(id, record, ttl)
             }
         }
 
         let store = Arc::new(CountingStore {
             inner: MemoryStore::new(16),
-            sets: AtomicUsize::new(0),
+            inserts: AtomicUsize::new(0),
         });
         let svc = Arc::new(ShortLinkService::new(
             store.clone(),
             ShortLinkConfig {
+                store: String::new(),
                 default_ttl: 3600,
                 max_ttl: 7200,
                 max_entries: 16,
@@ -1274,7 +1383,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(bad_mermaid_res.status(), StatusCode::BAD_REQUEST);
-        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+        assert_eq!(store.inserts.load(Ordering::SeqCst), 0);
 
         let missing_map = r#"{"type":"map","geo_json":"nonexistent_map_for_short_link_test","series_list":[{"name":"A","data":[{"name":"X","value":1}]}]}"#;
         let missing_map_res = app
@@ -1289,7 +1398,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(missing_map_res.status(), StatusCode::BAD_REQUEST);
-        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+        assert_eq!(store.inserts.load(Ordering::SeqCst), 0);
 
         // 2. Unscaled width within max_canvas_side, but width * scale > max_canvas_side for PNG -> 400 limit_exceeded.
         let side = (must_new_render_limits().max_canvas_side * 0.6).round() as u32;
@@ -1316,7 +1425,7 @@ mod tests {
             .to_bytes();
         let err_json: serde_json::Value = serde_json::from_slice(&err_bytes).unwrap();
         assert_eq!(err_json["code"], "limit_exceeded");
-        assert_eq!(store.sets.load(Ordering::SeqCst), 0);
+        assert_eq!(store.inserts.load(Ordering::SeqCst), 0);
 
         // 3. Same wide payload requested as SVG succeeds (scale does not affect vector SVG bounds).
         let svg_res = app
@@ -1330,6 +1439,6 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(svg_res.status(), StatusCode::OK);
-        assert_eq!(store.sets.load(Ordering::SeqCst), 1);
+        assert_eq!(store.inserts.load(Ordering::SeqCst), 1);
     }
 }

@@ -2,6 +2,7 @@ use axum::{Router, error_handling::HandleErrorLayer, middleware::from_fn};
 use axum_client_ip::ClientIpSource;
 use glob::glob;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use std::time::Duration;
 use std::{env, fs, str::FromStr};
 use substring::Substring;
@@ -76,6 +77,17 @@ async fn shutdown_signal() {
 }
 
 async fn run() {
+    let short_links = match short_link::ShortLinkService::from_env_config().await {
+        Ok(svc) => {
+            info!(store = svc.backend_name(), "short-link store initialized");
+            Arc::new(svc)
+        }
+        Err(err) => {
+            tracing::error!(error = %err, "failed to initialize short-link store");
+            std::process::exit(1);
+        }
+    };
+
     let predicate = SizeAbove::new(1024)
         .and(NotForContentType::GRPC)
         .and(NotForContentType::IMAGES)
@@ -83,7 +95,7 @@ async fn run() {
 
     // build our application with a route
     let app = Router::new()
-        .merge(controller::new_router())
+        .merge(controller::new_router_with_short_links(short_links))
         .nest_service("/mcp", mcp::new_service())
         .layer(
             ServiceBuilder::new()

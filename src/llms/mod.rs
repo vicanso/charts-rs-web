@@ -157,9 +157,9 @@ pub fn render_llms_txt() -> String {
         "`quality` (`0`–`100`, default `0`; `0` keeps lossless RGBA PNG or high-quality defaults JPEG=`92` / AVIF=`90`, `1`–`100` sets NeuQuant PNG quantization or JPEG/AVIF encoder quality; WebP is lossless) and `?scale=<1..4>` (or JSON `\"scale\"`, query takes precedence; HTTP default `1`, ignored for SVG).\n\
         - `POST /api/charts/jpeg`, `POST /api/charts/webp`, `POST /api/charts/avif`: Render chart JSON options to raster images (accepts `?scale=<1..4>` or JSON `\"scale\"`, HTTP default `1`; `quality` applies to JPEG/AVIF).\n\
         - `GET /api/charts?format=<svg|png|jpeg|webp|avif>&scale=<1..4>&opts=<url-encoded-json>`: GET preview endpoint (default `format=svg`, `scale=1`).\n\
-        - `POST /api/charts/short-links?format=<svg|png|jpeg|webp|avif>&scale=<1..4>&ttl=<secs>`: Validate, pre-render SVG (and check scaled raster bounds when non-SVG), and save a temporary short link (10-char NanoID, default TTL `86400`s / max `604800`s). Returns `{{\"id\", \"path\", \"url\", \"format\", \"scale\", \"ttl\", \"expires_at\"}}`.\n\
-        - `GET /s/{{id}}`: Render a stored short link to SVG or raster image (accepts optional `?format=...&scale=...` overrides; returns HTTP 404 if missing/expired).\n\
-        - `GET /api/charts/short-links/{{id}}`: Retrieve stored metadata and raw `options` JSON (returns HTTP 404 if missing/expired).\n\
+        - `POST /api/charts/short-links?format=<svg|png|jpeg|webp|avif>&scale=<1..4>&ttl=<secs>`: Validate, pre-render SVG (and check scaled raster bounds when non-SVG), and save a short link (10-char NanoID). Memory/Redis stores enforce TTL (default `86400`s / max `604800`s); SQL database stores (PostgreSQL/MySQL) persist links permanently (`ttl` and `expires_at` are `null`). Returns `{{\"id\", \"path\", \"url\", \"format\", \"scale\", \"ttl\", \"expires_at\"}}`.\n\
+        - `GET /s/{{id}}`: Render a stored short link to SVG or raster image (accepts optional `?format=...&scale=...` overrides; returns HTTP 404 if missing or expired).\n\
+        - `GET /api/charts/short-links/{{id}}`: Retrieve stored metadata and raw `options` JSON (returns HTTP 404 if missing or expired; `expires_at` is `null` for permanent SQL stores).\n\
         - `GET /api/basic-info`: Returns `{{\"families\", \"themes\", \"maps\", \"chart_types\", \"version\"}}`.\n\
         - `GET /api/examples`: Returns the unified gallery catalog ({total_examples} verified chart & Mermaid examples).\n\
         - `GET /llms.txt`: This concise AI/LLM service guide (`text/markdown`).\n\

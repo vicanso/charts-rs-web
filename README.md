@@ -12,9 +12,9 @@
 - `GET /api/examples`: 返回后端统一示例库（60 个图表变体 + 14 个 Mermaid 示例，覆盖全部 13 种规范图）
 - `GET /llms.txt` / `GET /llms-full.txt`: 随构建的 `charts-rs` 版本与服务端实时状态（字体、主题、地图、`RenderLimits`）自动生成服务说明与完整 JSON/Mermaid 参考文档
 - `GET /api/charts?opts=<json>&format=<svg|png|jpeg|webp|avif>&scale=<1..4>`: 通过 URL 参数直接预览或分享图表（`format` 默认 `svg`，位图 `scale` 默认 `1`）
-- `POST /api/charts/short-links?format=<...>&scale=<1..4>&ttl=<secs>`: 校验并试渲染 SVG（位图同时校验缩放后尺寸上限）通过后创建临时短链（10 位 NanoID，默认有效期 24 小时，最长 7 天），返回 `{ id, path, url, format, scale, ttl, expires_at }`
-- `GET /s/{id}`: 根据短链 ID 获取存储参数并重新渲染输出（支持 `?format=&scale=` 临时覆盖，过期或不存在返回 404）
-- `GET /api/charts/short-links/{id}`: 获取短链存储的原始 JSON 配置与元信息（前端可通过 `/?s={id}` 自动回填编辑器）
+- `POST /api/charts/short-links?format=<...>&scale=<1..4>&ttl=<secs>`: 校验并试渲染 SVG（位图同时校验缩放后尺寸上限）通过后创建短链（10 位 NanoID）。默认内存与 Redis 后端按 TTL 过期（默认 24 小时，最长 7 天）；配置 PostgreSQL / MySQL 时为永久存储（忽略 `ttl`，返回 `ttl: null, expires_at: null`）。返回 `{ id, path, url, format, scale, ttl, expires_at }`
+- `GET /s/{id}`: 根据短链 ID 获取存储参数并重新渲染输出（支持 `?format=&scale=` 临时覆盖，不存在或过期返回 404）
+- `GET /api/charts/short-links/{id}`: 获取短链存储的原始 JSON 配置与元信息（前端可通过 `/?s={id}` 自动回填编辑器；永久 SQL 后端下 `expires_at` 为 `null`）
 - `POST /api/charts/png`: 生成Png图表（支持 `?scale=<1..4>` 或 JSON `"scale"`，Query 优先，默认 `1`）
 - `POST /api/charts/jpeg`: 生成Jpeg图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
 - `POST /api/charts/webp`: 生成Webp图表（支持 `?scale=<1..4>` 或 JSON `"scale"`）
@@ -277,10 +277,20 @@ Mermaid 图表不使用 `series_list` 或 `x_axis_data`，支持以下字段：
 | `LIMITS_MAXCANVASSIDE` | 画布 `width` / `height` 上限（像素） | `8192` |
 | `LIMITS_MAXDATAPOINTS` | 全部 JSON 数组元素总数上限 | `100000` |
 | `LIMITS_MAXMERMAIDSOURCE` | Mermaid `source` 最大字节数 | `65536`（64 KiB） |
-| `SHORTLINK_DEFAULTTTL` | 短链默认过期时间（秒） | `86400`（24 小时） |
-| `SHORTLINK_MAXTTL` | 短链允许的最大过期时间（秒） | `604800`（7 天） |
+| `SHORTLINK_STORE` | 短链存储后端：`memory`、`redis`、`database`/`postgres`/`mysql`（为空时按已配置的 `REDIS_URL` / `DATABASE_URL` 自动选择，均未配默认 `memory`） | 空（自动） |
+| `SHORTLINK_DEFAULTTTL` | 短链默认过期时间（秒，仅 `memory` / `redis` 生效） | `86400`（24 小时） |
+| `SHORTLINK_MAXTTL` | 短链允许的最大过期时间（秒，仅 `memory` / `redis` 生效） | `604800`（7 天） |
 | `SHORTLINK_MAXENTRIES` | 内存短链存储最大条数（超限自动清理过期及最早过期项） | `10000` |
 | `SHORTLINK_BASEURL` | 短链完整 URL 前缀（如 `https://charts.example.com`），为空时自动按 `Host` 推导 | 空 |
+| `REDIS_URL` | Redis 连接地址，支持 `redis://`、`rediss://`、`redis+cluster://`、`rediss+cluster://` 或逗号分隔的多节点列表 | 空 |
+| `REDIS_CLUSTER` | 是否强制启用 Redis Cluster 模式（多节点逗号分隔或 `+cluster://` 协议头会自动开启） | `false` |
+| `REDIS_KEYPREFIX` | Redis 短链 Key 前缀 | `charts:short_link:` |
+| `DATABASE_URL` | SQLx 数据库连接地址，支持 `postgres://` / `postgresql://` 与 `mysql://` / `mariadb://` | 空 |
+| `DATABASE_MAXCONNECTIONS` | 数据库连接池最大连接数 | `10` |
+| `DATABASE_MINCONNECTIONS` | 数据库连接池最小空闲连接数 | `0` |
+| `DATABASE_ACQUIRETIMEOUT` | 数据库连接获取超时时间（秒） | `5` |
+| `DATABASE_TABLENAME` | 存储短链的数据表名（仅允许 ASCII 字母、数字与 `_`） | `chart_short_links` |
+| `DATABASE_AUTOMIGRATE` | 启动时是否自动执行幂等 `CREATE TABLE IF NOT EXISTS` | `true` |
 | `LOG_LEVEL` | 日志级别 | `INFO` |
 
 ```bash
@@ -289,3 +299,46 @@ docker run -d --restart=always \
   --name charts-rs-web \
   vicanso/charts-rs-web
 ```
+
+### 短链存储后端（Redis / PostgreSQL / MySQL）
+
+默认构建已启用纯 Rust 驱动（Cargo features：`redis-store`、`postgres-store`、`mysql-store`），可通过 `--no-default-features` 按需裁剪：
+
+- **Redis（支持单机 / TLS / Cluster，按 TTL 自动过期）**：
+  ```bash
+  REDIS_URL=redis://127.0.0.1:6379/0 charts-rs-web
+  # Cluster 模式（逗号分隔多节点或 redis+cluster:// / REDIS_CLUSTER=true）
+  REDIS_URL=redis://node1:6379,redis://node2:6379 REDIS_CLUSTER=true charts-rs-web
+  ```
+- **PostgreSQL / MySQL（通过 SQLx 连接，纯永久追加存储、不带过期字段）**：
+  ```bash
+  DATABASE_URL=postgres://user:pass@127.0.0.1:5432/charts charts-rs-web
+  # 或 MySQL：
+  DATABASE_URL=mysql://user:pass@127.0.0.1:3306/charts charts-rs-web
+  ```
+- 如果生产库账号无建表权限，可设置 `DATABASE_AUTOMIGRATE=false`，并预先执行对应建表 SQL：
+
+  PostgreSQL：
+  ```sql
+  CREATE TABLE IF NOT EXISTS chart_short_links (
+      id BIGSERIAL PRIMARY KEY,
+      short_id VARCHAR(64) NOT NULL UNIQUE,
+      format VARCHAR(16) NOT NULL,
+      scale REAL NOT NULL,
+      options JSONB NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  );
+  ```
+
+  MySQL：
+  ```sql
+  CREATE TABLE IF NOT EXISTS `chart_short_links` (
+      `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      `short_id` VARCHAR(64) NOT NULL,
+      `format` VARCHAR(16) NOT NULL,
+      `scale` FLOAT NOT NULL,
+      `options` JSON NOT NULL,
+      `created_at` DATETIME NOT NULL,
+      UNIQUE KEY `uk_short_id` (`short_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ```
